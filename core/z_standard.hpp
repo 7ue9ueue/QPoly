@@ -11,10 +11,10 @@ public:
     constexpr static T MOD = P;
 
 #ifdef __SIZEOF_INT128__
-    using twice_T = std::conditional_t<sizeof(T) == 4, uint64_t, __uint128_t>;
+    using wide_T = std::conditional_t<sizeof(T) == 4, uint64_t, __uint128_t>;
 #else
     static_assert(sizeof(T) == 4, "64-bit modular arithmetic requires __uint128_t support");
-    using twice_T = uint64_t;
+    using wide_T = uint64_t;
 #endif
 
     constexpr T val() const {
@@ -25,7 +25,7 @@ public:
 
     template <std::unsigned_integral U>
     explicit constexpr Z(U v) {
-        if (v < MOD) {
+        if (v < MOD) [[likely]] {
             value = v;
         }
         else if (v < MOD + MOD) {
@@ -41,7 +41,7 @@ public:
 
     template <std::signed_integral U>
     explicit constexpr Z(U v) {
-        if (v >= 0 && v < signed_P) {
+        if (v >= 0 && v < signed_P) [[likely]] {
             value = v;
         } 
         else if (v < 0 && v >= -signed_P) {
@@ -96,7 +96,7 @@ public:
     }
 
     constexpr Z& operator*=(const Z& other) {
-        value = static_cast<T>((twice_T(value) * other.value) % MOD);
+        value = static_cast<T>((wide_T(value) * other.value) % MOD);
         return *this;
     }
 
@@ -116,17 +116,31 @@ public:
     friend constexpr bool operator==(const Z &lhs, const Z &rhs) {return lhs.val() == rhs.val();}
     friend constexpr std::strong_ordering operator<=>(const Z &lhs, const Z &rhs) {return lhs.val() <=> rhs.val();}
 
+    // Extended Euclid Algorithm
+    // constexpr Z inv() const {
+    //     assert(value != 0 && "Z: zero has no inverse");
+    //     using S = std::make_signed_t<T>;
+    //     S a = value, b = MOD, x = 1, y = 0;
+    //     while (b) {
+    //         S q = a / b;
+    //         a -= q * b; std::swap(a, b);
+    //         x -= q * y; std::swap(x, y);
+    //     }
+    //     assert(a == 1 && "Z: requires gcd(value, mod) == 1");
+    //     return Z(x);
+    // }
     constexpr Z inv() const {
         assert(value != 0 && "Z: zero has no inverse");
-        using S = std::make_signed_t<T>;
-        S a = value, b = MOD, x = 1, y = 0;
+        using wide_S = std::make_signed_t<wide_T>;
+        wide_S a = value, b = MOD, x0 = 1, x1 = 0;
         while (b) {
-            S q = a / b;
-            a -= q * b; std::swap(a, b);
-            x -= q * y; std::swap(x, y);
+            wide_S q = a / b;
+            wide_S a2 = a - q * b; a = b; b = a2;
+            wide_S x2 = x0 - q * x1; x0 = x1; x1 = x2;
         }
         assert(a == 1 && "Z: requires gcd(value, mod) == 1");
-        return Z(x);
+        if (x0 < 0) x0 += MOD;
+        return Z(static_cast<T>(x0));
     }
 
     constexpr Z pow(uint64_t b) const {
