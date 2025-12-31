@@ -70,17 +70,12 @@ void ntt(vll &a) {
 }
 
 typedef __m256i v8i;
-v8i* alloc(int n) {
-    v8i* ptr = (v8i*) std::aligned_alloc(32, 32 * n);
-    memset(ptr, 0, 32 * n); // is this optimal? 
-    return ptr;
-}
 
-// stub multiply. 
 // Precomputed constant: m = (-mod^{-1}) mod 2^32
 // For mod = 998244353, m = 998244351
 const uint32_t MOD = 998244353;
 const uint32_t M_INV = 998244351; // Montgomery constant
+const uint32_t R2_MOD = 932051910;
 const v8i v_mod = _mm256_set1_epi32(MOD);
 const v8i v_m = _mm256_set1_epi32(M_INV);
 
@@ -124,31 +119,54 @@ v8i _mm256_multiply_mod(const v8i& a, const v8i& b) {
 }
 
 v8i _mm256_add_mod(const v8i& a, const v8i& b) {
-    v8i sum = _mm256_add_epi32(a, b);
-    v8i adj = _mm256_sub_epi32(sum, v_mod);
-    return _mm256_min_epi32(sum, adj);
+    v8i adjusted = _mm256_sub_epi32(_mm256_add_epi32(a, b), v_mod);
+    v8i mask = _mm256_srai_epi32(adjusted, 31);
+    return _mm256_add_epi32(adjusted, _mm256_and_si256(mask, v_mod));
 }
+
+v8i _mm256_add_mod(const v8i& a, const v8i& b) {
+    static const v8i N1 = _mm256_set1_epi32(-1);
+    v8i sum = _mm256_add_epi32(a, b);
+    v8i adjusted = _mm256_sub_epi32(sum, v_mod);
+    v8i mask = _mm256_cmpgt_epi32(adjusted, N1);
+    return _mm256_blendv_epi8(sum, adjusted, mask);
+}
+
+const v8i v_r2 = _mm256_set1_epi32(R2_MOD);
+const v8i v_one = _mm256_set1_epi32(1);
 
 // n must be power of 2 and n >= 32. 
 // load 32 bits and only use 64 bits in calculation.
 void ntt_SIMD(vi &a) {
     int n = sz(a), L = 31 - __builtin_clz(n);
     static vi rt(2, 1);
+    static vi rt_mont(2);  // Twiddle factors in Montgomery form
     // O(n) 
     for (static int k = 2, s = 2; k < n; k *= 2, ++s) {
         rt.resize(n);
+        rt_mont.resize(n);
         ll z[] = {1, modpow(root, mod >> s, mod)};
-        rep(i, k, 2 * k) rt[i] = ((ll)rt[i / 2] * z[i & 1]) % mod;
+        rep(i, k, 2 * k) {
+            rt[i] = ((ll)rt[i / 2] * z[i & 1]) % mod;
+            rt_mont[i] = mont_mul_scalar(rt[i], R2_MOD);
+        }
     }
+    rt_mont[1] = mont_mul_scalar(rt[1], R2_MOD);
+    
     vi rev(n);
     rep(i, 0, n) rev[i] = (rev[i / 2] | (i & 1) << L) / 2;
     rep(i, 0, n) if (i < rev[i]) swap(a[i], a[rev[i]]);
 
     // (A, B) -> (A + wB, A - wB) SIMB butterfly. O(n log n).
-    // TODO: Convert to Montgomery. 
-
+    // Convert to Montgomery: MontMul(a, R^2) = a * R mod N
     int n_batched = n / 8; // must be divisible. 
     int* a_ptr = a.data();
+
+    for (int i = 0; i < n; i += 8) {
+        v8i v = _mm256_loadu_si256((v8i*)(a_ptr + i));
+        v = _mm256_multiply_mod(v, v_r2);
+        _mm256_storeu_si256((v8i*)(a_ptr + i), v);
+    }
 
     // k = 1 
     {
@@ -158,30 +176,35 @@ void ntt_SIMD(vi &a) {
             v8i v_A = _mm256_shuffle_epi32(v_I, _MM_SHUFFLE(2, 2, 0, 0)); // [A0, A0, A1, A1, ...]
             v8i v_B = _mm256_shuffle_epi32(v_I, _MM_SHUFFLE(3, 3, 1, 1)); // [B0, B0, B1, B1, ...]
 
-            v8i v_W = _mm256_set1_epi32(rt[1]);
-            v8i v_WB = _mm256_multiply_mod(v_W, v_B);  // W*B for all lanes
+            v8i v_W = _mm256_set1_epi32(rt_mont[1]); // [W, W, ...]
+            v8i v_WB = _mm256_multiply_mod(v_W, v_B);  // [W*B0, W*B0, W*B1, W*B1, ...]
             
-            // Correct modular negation: MOD - WB
-            v8i v_neg_WB = _mm256_sub_epi32(v_mod, v_WB);
+            v8i v_neg_WB = _mm256_sub_epi32(v_mod, v_WB); // [MOD-W*B0, MOD-W*B0, MOD-W*B1, MOD-W*B1,...]
             
-            // Interleave: [WB, MOD-WB, WB, MOD-WB, ...]
-            v8i v_WB_interleaved = _mm256_blend_epi32(v_WB, v_neg_WB, 0xAA);
+            v8i v_WB_interleaved = _mm256_blend_epi32(v_WB, v_neg_WB, 0xAA); // Interleave: [WB, MOD-WB, WB, MOD-WB, ...]
             
-            // Add with mod reduction
             v8i result = _mm256_add_mod(v_A, v_WB_interleaved);
-            
             _mm256_storeu_si256((v8i*)(a_ptr + i), result);
         }
     }
     // k = 2
     {
-
+        
     }
-    // k > 2
+    // k = 4
     {
 
     }
-    // TODO: Convert from Montgomery. 
+    // k > 4
+    {
+
+    }
+    // Convert from Montgomery: MontMul(a_mont, 1) = a mod N
+    for (int i = 0; i < n; i += 8) {
+        v8i v = _mm256_loadu_si256((v8i*)(a_ptr + i));
+        v = _mm256_multiply_mod(v, v_one);
+        _mm256_storeu_si256((v8i*)(a_ptr + i), v);
+    }
 }
 
 vll conv(const vll &a, const vll &b) {
