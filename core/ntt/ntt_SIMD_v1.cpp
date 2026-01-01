@@ -62,3 +62,31 @@ void dif_ntt(uint32_t *f, const int &n) {
         }
     }
 }
+/*
+static void dif_n(Z *f, const int &n) {
+    const Z* rt = get_root(n).first;
+    for (int i = n; i >>= 1; ) {
+        for (int j = 0, k = 0; j != n; j += i << 1, ++ k) {
+            for (int p = j, q = j + i; p != j + i; ++ p, ++ q) {
+                const Z u = f[p], v = f[q] * rt[k];
+                f[p] = u + v, f[q] = u - v;
+            }
+        }
+    }
+}
+static void dit_n(Z *f, const int &n) {
+    const Z* irt = get_root(n).second;
+    for (int i = 1; i != n; i <<= 1) {
+        for (int j = 0, k = 0; j != n; j += i << 1, ++ k) {
+            for (int p = j, q = j + i; p != j + i; ++ p, ++ q) {
+                const Z u = f[p], v = f[q];
+                f[p] = u + v, f[q] = (u - v) * irt[k];
+            }
+        }
+    }
+    const Z inv = Z::from_raw(Mod - Mod / n);
+    for (int i = 0; i < n; i ++) {
+        f[i] *= inv;
+    }
+}
+*/
