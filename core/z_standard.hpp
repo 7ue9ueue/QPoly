@@ -7,6 +7,7 @@
 template <std::unsigned_integral T = uint32_t, T P = 998244353>
 class Z {
 public:
+    using value_type = T;
     T value;
     constexpr static T MOD = P;
 
@@ -25,7 +26,7 @@ public:
 
     template <std::unsigned_integral U>
     explicit constexpr Z(U v) {
-        if (v < MOD) [[likely]] {
+        if (v < MOD) { [[likely]]
             value = v;
         }
         else if (v < MOD + MOD) {
@@ -41,7 +42,7 @@ public:
 
     template <std::signed_integral U>
     explicit constexpr Z(U v) {
-        if (v >= 0 && v < signed_P) [[likely]] {
+        if (v >= 0 && v < signed_P) { [[likely]]
             value = v;
         } 
         else if (v < 0 && v >= -signed_P) {
@@ -119,7 +120,7 @@ public:
     // Extended Euclid Algorithm
     // constexpr Z inv() const {
     //     assert(value != 0 && "Z: zero has no inverse");
-    //     using S = std::make_signed_t<T>;
+    //     using S = std::make_signed_t<wide_T>;
     //     S a = value, b = MOD, x = 1, y = 0;
     //     while (b) {
     //         S q = a / b;
@@ -129,21 +130,24 @@ public:
     //     assert(a == 1 && "Z: requires gcd(value, mod) == 1");
     //     return Z(x);
     // }
+    
+    // Swapless Extended Euclid Algorithm
     constexpr Z inv() const {
         assert(value != 0 && "Z: zero has no inverse");
         using wide_S = std::make_signed_t<wide_T>;
-        wide_S a = value, b = MOD, x0 = 1, x1 = 0;
+        wide_S a = value, b = MOD, x = 1, y = 0;
         while (b) {
             wide_S q = a / b;
-            wide_S a2 = a - q * b; a = b; b = a2;
-            wide_S x2 = x0 - q * x1; x0 = x1; x1 = x2;
+            wide_S c = a - q * b; a = b; b = c;
+            wide_S z = x - q * y; x = y; y = z;
         }
         assert(a == 1 && "Z: requires gcd(value, mod) == 1");
-        if (x0 < 0) x0 += MOD;
-        return Z(static_cast<T>(x0));
+        if (x < 0) x += MOD;
+        return Z(static_cast<T>(x));
     }
 
-    constexpr Z pow(uint64_t b) const {
+    template<typename uint_t>
+    constexpr Z pow(uint_t b) const {
         Z res(1), a = *this;
         while (b) {
             if (b & 1) res *= a;
