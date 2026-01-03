@@ -1,0 +1,444 @@
+#pragma GCC target("avx2")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
+#include <immintrin.h>
+#include <cassert>
+#include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <vector>
+#include <random>
+#include <iomanip>
+
+using u32 = uint32_t;
+using u64 = uint64_t;
+
+typedef __m256i v8i;
+
+const uint32_t MOD = 998244353;
+const uint32_t WMOD = 1996488706;
+const uint32_t R2_MOD = 932051910;
+const uint32_t M_INV = 998244351;
+const uint32_t PRIM_ROOT = 3;
+
+const v8i v_mod = _mm256_set1_epi32(MOD);
+const v8i v_wmod = _mm256_set1_epi32(WMOD);
+const v8i v_m = _mm256_set1_epi32(M_INV);
+const v8i v_r2 = _mm256_set1_epi32(R2_MOD);
+const v8i v_one = _mm256_set1_epi32(1);
+const v8i v_zero = _mm256_setzero_si256();
+
+inline uint32_t mont_mul(uint32_t a, uint32_t b) {
+    uint64_t t = (uint64_t)a * b;
+    uint64_t m = (uint64_t)((uint32_t)t * M_INV) * MOD;
+    uint32_t r = (t + m) >> 32;
+    return r >= MOD ? r - MOD : r;
+}
+
+inline uint32_t to_mont(uint32_t x) { return mont_mul(x, R2_MOD); }
+inline uint32_t from_mont(uint32_t x) { return mont_mul(x, 1); }
+
+uint32_t pow_mod(uint32_t base, uint32_t exp) {
+    uint32_t result = to_mont(1);
+    base = to_mont(base);
+    while (exp > 0) {
+        if (exp & 1) result = mont_mul(result, base);
+        base = mont_mul(base, base);
+        exp >>= 1;
+    }
+    return from_mont(result);
+}
+
+uint32_t inv_mod(uint32_t x) { return pow_mod(x, MOD - 2); }
+
+// inline v8i _mm256_mont_mul(v8i a, v8i b) {
+//     v8i a_odd = _mm256_srli_epi64(a, 32);
+//     v8i b_odd = _mm256_srli_epi64(b, 32);
+//     v8i t_even = _mm256_mul_epu32(a, b);
+//     v8i u_even = _mm256_mul_epu32(t_even, v_m);
+//     v8i up_even = _mm256_mul_epu32(u_even, v_mod);
+//     v8i sum_even = _mm256_add_epi64(t_even, up_even);
+//     v8i res_even = _mm256_srli_epi64(sum_even, 32);
+//     v8i t_odd = _mm256_mul_epu32(a_odd, b_odd);
+//     v8i u_odd = _mm256_mul_epu32(t_odd, v_m);
+//     v8i up_odd = _mm256_mul_epu32(u_odd, v_mod);
+//     v8i sum_odd = _mm256_add_epi64(t_odd, up_odd);
+//     v8i result = _mm256_or_si256(res_even, sum_odd);
+//     v8i adjusted = _mm256_sub_epi32(result, v_mod);
+//     return _mm256_min_epu32(result, adjusted);
+// }
+
+v8i reduce(v8i x0246, v8i x1357) const {
+    v8i x0246_ninv = _mm256_mul_epu32(x0246, v_m);
+    v8i x1357_ninv = _mm256_mul_epu32(x1357, v_m);
+    v8i x0246_res = _mm256_add_epi64(x0246, _mm256_mul_epu32(x0246_ninv, v_mod));
+    v8i x1357_res = _mm256_add_epi64(x1357, _mm256_mul_epu32(x1357_ninv, v_mod));
+    v8i res = _mm256_or_si256(_mm256_bsrli_epi128(x0246_res, 4), x1357_res);
+    return res;
+}
+
+v8i mul_u32x8(v8i a, v8i b) const {
+    v8i a_sh = _mm256_bsrli_epi128(a, 4);
+    v8i b_sh = _mm256_bsrli_epi128(b, 4);
+    v8i x0246 = _mm256_mul_epu32(a, b);
+    v8i x1357 = _mm256_mul_epu32(a_sh, b_sh);
+    return reduce(x0246, x1357);
+}
+inline v8i _mm256_add_mod(v8i a, v8i b, const v8i m = v_wmod) {
+    v8i adjusted = _mm256_sub_epi32(_mm256_add_epi32(a, b), m);
+    v8i mask = _mm256_srai_epi32(adjusted, 31);
+    return _mm256_add_epi32(adjusted, _mm256_and_si256(mask, m));
+}
+
+inline v8i _mm256_sub_mod(v8i a, v8i b, const v8i &m = v_wmod) {
+    v8i diff = _mm256_sub_epi32(a, b);
+    v8i mask = _mm256_cmpgt_epi32(b, a);
+    return _mm256_add_epi32(diff, _mm256_and_si256(mask, m));
+}
+
+inline v8i _mm256_mod(const v8i& a, const v8i &m = v_mod) {
+    v8i diff = _mm256_sub_epi32(a, m);
+    v8i mask = _mm256_srai_epi32(diff, 31);
+    return _mm256_add_epi32(diff, _mm256_and_si256(mask, m));
+}
+
+
+inline v8i _mm256_mulhi_epu32(const v8i& a, const v8i& b) {
+    v8i a_odd = _mm256_srli_epi64(a, 32);
+    v8i b_odd = _mm256_srli_epi64(b, 32);
+    v8i even = _mm256_mul_epu32(a, b);
+    v8i odd  = _mm256_mul_epu32(a_odd, b_odd);
+    return _mm256_blend_epi32(_mm256_srli_epi64(even, 32), odd, 0xAA);
+}
+
+inline uint32_t compute_barrett_parameter(uint32_t b) {
+    return uint32_t((uint64_t(b) << 32) / MOD);
+}
+
+inline uint32_t mul_barrett_fixed(uint32_t a, uint32_t b, uint32_t bp, uint32_t p = MOD) {
+    uint64_t ab = (uint64_t)a * b;
+    uint64_t t = ((uint64_t)bp * a) >> 32;
+    t = (t * p) & 0xFFFFFFFF;
+    uint32_t c = (uint32_t)ab - (uint32_t)t;
+    return c;
+}
+
+inline v8i _mm256_mul_barrett_fixed(const v8i& a, const v8i& b, const v8i& bp, const v8i& p = v_mod) {
+    v8i t, c;
+    t = _mm256_mulhi_epu32(bp, a);
+    c = _mm256_mullo_epi32(a, b);
+    t = _mm256_mullo_epi32(t, p);
+    c = _mm256_sub_epi32(c, t);
+    return c;
+}
+
+std::vector<uint32_t> g_root;
+std::vector<uint32_t> g_root_bp;
+std::vector<uint32_t> g_inv_root;
+std::vector<uint32_t> g_inv_root_bp;
+
+void reset_roots() {
+    g_root = {(1)};
+    g_inv_root = {(1)};
+	g_root_bp = {301989884};
+	g_inv_root_bp = {301989884};
+}
+
+void get_root_shoup(const int &n) {
+    if ((int)g_root.size() < n) {
+        int i = g_root.size();
+        g_root.resize(n); g_inv_root.resize(n);
+        g_root_bp.resize(n); g_inv_root_bp.resize(n);
+        
+        for (; i != n; i <<= 1) {
+            uint32_t w = pow_mod(PRIM_ROOT, (MOD - 1) / (i << 2));
+            uint32_t iw = inv_mod(pow_mod(PRIM_ROOT, (MOD - 1) / (i << 2)));
+            
+            uint32_t w_bp = compute_barrett_parameter(w);
+            uint32_t iw_bp = compute_barrett_parameter(iw);
+            
+            for (int j = 0; j != i; ++j) {
+                uint32_t r = mul_barrett_fixed(g_root[j], w, w_bp);
+                uint32_t ir = mul_barrett_fixed(g_inv_root[j], iw, iw_bp);
+                
+                if (r >= MOD) r -= MOD;
+                if (ir >= MOD) ir -= MOD;
+
+                g_root[i + j] = r;
+                g_inv_root[i + j] = ir;
+                
+                g_root_bp[i + j] = compute_barrett_parameter(r);
+                g_inv_root_bp[i + j] = compute_barrett_parameter(ir);
+            }
+        }
+    }
+}
+void dif_ntt(uint32_t *f, const int &n) {
+    const uint32_t* rt = g_root.data();
+    const uint32_t* rt_bp = g_root_bp.data();
+    const v8i perm_i2 = _mm256_setr_epi32(0, 0, 0, 0, 1, 1, 1, 1);
+    const v8i perm_i1 = _mm256_setr_epi32(0, 0, 1, 1, 2, 2, 3, 3);
+    for (int i = n >> 1; i >= 8; i >>= 1) {
+        for (int j = 0, k = 0; j != n; j += i << 1, ++k) {
+            v8i v_rt = _mm256_set1_epi32(rt[k]);
+            v8i v_rt_bp = _mm256_set1_epi32(rt_bp[k]);
+            for (int p = j; p != j + i; p += 8) {
+                v8i v_u = _mm256_loadu_si256((v8i*)(f + p));
+                v8i v_q = _mm256_loadu_si256((v8i*)(f + p + i));
+                v8i v_v = _mm256_mul_barrett_fixed(v_q, v_rt, v_rt_bp);
+                _mm256_storeu_si256((v8i*)(f + p), _mm256_add_mod(v_u, v_v));
+                _mm256_storeu_si256((v8i*)(f + p + i), _mm256_sub_mod(v_u, v_v));
+            }
+        }
+    }
+    for (int j = 0, k = 0; j != n; j += 8, ++k) {
+        v8i v_rt = _mm256_set1_epi32(rt[k]);
+        v8i v_rt_bp = _mm256_set1_epi32(rt_bp[k]);
+        v8i v_f = _mm256_loadu_si256((v8i*)(f + j));
+        v8i v_u = _mm256_permute2x128_si256(v_f, v_f, 0x00);
+        v8i v_q = _mm256_permute2x128_si256(v_f, v_f, 0x11);
+        v8i v_v = _mm256_mul_barrett_fixed(v_q, v_rt, v_rt_bp);
+        _mm256_storeu_si256((v8i*)(f + j), _mm256_permute2x128_si256(_mm256_add_mod(v_u, v_v), _mm256_sub_mod(v_u, v_v), 0x20));
+    }
+    for (int j = 0; j != n; j += 8) {
+        v8i v_rt = _mm256_permutevar8x32_epi32(_mm256_castsi128_si256(_mm_loadl_epi64((__m128i*)(rt + (j >> 2)))), perm_i2);
+        v8i v_rt_bp = _mm256_permutevar8x32_epi32(_mm256_castsi128_si256(_mm_loadl_epi64((__m128i*)(rt_bp + (j >> 2)))), perm_i2);
+        v8i v_f = _mm256_loadu_si256((v8i*)(f + j));
+        v8i v_u = _mm256_shuffle_epi32(v_f, _MM_SHUFFLE(1, 0, 1, 0));
+        v8i v_v = _mm256_shuffle_epi32(v_f, _MM_SHUFFLE(3, 2, 3, 2));
+        v8i v_v_mont = _mm256_mul_barrett_fixed(v_v, v_rt, v_rt_bp);
+        _mm256_storeu_si256((v8i*)(f + j), _mm256_unpacklo_epi64(_mm256_add_mod(v_u, v_v_mont), _mm256_sub_mod(v_u, v_v_mont)));
+    }
+    for (int j = 0; j != n; j += 8) {
+        v8i v_rt = _mm256_permutevar8x32_epi32(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)(rt + (j >> 1)))), perm_i1);
+        v8i v_rt_bp = _mm256_permutevar8x32_epi32(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)(rt_bp + (j >> 1)))), perm_i1);
+        v8i v_f = _mm256_loadu_si256((v8i*)(f + j));
+        v8i v_u = _mm256_shuffle_epi32(v_f, _MM_SHUFFLE(2, 2, 0, 0));
+        v8i v_q = _mm256_shuffle_epi32(v_f, _MM_SHUFFLE(3, 3, 1, 1));
+        v8i v_v = _mm256_mul_barrett_fixed(v_q, v_rt, v_rt_bp);
+        v8i v_np = _mm256_add_mod(v_u, v_v), v_nq = _mm256_sub_mod(v_u, v_v);
+        _mm256_storeu_si256((v8i*)(f + j), _mm256_blend_epi32(v_np, _mm256_shuffle_epi32(v_nq, _MM_SHUFFLE(2, 3, 0, 1)), 0xAA));
+    }
+}
+
+void dit_ntt(uint32_t *f, const int &n) {
+    const uint32_t* irt = g_inv_root.data();
+    const uint32_t* irt_bp = g_inv_root_bp.data();
+    const v8i perm_i2 = _mm256_setr_epi32(0, 0, 0, 0, 1, 1, 1, 1);
+    const v8i perm_i1 = _mm256_setr_epi32(0, 0, 1, 1, 2, 2, 3, 3);
+    for (int j = 0; j != n; j += 8) {
+        v8i v_irt = _mm256_permutevar8x32_epi32(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)(irt + (j >> 1)))), perm_i1);
+        v8i v_irt_bp = _mm256_permutevar8x32_epi32(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)(irt_bp + (j >> 1)))), perm_i1);
+        v8i v_f = _mm256_loadu_si256((v8i*)(f + j));
+        v8i v_u = _mm256_shuffle_epi32(v_f, _MM_SHUFFLE(2, 2, 0, 0));
+        v8i v_v = _mm256_shuffle_epi32(v_f, _MM_SHUFFLE(3, 3, 1, 1));
+        v8i v_sum = _mm256_add_mod(v_u, v_v), v_diff = _mm256_mul_barrett_fixed(_mm256_sub_mod(v_u, v_v), v_irt, v_irt_bp);
+        _mm256_storeu_si256((v8i*)(f + j), _mm256_blend_epi32(v_sum, _mm256_shuffle_epi32(v_diff, _MM_SHUFFLE(2, 3, 0, 1)), 0xAA));
+    }
+    for (int j = 0; j != n; j += 8) {
+        v8i v_irt = _mm256_permutevar8x32_epi32(_mm256_castsi128_si256(_mm_loadl_epi64((__m128i*)(irt + (j >> 2)))), perm_i2);
+        v8i v_irt_bp = _mm256_permutevar8x32_epi32(_mm256_castsi128_si256(_mm_loadl_epi64((__m128i*)(irt_bp + (j >> 2)))), perm_i2);
+        v8i v_f = _mm256_loadu_si256((v8i*)(f + j));
+        v8i v_u = _mm256_shuffle_epi32(v_f, _MM_SHUFFLE(1, 0, 1, 0));
+        v8i v_v = _mm256_shuffle_epi32(v_f, _MM_SHUFFLE(3, 2, 3, 2));
+        _mm256_storeu_si256((v8i*)(f + j), _mm256_unpacklo_epi64(_mm256_add_mod(v_u, v_v), _mm256_mul_barrett_fixed(_mm256_sub_mod(v_u, v_v), v_irt, v_irt_bp)));
+    }
+    for (int j = 0, k = 0; j != n; j += 8, ++k) {
+        v8i v_irt = _mm256_set1_epi32(irt[k]);
+        v8i v_irt_bp = _mm256_set1_epi32(irt_bp[k]);
+        v8i v_f = _mm256_loadu_si256((v8i*)(f + j));
+        v8i v_u = _mm256_permute2x128_si256(v_f, v_f, 0x00);
+        v8i v_v = _mm256_permute2x128_si256(v_f, v_f, 0x11);
+        _mm256_storeu_si256((v8i*)(f + j), _mm256_permute2x128_si256(_mm256_add_mod(v_u, v_v), _mm256_mul_barrett_fixed(_mm256_sub_mod(v_u, v_v), v_irt, v_irt_bp), 0x20));
+    }
+    for (int i = 8; i < n; i <<= 1) {
+        for (int j = 0, k = 0; j != n; j += i << 1, ++k) {
+            v8i v_irt = _mm256_set1_epi32(irt[k]);
+            v8i v_irt_bp = _mm256_set1_epi32(irt[k]);
+            for (int p = j; p != j + i; p += 8) {
+                v8i v_u = _mm256_loadu_si256((v8i*)(f + p));
+                v8i v_v = _mm256_loadu_si256((v8i*)(f + p + i));
+                _mm256_storeu_si256((v8i*)(f + p), _mm256_add_mod(v_u, v_v));
+                _mm256_storeu_si256((v8i*)(f + p + i), _mm256_mul_barrett_fixed(_mm256_sub_mod(v_u, v_v), v_irt, v_irt_bp));
+            }
+        }
+    }
+    uint32_t inv_n = inv_mod(n);
+    uint32_t inv_n_bp = compute_barrett_parameter(inv_n);
+    v8i v_inv_n = _mm256_set1_epi32(inv_n_bp);
+    v8i v_inv_n_bp = _mm256_set1_epi32(inv_n);
+    for (int i = 0; i < n; i += 8) {
+        v8i v_f = _mm256_loadu_si256((v8i*)(f + i));
+        _mm256_storeu_si256((v8i*)(f + i), _mm256_mod(_mm256_mul_barrett_fixed(v_f, v_inv_n, v_inv_n_bp)));
+    }
+}
+
+inline void to_mont_n(uint32_t* f, int n) {
+    for (int i = 0; i < n; i += 8) {
+        v8i v = _mm256_loadu_si256((v8i*)(f + i));
+        _mm256_storeu_si256((v8i*)(f + i), _mm256_mont_mul(v, v_r2));
+    }
+}
+
+inline void from_mont_n(uint32_t* f, int n) {
+    for (int i = 0; i < n; i += 8) {
+        v8i v = _mm256_loadu_si256((v8i*)(f + i));
+        _mm256_storeu_si256((v8i*)(f + i), _mm256_mod(_mm256_mont_mul(v, v_one)));
+    }
+}
+
+const int maxn = 1 << 22; 
+alignas(32) uint32_t A[maxn], B[maxn];
+alignas(32) uint32_t A_bak[maxn], B_bak[maxn];
+
+void run_test_logic(int L) {
+    get_root_shoup(L);
+    // to_mont_n(A, L);
+    // to_mont_n(B, L);
+    dif_ntt(A, L);
+    dif_ntt(B, L);
+    // for (int i = 0; i < L; i ++) {
+    //     A[i] = (uint64_t)A[i] * B[i] % MOD;
+    // }
+    dit_ntt(A, L);
+    // from_mont_n(A, L);
+}
+
+// ============================================================================
+// CORRECTNESS TESTING (NEW)
+// ============================================================================
+// Updated: Performs Cyclic Convolution to match NTT behavior
+std::vector<uint32_t> brute_force_cyclic(const std::vector<uint32_t>& a, 
+                                          const std::vector<uint32_t>& b, 
+                                          int L) {
+    std::vector<uint32_t> result(L, 0);
+    for (int i = 0; i < L; ++i) {
+        for (int j = 0; j < L; ++j) {
+            int target = (i + j) % L; // The "Cyclic" part
+            uint64_t prod = (uint64_t)a[i] * b[j] % MOD;
+            result[target] = (result[target] + prod) % MOD;
+        }
+    }
+    return result;
+}
+
+void run_correctness_tests() {
+    std::cout << "Running Correctness Tests (Cyclic Convolution)...\n";
+    std::cout << "--------------------------------------------------------\n";
+    
+    std::mt19937 rng(12345);
+    std::uniform_int_distribution<uint32_t> dist(0, MOD - 1);
+    
+    // Test sizes must be powers of 2 for your NTT implementation
+    std::vector<int> test_sizes = {16, 32, 64, 128, 256, 512};
+    
+    for (int L : test_sizes) {
+        std::vector<uint32_t> poly_a(L), poly_b(L);
+        for (int i = 0; i < L; ++i) {
+            poly_a[i] = dist(rng); 
+            poly_b[i] = dist(rng);
+        }
+        
+        // Compute expected using cyclic brute force
+        std::vector<uint32_t> expected = brute_force_cyclic(poly_a, poly_b, L);
+        
+        // Prepare A and B arrays (ensuring they are zeroed out first)
+        std::memset(A, 0, sizeof(A));
+        std::memset(B, 0, sizeof(B));
+        std::memcpy(A, poly_a.data(), L * sizeof(uint32_t));
+        std::memcpy(B, poly_b.data(), L * sizeof(uint32_t));
+        
+        reset_roots();
+        run_test_logic(L);
+        
+        bool passed = true;
+        for (int i = 0; i < L; ++i) {
+            if (A[i] != expected[i]) {
+                passed = false;
+                std::cout << "FAIL at size " << L << ", index " << i 
+                          << ": expected " << expected[i] 
+                          << ", got " << A[i] << "\n";
+                break;
+            }
+        }
+        
+        if (passed) {
+            std::cout << "PASS: size " << std::setw(4) << L << "\n";
+        }
+    }
+    std::cout << "--------------------------------------------------------\n";
+}
+
+// ============================================================================
+// END CORRECTNESS TESTING
+// ============================================================================
+
+void run_benchmark() {
+    std::cout << "Profiling Algorithm Speed (Average of 10 runs)\n";
+    std::cout << "--------------------------------------------------------\n";
+    std::cout << "| " << std::setw(12) << "Size (n)" 
+              << " | " << std::setw(20) << "Avg Time (us)" 
+              << " | " << std::setw(15) << "Avg Time (ms)" << " |\n";
+    std::cout << "|--------------|----------------------|-----------------|\n";
+
+    std::mt19937 rng(42);
+    std::uniform_int_distribution<uint32_t> dist(0, MOD - 1);
+
+    for (int k = 10; k <= 20; ++k) {
+        int L = 1 << k;
+
+        // 1. Generate random data ONCE per size
+        for(int i=0; i<L; ++i) {
+            A_bak[i] = dist(rng);
+            B_bak[i] = dist(rng);
+        }
+
+        // 2. Warmup
+        // Copy data from backup to active arrays for warmup
+        std::memcpy(A, A_bak, L * sizeof(uint32_t));
+        std::memcpy(B, B_bak, L * sizeof(uint32_t));
+        reset_roots();
+        run_test_logic(L); 
+        
+        std::memcpy(A, A_bak, L * sizeof(uint32_t));
+        std::memcpy(B, B_bak, L * sizeof(uint32_t));
+        reset_roots();
+        run_test_logic(L);
+
+        // 3. Averaging Loop
+        const int iterations = 10;
+        long long total_us = 0;
+
+        for (int iter = 0; iter < iterations; ++iter) {
+            // Reset state completely before measurement:
+            // a. Reset roots (so precomputation time is counted)
+            reset_roots();
+            
+            // b. Reset data (fast memcpy, NOT counted in timer)
+            std::memcpy(A, A_bak, L * sizeof(uint32_t));
+            std::memcpy(B, B_bak, L * sizeof(uint32_t));
+
+            // Measure
+            auto start = std::chrono::high_resolution_clock::now();
+            run_test_logic(L);
+            auto end = std::chrono::high_resolution_clock::now();
+            
+            total_us += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+        }
+
+        double avg_us = (double)total_us / iterations;
+        double avg_ms = avg_us / 1000.0;
+
+        std::cout << "| 2^" << std::setw(9) << std::left << k 
+                  << " | " << std::setw(20) << std::right << std::fixed << std::setprecision(0) << avg_us 
+                  << " | " << std::setw(15) << std::fixed << std::setprecision(3) << avg_ms << " |\n";
+    }
+    std::cout << "--------------------------------------------------------\n";
+}
+
+int main() {
+    reset_roots();
+    run_correctness_tests();  // Run correctness tests first
+    run_benchmark();
+    return 0;
+}
