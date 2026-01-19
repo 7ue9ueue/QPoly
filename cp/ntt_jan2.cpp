@@ -51,7 +51,7 @@ uint32_t pow_mod(uint32_t base, uint32_t exp) {
 
 uint32_t inv_mod(uint32_t x) { return pow_mod(x, MOD - 2); }
 
-inline v8i _mm256_mont_mul(v8i a, v8i b) {
+inline v8i _mm256_mont_mul(const v8i& a, const v8i& b) {
     v8i a_odd = _mm256_srli_epi64(a, 32);
     v8i b_odd = _mm256_srli_epi64(b, 32);
     v8i t_even = _mm256_mul_epu32(a, b);
@@ -68,13 +68,13 @@ inline v8i _mm256_mont_mul(v8i a, v8i b) {
     return _mm256_min_epu32(result, adjusted);
 }
 
-inline v8i _mm256_add_mod(v8i a, v8i b, const v8i m = v_wmod) {
+inline v8i _mm256_add_mod(const v8i& a, const v8i& b, const v8i &m = v_wmod) {
     v8i adjusted = _mm256_sub_epi32(_mm256_add_epi32(a, b), m);
     v8i mask = _mm256_srai_epi32(adjusted, 31);
     return _mm256_add_epi32(adjusted, _mm256_and_si256(mask, m));
 }
 
-inline v8i _mm256_sub_mod(v8i a, v8i b, const v8i &m = v_wmod) {
+inline v8i _mm256_sub_mod(const v8i& a, const v8i& b, const v8i &m = v_wmod) {
     v8i diff = _mm256_sub_epi32(a, b);
     v8i mask = _mm256_cmpgt_epi32(b, a);
     return _mm256_add_epi32(diff, _mm256_and_si256(mask, m));

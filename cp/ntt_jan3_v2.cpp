@@ -95,7 +95,8 @@ inline v8i _mm256_add_mod(v8i a, v8i b, const v8i m = v_wmod) {
 
 inline v8i _mm256_sub_mod(v8i a, v8i b, const v8i &m = v_wmod) {
     v8i diff = _mm256_sub_epi32(a, b);
-    return _mm256_max_epu32(v_zero, _mm256_add_epi32(a, m));
+    v8i diff_m = _mm256_add_epi32(diff, m);
+   return _mm256_min_epu32(diff, diff_m);
 }
 
 std::vector<uint32_t> g_root;
@@ -292,10 +293,6 @@ void run_correctness_tests() {
     }
     std::cout << "--------------------------------------------------------\n";
 }
-
-// ============================================================================
-// END CORRECTNESS TESTING
-// ============================================================================
 
 void run_benchmark() {
     std::cout << "Profiling Algorithm Speed (Average of 10 runs)\n";

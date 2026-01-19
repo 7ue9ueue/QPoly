@@ -96,11 +96,15 @@ def mul_s(I256 a,I256 b,I256 ninv,I256 M){
     return shrk32(mul(a,b,ninv,M),M);
 }
 template<int b_only_even=0>def mul_b_fixed(I256 a,I256 b,I256 bninv,I256 M){
-    I256 cc=_mm256_mul_epu32(a,bninv),dd=_mm256_mul_epu32(lmove(a),b_only_even?bninv:lmove(bninv));
-    I256 c=_mm256_mul_epu32(a,b),d=_mm256_mul_epu32(lmove(a),b_only_even?b:lmove(b));
+    I256 lmovea = lmove(a);
+    I256 cc=_mm256_mul_epu32(a,bninv);
+    I256 c=_mm256_mul_epu32(a,b);
+    I256 dd=_mm256_mul_epu32(lmovea,bninv);
+    I256 d=_mm256_mul_epu32(lmovea,b);
     cc=_mm256_mul_epu32(cc,M),dd=_mm256_mul_epu32(dd,M);
     return _mm256_or_si256(lmove(_mm256_add_epi64(c,cc)),_mm256_add_epi64(d,dd));
 }
+
 template<int b_only_even=0>def mul_b_fixed_cross(I256 a,I256 b,I256 bninv,I256 M){
     I256 cc=_mm256_mul_epu32(a,bninv),dd=_mm256_mul_epu32(lmove(a),b_only_even?bninv:lmove(bninv));
     I256 c=_mm256_mul_epu32(a,b),d=_mm256_mul_epu32(lmove(a),b_only_even?b:lmove(b));
@@ -360,7 +364,7 @@ struct NTT32_info{
                 for(idt i=j;i<j+m;i+=4){
                     let r1=_mm256_permutevar8x32_epi32(rt,id24);
                     rt=mul_upd_rt(rt,load256(rt3i+__builtin_ctzll(~i>>2)),Mod);
-                    auto const p0=f+i,p1=p0+1,p2=p1+1,p3=p2+1;
+                    auto const p0=f+i,p1=f+i+1,p2=f+i+2,p3=f+i+3;
                     let f2=load256(p2),f3=load256(p3),f0=load256(p0),f1=load256(p1);
                     let r2=_mm256_shuffle_epi32(r1,_MM_PERM_BBBB),r3=_mm256_shuffle_epi32(r1,_MM_PERM_DDDD);
                     let g3=mul_b_fixed<1>(Lsub32(f3,f2,Mod2),Imag,ImagNinv,Mod),g2=add32(f2,f3,Mod2);
@@ -379,7 +383,7 @@ struct NTT32_info{
                 if(diff==0){
                     if(l==n){
                         for(idt i=0;i<L;++i){
-                            auto const p0=f+i,p1=p0+L,p2=p1+L,p3=p2+L;
+                            auto const p0=f+i,p1=f+i+L,p2=f+i+L+L,p3=f+i+L+L+L;
                             let f2=load256(p2),f3=load256(p3),f0=load256(p0),f1=load256(p1);
                             let g3=mul_b_fixed<1>(Lsub32(f3,f2,Mod2),Imag,ImagNinv,Mod),g2=add32(f2,f3,Mod2);
                             let g0=add32(f0,f1,Mod2),g1=sub32(f0,f1,Mod2);
@@ -392,7 +396,7 @@ struct NTT32_info{
                     }
                     else{
                         for(idt i=0;i<L;++i){
-                            auto const p0=f+i,p1=p0+L,p2=p1+L,p3=p2+L;
+                            auto const p0=f+i,p1=f+i+L,p2=f+i+L+L,p3=f+i+L+L+L;
                             let f2=load256(p2),f3=load256(p3),f0=load256(p0),f1=load256(p1);
                             let g3=mul_b_fixed<1>(Lsub32(f3,f2,Mod2),Imag,ImagNinv,Mod),g2=add32(f2,f3,Mod2);
                             let g0=add32(f0,f1,Mod2),g1=sub32(f0,f1,Mod2);
@@ -410,7 +414,7 @@ struct NTT32_info{
                     let r2=_mm256_shuffle_epi32(r1,_MM_PERM_BBBB),r3=_mm256_shuffle_epi32(r1,_MM_PERM_DDDD);
                     let r2Ninv=_mm256_shuffle_epi32(r1Ninv,_MM_PERM_BBBB),r3Ninv=_mm256_shuffle_epi32(r1Ninv,_MM_PERM_DDDD);
                     for(idt j=0;j<L;++j){
-                        auto const p0=g+i+j,p1=p0+L,p2=p1+L,p3=p2+L;
+                        auto const p0=f+i+j,p1=f+i+j+L,p2=f+i+j+L+L,p3=f+i+j+L+L+L;
                         let f2=load256(p2),f3=load256(p3),f0=load256(p0),f1=load256(p1);
                         let g3=mul_b_fixed<1>(Lsub32(f3,f2,Mod2),Imag,ImagNinv,Mod),g2=add32(f2,f3,Mod2);
                         let g0=add32(f0,f1,Mod2),g1=sub32(f0,f1,Mod2);
@@ -452,12 +456,6 @@ struct NTT32_info{
 #undef idef
 // --- Original Logic End ---
 
-void run_ntt_cycle(const NTT_interal::NTT32_info& fntt, u32* f, u32* g, idt vec_len) {
-    fntt._vec_dif((I256*)f, vec_len);
-    fntt._vec_dif((I256*)g, vec_len);
-    fntt._vec_cvdt8((I256*)f, (I256*)g, vec_len);
-    fntt._vec_dit((I256*)f, vec_len);
-}
 
 int main() {
     std::cout << "Profiling Algorithm Speed (Average of 10 runs)\n";
@@ -470,7 +468,7 @@ int main() {
     std::mt19937_64 rng(42);
     std::uniform_int_distribution<u32> dist(0, 998244353 - 1);
 
-    for (int k = 10; k <= 20; ++k) {
+    for (int k = 20; k <= 20; ++k) {
         idt lm = idt(1) << k; // Treat input size n as 2^k
         idt vec_len = lm >> 3;
 
@@ -488,19 +486,22 @@ int main() {
 
         // 2. Warmup
         // Using a temporary scope for warmups
-        {
-            NTT_interal::NTT32_info fntt_warmup(998244353);
-            copy(f, f_bak, lm); copy(g, g_bak, lm);
-            run_ntt_cycle(fntt_warmup, f, g, vec_len);
+        // {
+        //     NTT_interal::NTT32_info fntt_warmup(998244353);
+        //     copy(f, f_bak, lm); copy(g, g_bak, lm);
+        //     run_ntt_cycle(fntt_warmup, f, g, vec_len);
             
-            copy(f, f_bak, lm); copy(g, g_bak, lm);
-            run_ntt_cycle(fntt_warmup, f, g, vec_len);
-        }
+        //     copy(f, f_bak, lm); copy(g, g_bak, lm);
+        //     run_ntt_cycle(fntt_warmup, f, g, vec_len);
+        // }
 
         // 3. Averaging Loop
         const int iterations = 10;
         long long total_us = 0;
-
+        long long pre = 0;
+        long long dif = 0;
+        long long ptw = 0;
+        long long dit = 0;
         for (int iter = 0; iter < iterations; ++iter) {
             // Reset data (not timed)
             copy(f, f_bak, lm);
@@ -510,10 +511,23 @@ int main() {
             
             // Instantiate inside the timed loop to count "precomputed roots" time
             // as requested, though this class is efficient with precomputation.
+            #define TIME_NOW std::chrono::high_resolution_clock::now();
+            auto s0 = TIME_NOW;
             NTT_interal::NTT32_info fntt(998244353);
-            run_ntt_cycle(fntt, f, g, vec_len);
+            auto s1 = TIME_NOW;
+            fntt._vec_dif((I256*)f, vec_len);
+            fntt._vec_dif((I256*)g, vec_len);
+            auto s2 = TIME_NOW;
+            fntt._vec_cvdt8((I256*)f, (I256*)g, vec_len);
+            auto s3 = TIME_NOW;
+            fntt._vec_dit((I256*)f, vec_len);
+            auto s4 = TIME_NOW;
 
             auto end = std::chrono::high_resolution_clock::now();
+            pre += std::chrono::duration_cast<std::chrono::microseconds>(s1 - s0).count();
+            dif += std::chrono::duration_cast<std::chrono::microseconds>(s2 - s1).count();
+            ptw += std::chrono::duration_cast<std::chrono::microseconds>(s3 - s2).count();
+            dit += std::chrono::duration_cast<std::chrono::microseconds>(s4 - s3).count();
             total_us += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
         }
 
@@ -524,9 +538,19 @@ int main() {
                   << " | " << std::setw(20) << std::right << std::fixed << std::setprecision(0) << avg_us 
                   << " | " << std::setw(15) << std::fixed << std::setprecision(3) << avg_ms << " |\n";
 
+        std::cout << "Root precomputation:  " << std::setw(10) << pre / iterations << " ns\n";
+        std::cout << "DIF nested loops:     " << std::setw(10) << dif / iterations << " ns\n";
+        std::cout << "Pointwise multiply:   " << std::setw(10) << ptw / iterations << " ns\n";
+        std::cout << "DIT nested loops:     " << std::setw(10) << dit / iterations << " ns\n";
+    
         lfree(f, lm); lfree(g, lm);
         lfree(f_bak, lm); lfree(g_bak, lm);
     }
     std::cout << "--------------------------------------------------------\n";
     return 0;
 }
+/*
+DIF nested loops:           3517 ns
+Pointwise multiply:         1146 ns
+DIT nested loops:           1822 ns
+*/

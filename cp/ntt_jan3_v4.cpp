@@ -1,3 +1,4 @@
+#pragma GCC optimize("O3,unroll-loops")
 #pragma GCC target("avx2")
 #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
 #include <immintrin.h>
@@ -9,6 +10,7 @@
 #include <vector>
 #include <random>
 #include <iomanip>
+#include <algorithm>
 
 using u32 = uint32_t;
 using u64 = uint64_t;
@@ -51,28 +53,13 @@ uint32_t pow_mod(uint32_t base, uint32_t exp) {
 
 uint32_t inv_mod(uint32_t x) { return pow_mod(x, MOD - 2); }
 
-// inline v8i _mm256_mont_mul(v8i a, v8i b) {
-//     v8i a_odd = _mm256_srli_epi64(a, 32);
-//     v8i b_odd = _mm256_srli_epi64(b, 32);
-//     v8i t_even = _mm256_mul_epu32(a, b);
-//     v8i u_even = _mm256_mul_epu32(t_even, v_m);
-//     v8i up_even = _mm256_mul_epu32(u_even, v_mod);
-//     v8i sum_even = _mm256_add_epi64(t_even, up_even);
-//     v8i res_even = _mm256_srli_epi64(sum_even, 32);
-//     v8i t_odd = _mm256_mul_epu32(a_odd, b_odd);
-//     v8i u_odd = _mm256_mul_epu32(t_odd, v_m);
-//     v8i up_odd = _mm256_mul_epu32(u_odd, v_mod);
-//     v8i sum_odd = _mm256_add_epi64(t_odd, up_odd);
-//     v8i result = _mm256_or_si256(res_even, sum_odd);
-//     v8i adjusted = _mm256_sub_epi32(result, v_mod);
-//     return _mm256_min_epu32(result, adjusted);
-// }
 v8i reduce(v8i x0246, v8i x1357) {
     v8i x0246_ninv = _mm256_mul_epu32(x0246, v_m);
     v8i x1357_ninv = _mm256_mul_epu32(x1357, v_m);
     v8i x0246_res = _mm256_add_epi64(x0246, _mm256_mul_epu32(x0246_ninv, v_mod));
     v8i x1357_res = _mm256_add_epi64(x1357, _mm256_mul_epu32(x1357_ninv, v_mod));
-    v8i res = _mm256_or_si256(_mm256_bsrli_epi128(x0246_res, 4), x1357_res);
+    v8i res = _mm256_or_si256(_mm256_srli_epi64(x0246_res, 32), x1357_res);
+    // v8i res = _mm256_or_si256(_mm256_bsrli_epi128(x0246_res, 4), x1357_res);
     return res;
 }
 
@@ -89,15 +76,14 @@ inline v8i _mm256_mod(const v8i& a, const v8i &m = v_mod) {
 }
 
 inline v8i _mm256_add_mod(v8i a, v8i b, const v8i m = v_wmod) {
-    v8i adjusted = _mm256_sub_epi32(_mm256_add_epi32(a, b), m);
-    v8i mask = _mm256_srai_epi32(adjusted, 31);
-    return _mm256_add_epi32(adjusted, _mm256_and_si256(mask, m));
+    v8i sum = _mm256_add_epi32(a, b);
+    return _mm256_mod(sum, m);
 }
 
 inline v8i _mm256_sub_mod(v8i a, v8i b, const v8i &m = v_wmod) {
     v8i diff = _mm256_sub_epi32(a, b);
-    v8i mask = _mm256_cmpgt_epi32(b, a);
-    return _mm256_add_epi32(diff, _mm256_and_si256(mask, m));
+    v8i diff_m = _mm256_add_epi32(diff, m);
+   return _mm256_min_epu32(diff, diff_m);
 }
 
 std::vector<uint32_t> g_root;
@@ -111,11 +97,11 @@ void reset_roots() {
 void get_root_mont(const int &n) {
     if ((int)g_root.size() < n) {
         int i = g_root.size();
-        g_root.resize(n);
-        g_inv_root.resize(n);
+        g_root.resize(n); g_inv_root.resize(n);
         for (; i != n; i <<= 1) {
-            uint32_t w = to_mont(pow_mod(PRIM_ROOT, (MOD - 1) / (i << 2)));
-            uint32_t iw = to_mont(inv_mod(pow_mod(PRIM_ROOT, (MOD - 1) / (i << 2))));
+            uint32_t pm = pow_mod(PRIM_ROOT, (MOD - 1) / (i << 2));
+            uint32_t w = to_mont(pm);
+            uint32_t iw = to_mont(inv_mod(pm));
             for (int j = 0; j != i; ++j) {
                 g_root[i + j] = mont_mul(g_root[j], w);
                 g_inv_root[i + j] = mont_mul(g_inv_root[j], iw);
@@ -124,7 +110,6 @@ void get_root_mont(const int &n) {
     }
 }
 
-
 void dif_ntt(uint32_t *f, const int &n) {
     const uint32_t* rt = g_root.data();
     const v8i perm_i2 = _mm256_setr_epi32(0, 0, 0, 0, 1, 1, 1, 1);
@@ -132,8 +117,38 @@ void dif_ntt(uint32_t *f, const int &n) {
     for (int i = n >> 1; i >= 8; i >>= 1) {
         for (int j = 0, k = 0; j != n; j += i << 1, ++k) {
             const v8i v_rt = _mm256_set1_epi32(rt[k]);
-            #pragma GCC unroll(4)
-            for (int p = j; p != j + i; p += 8) {
+            int p = j;
+            for (; p + 32 <= j + i; p += 32) {
+                // Unroll 1
+                v8i v_u0 = _mm256_loadu_si256((v8i*)(f + p));
+                v8i v_q0 = _mm256_loadu_si256((v8i*)(f + p + i));
+                v8i v_v0 = _mm256_mont_mul(v_q0, v_rt);
+                _mm256_storeu_si256((v8i*)(f + p), _mm256_add_mod(v_u0, v_v0));
+                _mm256_storeu_si256((v8i*)(f + p + i), _mm256_sub_mod(v_u0, v_v0));
+                
+                // Unroll 2
+                v8i v_u1 = _mm256_loadu_si256((v8i*)(f + p + 8));
+                v8i v_q1 = _mm256_loadu_si256((v8i*)(f + p + 8 + i));
+                v8i v_v1 = _mm256_mont_mul(v_q1, v_rt);
+                _mm256_storeu_si256((v8i*)(f + p + 8), _mm256_add_mod(v_u1, v_v1));
+                _mm256_storeu_si256((v8i*)(f + p + 8 + i), _mm256_sub_mod(v_u1, v_v1));
+                
+                // Unroll 3
+                v8i v_u2 = _mm256_loadu_si256((v8i*)(f + p + 16));
+                v8i v_q2 = _mm256_loadu_si256((v8i*)(f + p + 16 + i));
+                v8i v_v2 = _mm256_mont_mul(v_q2, v_rt);
+                _mm256_storeu_si256((v8i*)(f + p + 16), _mm256_add_mod(v_u2, v_v2));
+                _mm256_storeu_si256((v8i*)(f + p + 16 + i), _mm256_sub_mod(v_u2, v_v2));
+                
+                // Unroll 4
+                v8i v_u3 = _mm256_loadu_si256((v8i*)(f + p + 24));
+                v8i v_q3 = _mm256_loadu_si256((v8i*)(f + p + 24 + i));
+                v8i v_v3 = _mm256_mont_mul(v_q3, v_rt);
+                _mm256_storeu_si256((v8i*)(f + p + 24), _mm256_add_mod(v_u3, v_v3));
+                _mm256_storeu_si256((v8i*)(f + p + 24 + i), _mm256_sub_mod(v_u3, v_v3));
+            }
+            // Handle remaining iterations
+            for (; p != j + i; p += 8) {
                 v8i v_u = _mm256_loadu_si256((v8i*)(f + p));
                 v8i v_q = _mm256_loadu_si256((v8i*)(f + p + i));
                 v8i v_v = _mm256_mont_mul(v_q, v_rt);
@@ -198,8 +213,34 @@ void dit_ntt(uint32_t *f, const int &n) {
     for (int i = 8; i < n; i <<= 1) {
         for (int j = 0, k = 0; j != n; j += i << 1, ++k) {
             const v8i v_irt = _mm256_set1_epi32(irt[k]);
-            #pragma GCC unroll(4)
-            for (int p = j; p != j + i; p += 8) {
+            int p = j;
+            for (; p + 32 <= j + i; p += 32) {
+                // Unroll 1
+                v8i v_u0 = _mm256_loadu_si256((v8i*)(f + p));
+                v8i v_v0 = _mm256_loadu_si256((v8i*)(f + p + i));
+                _mm256_storeu_si256((v8i*)(f + p), _mm256_add_mod(v_u0, v_v0));
+                _mm256_storeu_si256((v8i*)(f + p + i), _mm256_mont_mul(_mm256_sub_mod(v_u0, v_v0), v_irt));
+                
+                // Unroll 2
+                v8i v_u1 = _mm256_loadu_si256((v8i*)(f + p + 8));
+                v8i v_v1 = _mm256_loadu_si256((v8i*)(f + p + 8 + i));
+                _mm256_storeu_si256((v8i*)(f + p + 8), _mm256_add_mod(v_u1, v_v1));
+                _mm256_storeu_si256((v8i*)(f + p + 8 + i), _mm256_mont_mul(_mm256_sub_mod(v_u1, v_v1), v_irt));
+                
+                // Unroll 3
+                v8i v_u2 = _mm256_loadu_si256((v8i*)(f + p + 16));
+                v8i v_v2 = _mm256_loadu_si256((v8i*)(f + p + 16 + i));
+                _mm256_storeu_si256((v8i*)(f + p + 16), _mm256_add_mod(v_u2, v_v2));
+                _mm256_storeu_si256((v8i*)(f + p + 16 + i), _mm256_mont_mul(_mm256_sub_mod(v_u2, v_v2), v_irt));
+                
+                // Unroll 4
+                v8i v_u3 = _mm256_loadu_si256((v8i*)(f + p + 24));
+                v8i v_v3 = _mm256_loadu_si256((v8i*)(f + p + 24 + i));
+                _mm256_storeu_si256((v8i*)(f + p + 24), _mm256_add_mod(v_u3, v_v3));
+                _mm256_storeu_si256((v8i*)(f + p + 24 + i), _mm256_mont_mul(_mm256_sub_mod(v_u3, v_v3), v_irt));
+            }
+            // Handle remaining iterations
+            for (; p != j + i; p += 8) {
                 v8i v_u = _mm256_loadu_si256((v8i*)(f + p));
                 v8i v_v = _mm256_loadu_si256((v8i*)(f + p + i));
                 _mm256_storeu_si256((v8i*)(f + p), _mm256_add_mod(v_u, v_v));
@@ -232,44 +273,91 @@ void run_test_logic(int L) {
 }
 
 // ============================================================================
-// CORRECTNESS TESTING (NEW)
+// KACTL NTT for correctness testing
 // ============================================================================
-// Updated: Performs Cyclic Convolution to match NTT behavior
-std::vector<uint32_t> brute_force_cyclic(const std::vector<uint32_t>& a, 
-                                          const std::vector<uint32_t>& b, 
-                                          int L) {
-    std::vector<uint32_t> result(L, 0);
-    for (int i = 0; i < L; ++i) {
-        for (int j = 0; j < L; ++j) {
-            int target = (i + j) % L; // The "Cyclic" part
-            uint64_t prod = (uint64_t)a[i] * b[j] % MOD;
-            result[target] = (result[target] + prod) % MOD;
+namespace KACTL {
+    typedef long long ll;
+    typedef std::vector<ll> vll;
+    
+    const ll mod = 998244353;
+    const ll root = 62; // This will be used as modpow(3, (mod-1)/N)
+    
+    ll modpow(ll base, ll exp, ll m = mod) {
+        ll result = 1;
+        base %= m;
+        while (exp > 0) {
+            if (exp & 1) result = (result * base) % m;
+            base = (base * base) % m;
+            exp >>= 1;
         }
+        return result;
     }
-    return result;
+    
+    void ntt(vll &a) {
+        int n = a.size(), L = 31 - __builtin_clz(n);
+        static vll rt(2, 1);
+        for (static int k = 2, s = 2; k < n; k *= 2, ++s) {
+            rt.resize(n);
+            ll z = modpow(root, mod >> s);
+            for (int i = k; i < 2*k; ++i) 
+                rt[i] = rt[i/2] * ((i&1) ? z : 1) % mod;
+        }
+        vll rev(n);
+        for (int i = 0; i < n; ++i) 
+            rev[i] = (rev[i/2] | ((i&1) << L)) / 2;
+        for (int i = 0; i < n; ++i) 
+            if (i < rev[i]) std::swap(a[i], a[rev[i]]);
+        for (int k = 1; k < n; k *= 2)
+            for (int i = 0; i < n; i += 2*k) {
+                for (int j = 0; j < k; ++j) {
+                    ll z = rt[j+k] * a[i+j+k] % mod;
+                    ll &ai = a[i+j];
+                    a[i+j+k] = ai - z + (z > ai ? mod : 0);
+                    ai += (ai + z >= mod ? z - mod : z);
+                }
+            }
+    }
+    
+    // Cyclic convolution of exact size L (must be power of 2)
+    vll cyclic_conv(const vll &a, const vll &b, int L) {
+        vll A(a), B(b);
+        A.resize(L); B.resize(L);
+        ntt(A); ntt(B);
+        for (int i = 0; i < L; ++i)
+            A[i] = (ll)A[i] * B[i] % mod;
+        // Inverse NTT: reverse + scale
+        std::reverse(A.begin() + 1, A.end());
+        ntt(A);
+        ll inv = modpow(L, mod - 2);
+        for (int i = 0; i < L; ++i)
+            A[i] = A[i] * inv % mod;
+        return A;
+    }
 }
 
 void run_correctness_tests() {
-    std::cout << "Running Correctness Tests (Cyclic Convolution)...\n";
+    std::cout << "Running Correctness Tests (KACTL NTT Reference)...\n";
     std::cout << "--------------------------------------------------------\n";
     
     std::mt19937 rng(12345);
     std::uniform_int_distribution<uint32_t> dist(0, MOD - 1);
     
-    // Test sizes must be powers of 2 for your NTT implementation
-    std::vector<int> test_sizes = {16, 32, 64, 128, 256, 512};
-    
-    for (int L : test_sizes) {
+    // Test sizes from 2^4 to 2^20
+    for (int k = 4; k <= 20; ++k) {
+        int L = 1 << k;
+        
         std::vector<uint32_t> poly_a(L), poly_b(L);
         for (int i = 0; i < L; ++i) {
             poly_a[i] = dist(rng); 
             poly_b[i] = dist(rng);
         }
         
-        // Compute expected using cyclic brute force
-        std::vector<uint32_t> expected = brute_force_cyclic(poly_a, poly_b, L);
+        // Compute expected using KACTL
+        std::vector<long long> a_ll(poly_a.begin(), poly_a.end());
+        std::vector<long long> b_ll(poly_b.begin(), poly_b.end());
+        std::vector<long long> expected = KACTL::cyclic_conv(a_ll, b_ll, L);
         
-        // Prepare A and B arrays (ensuring they are zeroed out first)
+        // Prepare A and B arrays
         std::memset(A, 0, sizeof(A));
         std::memset(B, 0, sizeof(B));
         std::memcpy(A, poly_a.data(), L * sizeof(uint32_t));
@@ -280,9 +368,9 @@ void run_correctness_tests() {
         
         bool passed = true;
         for (int i = 0; i < L; ++i) {
-            if (A[i] != expected[i]) {
+            if (A[i] != (uint32_t)expected[i]) {
                 passed = false;
-                std::cout << "FAIL at size " << L << ", index " << i 
+                std::cout << "FAIL at size 2^" << k << ", index " << i 
                           << ": expected " << expected[i] 
                           << ", got " << A[i] << "\n";
                 break;
@@ -290,15 +378,13 @@ void run_correctness_tests() {
         }
         
         if (passed) {
-            std::cout << "PASS: size " << std::setw(4) << L << "\n";
+            std::cout << "PASS: size 2^" << std::setw(2) << k << " (" << std::setw(7) << L << ")\n";
+        } else {
+            break; // Stop on first failure
         }
     }
     std::cout << "--------------------------------------------------------\n";
 }
-
-// ============================================================================
-// END CORRECTNESS TESTING
-// ============================================================================
 
 void run_benchmark() {
     std::cout << "Profiling Algorithm Speed (Average of 10 runs)\n";
@@ -314,14 +400,13 @@ void run_benchmark() {
     for (int k = 10; k <= 20; ++k) {
         int L = 1 << k;
 
-        // 1. Generate random data ONCE per size
+        // Generate random data once per size
         for(int i=0; i<L; ++i) {
             A_bak[i] = dist(rng);
             B_bak[i] = dist(rng);
         }
 
-        // 2. Warmup
-        // Copy data from backup to active arrays for warmup
+        // Warmup
         std::memcpy(A, A_bak, L * sizeof(uint32_t));
         std::memcpy(B, B_bak, L * sizeof(uint32_t));
         reset_roots();
@@ -332,20 +417,15 @@ void run_benchmark() {
         reset_roots();
         run_test_logic(L);
 
-        // 3. Averaging Loop
+        // Averaging Loop
         const int iterations = 10;
         long long total_us = 0;
 
         for (int iter = 0; iter < iterations; ++iter) {
-            // Reset state completely before measurement:
-            // a. Reset roots (so precomputation time is counted)
             reset_roots();
-            
-            // b. Reset data (fast memcpy, NOT counted in timer)
             std::memcpy(A, A_bak, L * sizeof(uint32_t));
             std::memcpy(B, B_bak, L * sizeof(uint32_t));
 
-            // Measure
             auto start = std::chrono::high_resolution_clock::now();
             run_test_logic(L);
             auto end = std::chrono::high_resolution_clock::now();
@@ -365,7 +445,7 @@ void run_benchmark() {
 
 int main() {
     reset_roots();
-    run_correctness_tests();  // Run correctness tests first
+    run_correctness_tests();
     run_benchmark();
     return 0;
 }

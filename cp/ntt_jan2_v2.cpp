@@ -1,3 +1,4 @@
+// pass correctness test
 #pragma GCC target("avx2")
 #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
 #include <immintrin.h>
@@ -237,41 +238,92 @@ void run_test_logic(int L) {
 // CORRECTNESS TESTING (NEW)
 // ============================================================================
 // Updated: Performs Cyclic Convolution to match NTT behavior
-std::vector<uint32_t> brute_force_cyclic(const std::vector<uint32_t>& a, 
-                                          const std::vector<uint32_t>& b, 
-                                          int L) {
-    std::vector<uint32_t> result(L, 0);
-    for (int i = 0; i < L; ++i) {
-        for (int j = 0; j < L; ++j) {
-            int target = (i + j) % L; // The "Cyclic" part
-            uint64_t prod = (uint64_t)a[i] * b[j] % MOD;
-            result[target] = (result[target] + prod) % MOD;
-        }
-    }
-    return result;
-}
 
+namespace KACTL {
+    typedef long long ll;
+    typedef std::vector<ll> vll;
+    
+    const ll mod = 998244353;
+    const ll root = 62; // This will be used as modpow(3, (mod-1)/N)
+    
+    ll modpow(ll base, ll exp, ll m = mod) {
+        ll result = 1;
+        base %= m;
+        while (exp > 0) {
+            if (exp & 1) result = (result * base) % m;
+            base = (base * base) % m;
+            exp >>= 1;
+        }
+        return result;
+    }
+    
+    void ntt(vll &a) {
+        int n = a.size(), L = 31 - __builtin_clz(n);
+        static vll rt(2, 1);
+        for (static int k = 2, s = 2; k < n; k *= 2, ++s) {
+            rt.resize(n);
+            ll z = modpow(root, mod >> s);
+            for (int i = k; i < 2*k; ++i) 
+                rt[i] = rt[i/2] * ((i&1) ? z : 1) % mod;
+        }
+        vll rev(n);
+        for (int i = 0; i < n; ++i) 
+            rev[i] = (rev[i/2] | ((i&1) << L)) / 2;
+        for (int i = 0; i < n; ++i) 
+            if (i < rev[i]) std::swap(a[i], a[rev[i]]);
+        for (int k = 1; k < n; k *= 2)
+            for (int i = 0; i < n; i += 2*k) {
+                for (int j = 0; j < k; ++j) {
+                    ll z = rt[j+k] * a[i+j+k] % mod;
+                    ll &ai = a[i+j];
+                    a[i+j+k] = ai - z + (z > ai ? mod : 0);
+                    ai += (ai + z >= mod ? z - mod : z);
+                }
+            }
+    }
+    
+    // Cyclic convolution of exact size L (must be power of 2)
+    vll cyclic_conv(const vll &a, const vll &b, int L) {
+        vll A(a), B(b);
+        A.resize(L); B.resize(L);
+        ntt(A); ntt(B);
+        for (int i = 0; i < L; ++i)
+            A[i] = (ll)A[i] * B[i] % mod;
+        // Inverse NTT: reverse + scale
+        std::reverse(A.begin() + 1, A.end());
+        ntt(A);
+        ll inv = modpow(L, mod - 2);
+        for (int i = 0; i < L; ++i)
+            A[i] = A[i] * inv % mod;
+        return A;
+    }
+}
+// ============================================================================
+// CORRECTNESS TESTING
+// ============================================================================
 void run_correctness_tests() {
-    std::cout << "Running Correctness Tests (Cyclic Convolution)...\n";
+    std::cout << "Running Correctness Tests (KACTL NTT Reference)...\n";
     std::cout << "--------------------------------------------------------\n";
     
     std::mt19937 rng(12345);
     std::uniform_int_distribution<uint32_t> dist(0, MOD - 1);
     
-    // Test sizes must be powers of 2 for your NTT implementation
-    std::vector<int> test_sizes = {16, 32, 64, 128, 256, 512};
-    
-    for (int L : test_sizes) {
+    // Test sizes from 2^4 to 2^20
+    for (int k = 4; k <= 20; ++k) {
+        int L = 1 << k;
+        
         std::vector<uint32_t> poly_a(L), poly_b(L);
         for (int i = 0; i < L; ++i) {
             poly_a[i] = dist(rng); 
             poly_b[i] = dist(rng);
         }
         
-        // Compute expected using cyclic brute force
-        std::vector<uint32_t> expected = brute_force_cyclic(poly_a, poly_b, L);
+        // Compute expected using KACTL
+        std::vector<long long> a_ll(poly_a.begin(), poly_a.end());
+        std::vector<long long> b_ll(poly_b.begin(), poly_b.end());
+        std::vector<long long> expected = KACTL::cyclic_conv(a_ll, b_ll, L);
         
-        // Prepare A and B arrays (ensuring they are zeroed out first)
+        // Prepare A and B arrays
         std::memset(A, 0, sizeof(A));
         std::memset(B, 0, sizeof(B));
         std::memcpy(A, poly_a.data(), L * sizeof(uint32_t));
@@ -282,9 +334,9 @@ void run_correctness_tests() {
         
         bool passed = true;
         for (int i = 0; i < L; ++i) {
-            if (A[i] != expected[i]) {
+            if (A[i] != (uint32_t)expected[i]) {
                 passed = false;
-                std::cout << "FAIL at size " << L << ", index " << i 
+                std::cout << "FAIL at size 2^" << k << ", index " << i 
                           << ": expected " << expected[i] 
                           << ", got " << A[i] << "\n";
                 break;
@@ -292,7 +344,9 @@ void run_correctness_tests() {
         }
         
         if (passed) {
-            std::cout << "PASS: size " << std::setw(4) << L << "\n";
+            std::cout << "PASS: size 2^" << std::setw(2) << k << " (" << std::setw(7) << L << ")\n";
+        } else {
+            break; // Stop on first failure
         }
     }
     std::cout << "--------------------------------------------------------\n";

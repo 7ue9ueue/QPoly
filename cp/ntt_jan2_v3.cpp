@@ -68,22 +68,6 @@ uint32_t inv_mod(uint32_t x) { return pow_mod(x, MOD - 2); }
 //     return _mm256_min_epu32(result, adjusted);
 // }
 
-v8i reduce(v8i x0246, v8i x1357) const {
-    v8i x0246_ninv = _mm256_mul_epu32(x0246, v_m);
-    v8i x1357_ninv = _mm256_mul_epu32(x1357, v_m);
-    v8i x0246_res = _mm256_add_epi64(x0246, _mm256_mul_epu32(x0246_ninv, v_mod));
-    v8i x1357_res = _mm256_add_epi64(x1357, _mm256_mul_epu32(x1357_ninv, v_mod));
-    v8i res = _mm256_or_si256(_mm256_bsrli_epi128(x0246_res, 4), x1357_res);
-    return res;
-}
-
-v8i mul_u32x8(v8i a, v8i b) const {
-    v8i a_sh = _mm256_bsrli_epi128(a, 4);
-    v8i b_sh = _mm256_bsrli_epi128(b, 4);
-    v8i x0246 = _mm256_mul_epu32(a, b);
-    v8i x1357 = _mm256_mul_epu32(a_sh, b_sh);
-    return reduce(x0246, x1357);
-}
 inline v8i _mm256_add_mod(v8i a, v8i b, const v8i m = v_wmod) {
     v8i adjusted = _mm256_sub_epi32(_mm256_add_epi32(a, b), m);
     v8i mask = _mm256_srai_epi32(adjusted, 31);

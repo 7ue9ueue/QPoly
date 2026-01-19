@@ -101,7 +101,7 @@ template<int b_only_even=0>def mul_b_fixed(I256 a,I256 b,I256 bninv,I256 M){
     cc=_mm256_mul_epu32(cc,M),dd=_mm256_mul_epu32(dd,M);
     return _mm256_or_si256(lmove(_mm256_add_epi64(c,cc)),_mm256_add_epi64(d,dd));
 }
-template<int b_only_even=0>def mul_b_fixed_cross(I256 a,I256 b,I256 bninv,I256 M){
+template<int b_only_even=0>def mul_b_cross(I256 a,I256 b,I256 bninv,I256 M){
     I256 cc=_mm256_mul_epu32(a,bninv),dd=_mm256_mul_epu32(lmove(a),b_only_even?bninv:lmove(bninv));
     I256 c=_mm256_mul_epu32(a,b),d=_mm256_mul_epu32(lmove(a),b_only_even?b:lmove(b));
     cc=_mm256_mul_epu32(cc,M),dd=_mm256_mul_epu32(dd,M);
@@ -452,81 +452,72 @@ struct NTT32_info{
 #undef idef
 // --- Original Logic End ---
 
-void run_ntt_cycle(const NTT_interal::NTT32_info& fntt, u32* f, u32* g, idt vec_len) {
-    fntt._vec_dif((I256*)f, vec_len);
-    fntt._vec_dif((I256*)g, vec_len);
-    fntt._vec_cvdt8((I256*)f, (I256*)g, vec_len);
-    fntt._vec_dit((I256*)f, vec_len);
-}
+using namespace std::chrono;
+
+class Timer {
+    high_resolution_clock::time_point start_time;
+public:
+    void start() {
+        start_time = high_resolution_clock::now();
+    }
+    
+    long long elapsed_ns() {
+        auto end_time = high_resolution_clock::now();
+        return duration_cast<nanoseconds>(end_time - start_time).count();
+    }
+};
 
 int main() {
-    std::cout << "Profiling Algorithm Speed (Average of 10 runs)\n";
-    std::cout << "--------------------------------------------------------\n";
-    std::cout << "| " << std::setw(12) << "Size (n)" 
-              << " | " << std::setw(20) << "Avg Time (us)" 
-              << " | " << std::setw(15) << "Avg Time (ms)" << " |\n";
-    std::cout << "|--------------|----------------------|-----------------|\n";
-
-    std::mt19937_64 rng(42);
-    std::uniform_int_distribution<u32> dist(0, 998244353 - 1);
-
-    for (int k = 10; k <= 20; ++k) {
-        idt lm = idt(1) << k; // Treat input size n as 2^k
-        idt vec_len = lm >> 3;
-
-        // Allocation using custom allocator
-        u32* f = lalloc<u32>(lm);
-        u32* g = lalloc<u32>(lm);
-        u32* f_bak = lalloc<u32>(lm);
-        u32* g_bak = lalloc<u32>(lm);
-
-        // 1. Generate random data ONCE per size
-        for(idt i=0; i<lm; ++i) {
-            f_bak[i] = dist(rng);
-            g_bak[i] = dist(rng);
-        }
-
-        // 2. Warmup
-        // Using a temporary scope for warmups
-        {
-            NTT_interal::NTT32_info fntt_warmup(998244353);
-            copy(f, f_bak, lm); copy(g, g_bak, lm);
-            run_ntt_cycle(fntt_warmup, f, g, vec_len);
-            
-            copy(f, f_bak, lm); copy(g, g_bak, lm);
-            run_ntt_cycle(fntt_warmup, f, g, vec_len);
-        }
-
-        // 3. Averaging Loop
-        const int iterations = 10;
-        long long total_us = 0;
-
-        for (int iter = 0; iter < iterations; ++iter) {
-            // Reset data (not timed)
-            copy(f, f_bak, lm);
-            copy(g, g_bak, lm);
-
-            auto start = std::chrono::high_resolution_clock::now();
-            
-            // Instantiate inside the timed loop to count "precomputed roots" time
-            // as requested, though this class is efficient with precomputation.
-            NTT_interal::NTT32_info fntt(998244353);
-            run_ntt_cycle(fntt, f, g, vec_len);
-
-            auto end = std::chrono::high_resolution_clock::now();
-            total_us += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-        }
-
-        double avg_us = (double)total_us / iterations;
-        double avg_ms = avg_us / 1000.0;
-
-        std::cout << "| 2^" << std::setw(9) << std::left << k 
-                  << " | " << std::setw(20) << std::right << std::fixed << std::setprecision(0) << avg_us 
-                  << " | " << std::setw(15) << std::fixed << std::setprecision(3) << avg_ms << " |\n";
-
-        lfree(f, lm); lfree(g, lm);
-        lfree(f_bak, lm); lfree(g_bak, lm);
+    const u32 MOD = 998244353;
+    const int LG = 20;  // Test size: 2^20 = 1M elements
+    const idt N = idt(1) << LG;
+    const idt vec_len = N >> 3;
+    
+    // Allocate aligned arrays
+    u32* a = lalloc<u32>(N);
+    u32* b = lalloc<u32>(N);
+    
+    // Initialize with random data in range [0, MOD)
+    std::mt19937 rng(42);
+    std::uniform_int_distribution<u32> dist(0, MOD - 1);
+    
+    for (idt i = 0; i < N; i++) {
+        a[i] = dist(rng);
+        b[i] = dist(rng);
     }
-    std::cout << "--------------------------------------------------------\n";
+    
+    Timer timer;
+    
+    // Time root precomputation
+    timer.start();
+    NTT_interal::NTT32_info ntt(MOD);
+    long long root_time = timer.elapsed_ns();
+    
+    // Time DIF (forward transform)
+    timer.start();
+    ntt._vec_dif((I256*)a, vec_len);
+    ntt._vec_dif((I256*)b, vec_len);
+    long long dif_time = timer.elapsed_ns();
+    
+    // Time pointwise multiply
+    timer.start();
+    ntt._vec_cvdt8((I256*)a, (I256*)b, vec_len);
+    long long mul_time = timer.elapsed_ns();
+    
+    // Time DIT (inverse transform)
+    timer.start();
+    ntt._vec_dit((I256*)a, vec_len);
+    long long dit_time = timer.elapsed_ns();
+    
+    // Print results
+    std::cout << "Root precomputation:  " << std::setw(10) << root_time << " ns\n";
+    std::cout << "DIF nested loops:     " << std::setw(10) << dif_time << " ns\n";
+    std::cout << "Pointwise multiply:   " << std::setw(10) << mul_time << " ns\n";
+    std::cout << "DIT nested loops:     " << std::setw(10) << dit_time << " ns\n";
+    
+    // Cleanup
+    lfree(a, N);
+    lfree(b, N);
+    
     return 0;
 }
