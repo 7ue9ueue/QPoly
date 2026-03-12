@@ -106,6 +106,12 @@ The results below are copied from the end of `kactl_bench.cpp`.
 
 To close the gap with the record-holder implementation, my next planned steps are:
 
-- Add assembly-level optimization in hot kernels (likely via inline assembly and/or runtime-specialized code generation where helpful).
+- Adopt a **codelets** method (FFTW/genfft style): build tiny fixed-size, straight-line transform kernels (hardcoded butterflies/twiddles) and dispatch them for small stages; optionally combine with JIT/runtime specialization per CPU.
+- This is a key differentiator I want to pursue, since the current record-holder implementation does not use a codelet-based approach.
+- Add assembly-level optimization in hot kernels (inline assembly where it gives measurable wins).
 - Use lazy evaluation in the final three NTT layers (`k = 1, 2, 3`) and switch those tiny stages to a small quadratic-style kernel.
 - Avoid full upfront root-table generation; move toward on-demand/stage-wise root generation to reduce setup overhead and memory pressure.
+
+Codelets references:
+- FFTW paper: https://www.fftw.org/fftw-paper-ieee.pdf
+- FFTW `genfft` documentation: https://www.fftw.org/doc/Generating-your-own-code.html
