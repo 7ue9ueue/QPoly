@@ -101,3 +101,11 @@ The results below are copied from the end of `kactl_bench.cpp`.
 | 2^20 | 10072.2 | 69126.7 | 6.86x |
 | 2^21 | 20873.8 | 164404.8 | 7.88x |
 | 2^22 | 45394.0 | 416031.5 | 9.16x |
+
+## Next optimization directions
+
+To close the gap with the record-holder implementation, my next planned steps are:
+
+- Add assembly-level optimization in hot kernels (likely via inline assembly and/or runtime-specialized code generation where helpful).
+- Use lazy evaluation in the final three NTT layers (`k = 1, 2, 3`) and switch those tiny stages to a small quadratic-style kernel.
+- Avoid full upfront root-table generation; move toward on-demand/stage-wise root generation to reduce setup overhead and memory pressure.
