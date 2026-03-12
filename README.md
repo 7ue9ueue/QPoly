@@ -1,4 +1,4 @@
-# SymPoly
+# QPoly
 
 This is my NTT optimization showcase project. I am still actively working on it.
 
