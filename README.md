@@ -57,11 +57,11 @@ So, based on these measurements, I mainly chose Montgomery multiplication for th
 
 ## Float trick experiment (why I did not use it)
 
-I also tried the float/double modular multiplication approach in `tests/float/float_test.cpp` and related modmul benchmarks.
+I tested the floating-point modular multiplication trick in `tests/float/float_test.cpp` (algorithm reference: https://hal.science/hal-04841449v1/document).
 
-- With `MOD = 998244353` (about `9e8`), coefficient products are around `1e18`
-- That exceeds exact integer precision of IEEE `double` mantissa (`53` bits), so safe reduction needs extra correction logic / wider integer handling (practically moving toward `__int128`-style checks)
-- That extra work hurts performance, so I did not use the float trick in the main NTT implementation
+- `MOD = 998244353` (~`9e8`) is not exactly representable in `float32`, so I would need `float64`
+- In the integer path, I can stay with `int32` lane values
+- In my benchmark, the integer `int32` SIMD path is faster than the `float64` path
 
 Benchmark context (`tests/modmul/modmul_bench.cpp`):
 
