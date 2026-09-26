@@ -22,7 +22,10 @@ jobs:
       - name: Correctness then timings
         run: bash work/ntt/lazy_twiddle/run.sh
       - name: Native assembly
-        run: objdump -d -Mintel build/lazy_twiddle/lazy_fixed256.o > results/lazy_fixed256-assembly.txt
+        run: |
+          objdump -d -Mintel build/lazy_twiddle/lazy_fixed256.o > results/lazy_fixed256-assembly.txt
+          objdump -d -Mintel build/lazy_twiddle/lazy_hybrid_counted.o > results/lazy_hybrid_counted-assembly.txt
+          objdump -d -Mintel build/lazy_twiddle/lazy_hybrid_unroll2.o > results/lazy_hybrid_unroll2-assembly.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:

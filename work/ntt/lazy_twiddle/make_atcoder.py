@@ -12,6 +12,13 @@ base=re.sub(r'^.*(?:auto (?:start|end)_|auto start =|auto end =|g_timing\.).*\n'
 base=strip(base)
 base+='\nvoid invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh){if(fresh||s==0)reset_roots(r,ir,s);run_test_logic(n,(v8i*)a,(v8i*)b,r,ir,s);}\n'
 previous=strip((root/'work/ntt/simd_explore/candidates/direct8_identity.cpp').read_text())
+# GCC's synthesized static-initializer function does not inherit the AVX2 pragma.
+# Literal vector constants avoid dynamic intrinsic initialization without -mavx2.
+def literal_vectors(s):
+    s=re.sub(r'const v8i (\w+) = _mm256_set1_epi32\(([^)]+)\);',
+             lambda m:'const v8i '+m[1]+' = {'+', '.join(['int64_t(uint64_t('+m[2]+')*0x100000001ULL)']*4)+'};',s)
+    return re.sub(r'const v8i (\w+) = _mm256_setzero_si256\(\);',r'const v8i \1 = {0,0,0,0};',s)
+base=literal_vectors(base);previous=literal_vectors(previous)
 headers=(root/'work/ntt/simd_explore/common.hpp').read_text().replace('#pragma once\n','').replace('#include <sys/mman.h>\n','').replace('#include <bit>\n','')
 result='''// Paste this entire file into an AtCoder C++17-or-later Custom Test.
 // Empty input runs through 2^20 with five repetitions, fresh roots.
@@ -27,7 +34,7 @@ result='''// Paste this entire file into an AtCoder C++17-or-later Custom Test.
 #endif
 '''
 result+='namespace v91 {\n'+base+'}\n'+previous+'\n'+strip((here/'kernel.hpp').read_text())
-selected={'lazy_tile256':(True,False,1,256),'lazy_fixed256':(True,False,3,256)}
+selected={'lazy_leaf_incremental':(True,False,2,256),'lazy_hybrid_counted':(True,False,2,256,4,1)}
 for name,args in selected.items():
     params=','.join(str(x).lower() for x in args)
     result+=f'\nnamespace {name} {{ void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {{qpoly_lazy::Kernel<{params}>::run(n,a,b,r,ir,s,fresh);}} }}\n'

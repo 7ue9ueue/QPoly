@@ -43,12 +43,12 @@ constexpr uint32_t R2_MOD = 932051910;
 constexpr uint32_t M_INV = 998244351;
 constexpr uint32_t PRIM_ROOT = 3;
 
-const v8i v_mod = _mm256_set1_epi32(MOD);
-const v8i v_wmod = _mm256_set1_epi32(WMOD);
-const v8i v_m = _mm256_set1_epi32(M_INV);
-const v8i v_r2 = _mm256_set1_epi32(R2_MOD);
-const v8i v_one = _mm256_set1_epi32(1);
-const v8i v_zero = _mm256_setzero_si256();
+const v8i v_mod = {int64_t(uint64_t(MOD)*0x100000001ULL), int64_t(uint64_t(MOD)*0x100000001ULL), int64_t(uint64_t(MOD)*0x100000001ULL), int64_t(uint64_t(MOD)*0x100000001ULL)};
+const v8i v_wmod = {int64_t(uint64_t(WMOD)*0x100000001ULL), int64_t(uint64_t(WMOD)*0x100000001ULL), int64_t(uint64_t(WMOD)*0x100000001ULL), int64_t(uint64_t(WMOD)*0x100000001ULL)};
+const v8i v_m = {int64_t(uint64_t(M_INV)*0x100000001ULL), int64_t(uint64_t(M_INV)*0x100000001ULL), int64_t(uint64_t(M_INV)*0x100000001ULL), int64_t(uint64_t(M_INV)*0x100000001ULL)};
+const v8i v_r2 = {int64_t(uint64_t(R2_MOD)*0x100000001ULL), int64_t(uint64_t(R2_MOD)*0x100000001ULL), int64_t(uint64_t(R2_MOD)*0x100000001ULL), int64_t(uint64_t(R2_MOD)*0x100000001ULL)};
+const v8i v_one = {int64_t(uint64_t(1)*0x100000001ULL), int64_t(uint64_t(1)*0x100000001ULL), int64_t(uint64_t(1)*0x100000001ULL), int64_t(uint64_t(1)*0x100000001ULL)};
+const v8i v_zero = {0,0,0,0};
 
 constexpr int maxn = 1 << 22; 
 constexpr int maxn8 = maxn >> 3;
@@ -222,7 +222,7 @@ void dif_ntt(v8i *f, const int &n, const uint32_t* rt) {
         int h = n >> 1;
         int h8 = h >> 3;
         for (int j = 0, k = 0; j < n8; j += h8 << 1, ++k) {
-            const v8i v_rt = _mm256_set1_epi32(rt[k]);
+            const v8i v_rt = {int64_t(uint64_t(rt[k])*0x100000001ULL), int64_t(uint64_t(rt[k])*0x100000001ULL), int64_t(uint64_t(rt[k])*0x100000001ULL), int64_t(uint64_t(rt[k])*0x100000001ULL)};
             v8i* f0 = f + j;
             v8i* f1 = f + j + h8;
             v8i v_rt_inv = _mm256_mul_epu32(v_rt, v_m);
@@ -421,7 +421,7 @@ void dit_ntt(v8i *f, const int &n, const uint32_t* irt) {
     if ((num_outer_stages & 1) && i <= (n >> 1)) {
         int i8 = i >> 3;
         for (int j = 0, k = 0; j < n8; j += i8 << 1, ++k) {
-            const v8i v_irt = _mm256_set1_epi32(irt[k]);
+            const v8i v_irt = {int64_t(uint64_t(irt[k])*0x100000001ULL), int64_t(uint64_t(irt[k])*0x100000001ULL), int64_t(uint64_t(irt[k])*0x100000001ULL), int64_t(uint64_t(irt[k])*0x100000001ULL)};
             const v8i v_irt_inv = _mm256_mul_epu32(v_irt, v_m);
             v8i* f0 = f + j;
             v8i* f1 = f + j + i8;
@@ -481,12 +481,12 @@ constexpr uint32_t R2_MOD = 932051910;
 constexpr uint32_t M_INV = 998244351;
 constexpr uint32_t PRIM_ROOT = 3;
 
-const v8i v_mod = _mm256_set1_epi32(MOD);
-const v8i v_wmod = _mm256_set1_epi32(WMOD);
-const v8i v_m = _mm256_set1_epi32(M_INV);
-const v8i v_r2 = _mm256_set1_epi32(R2_MOD);
-const v8i v_one = _mm256_set1_epi32(1);
-const v8i v_zero = _mm256_setzero_si256();
+const v8i v_mod = {int64_t(uint64_t(MOD)*0x100000001ULL), int64_t(uint64_t(MOD)*0x100000001ULL), int64_t(uint64_t(MOD)*0x100000001ULL), int64_t(uint64_t(MOD)*0x100000001ULL)};
+const v8i v_wmod = {int64_t(uint64_t(WMOD)*0x100000001ULL), int64_t(uint64_t(WMOD)*0x100000001ULL), int64_t(uint64_t(WMOD)*0x100000001ULL), int64_t(uint64_t(WMOD)*0x100000001ULL)};
+const v8i v_m = {int64_t(uint64_t(M_INV)*0x100000001ULL), int64_t(uint64_t(M_INV)*0x100000001ULL), int64_t(uint64_t(M_INV)*0x100000001ULL), int64_t(uint64_t(M_INV)*0x100000001ULL)};
+const v8i v_r2 = {int64_t(uint64_t(R2_MOD)*0x100000001ULL), int64_t(uint64_t(R2_MOD)*0x100000001ULL), int64_t(uint64_t(R2_MOD)*0x100000001ULL), int64_t(uint64_t(R2_MOD)*0x100000001ULL)};
+const v8i v_one = {int64_t(uint64_t(1)*0x100000001ULL), int64_t(uint64_t(1)*0x100000001ULL), int64_t(uint64_t(1)*0x100000001ULL), int64_t(uint64_t(1)*0x100000001ULL)};
+const v8i v_zero = {0,0,0,0};
 
 constexpr int maxn = 1 << 22; 
 constexpr int maxn8 = maxn >> 3;
@@ -971,7 +971,7 @@ void dif_ntt(v8i *f, const int &n, const uint32_t* rt) {
         int h = n >> 1;
         int h8 = h >> 3;
         for (int j = 0, k = 0; j < n8; j += h8 << 1, ++k) {
-            const v8i v_rt = _mm256_set1_epi32(rt[k]);
+            const v8i v_rt = {int64_t(uint64_t(rt[k])*0x100000001ULL), int64_t(uint64_t(rt[k])*0x100000001ULL), int64_t(uint64_t(rt[k])*0x100000001ULL), int64_t(uint64_t(rt[k])*0x100000001ULL)};
             const v8i v_rt_inv = _mm256_mul_epu32(v_rt, v_m);
             for(int p=0;p<h8;++p) { v8i u=f[j+p], v=f[j+h8+p]; f[j+p]=_mm256_add_mod(u,v); f[j+h8+p]=_mm256_sub_mod(u,v); }
         }
@@ -1058,7 +1058,7 @@ void dit_ntt(v8i *f, const int &n, const uint32_t* irt) {
     if ((num_outer_stages & 1) && i <= (n >> 1)) {
         int i8 = i >> 3;
         for (int j = 0, k = 0; j < n8; j += i8 << 1, ++k) {
-            const v8i v_irt = _mm256_set1_epi32(irt[k]);
+            const v8i v_irt = {int64_t(uint64_t(irt[k])*0x100000001ULL), int64_t(uint64_t(irt[k])*0x100000001ULL), int64_t(uint64_t(irt[k])*0x100000001ULL), int64_t(uint64_t(irt[k])*0x100000001ULL)};
             const v8i v_irt_inv = _mm256_mul_epu32(v_irt, v_m);
             for(int p=0;p<i8;++p) { v8i u=f[j+p], v=f[j+i8+p]; f[j+p]=_mm256_add_mod(u,v); f[j+i8+p]=_mm256_sub_mod(u,v); }
         }
@@ -1230,7 +1230,7 @@ inline void radix4(V* f,int h,const Twiddle& t) {
 
 // Own direct8 method from exploration 002, with explicit incoming [0,4P) handling.
 // Sum bound: 8*(P-1)^2+(2^32-1)*P <2^64. Reduce output <3P to <2P.
-template<int Batch>
+template<int Batch,int Schedule=0>
 inline void leaf(V* a,V* b,const U* weights) {
     alignas(32) U window[Batch][16],coeff[Batch][8];
     V e[Batch],o[Batch];
@@ -1241,17 +1241,27 @@ inline void leaf(V* a,V* b,const U* weights) {
         _mm256_store_si256((V*)coeff[t],canonical(b[t]));
         e[t]=o[t]=_mm256_setzero_si256();
     }
-    for(int i=0;i<8;++i) for(int t=0;t<Batch;++t) {
-        V x=_mm256_loadu_si256((V*)(window[t]+8-i)),y=splat(coeff[t][i]);
-        e[t]=_mm256_add_epi64(e[t],_mm256_mul_epu32(x,y));
-        o[t]=_mm256_add_epi64(o[t],_mm256_mul_epu32(odd(x),y));
-    }
+    auto step = [&](int i) __attribute__((always_inline)) {
+        for(int t=0;t<Batch;++t) {
+            V x=_mm256_loadu_si256((V*)(window[t]+8-i)),y=splat(coeff[t][i]);
+            e[t]=_mm256_add_epi64(e[t],_mm256_mul_epu32(x,y));
+            o[t]=_mm256_add_epi64(o[t],_mm256_mul_epu32(odd(x),y));
+        }
+    };
+    if constexpr(Schedule==1) {
+        // The fully expanded leaf spilled many products in GCC 13 assembly.
+        #pragma GCC unroll 1
+        for(int i=0;i<8;++i)step(i);
+    } else if constexpr(Schedule==2) {
+        #pragma GCC unroll 2
+        for(int i=0;i<8;++i)step(i);
+    } else for(int i=0;i<8;++i)step(i);
     for(int t=0;t<Batch;++t)a[t]=low(reduce(e[t],o[t]));
 }
 
 // RootMode=0: O(N) root tables. RootMode=1: packed incremental per-stage cursors,
 // and a scalar cursor for batches of four leaf factors. Tile is in AVX2 vectors.
-template<bool Lazy,bool Twist,int RootMode,int Tile,int LeafBatch=4>
+template<bool Lazy,bool Twist,int RootMode,int Tile,int LeafBatch=4,int LeafSchedule=0>
 struct Kernel {
     U *rt,*irt;
     V forward[12],inverse[12]; U leaf_cursor=ONE;
@@ -1311,8 +1321,8 @@ struct Kernel {
                 int carry=__builtin_ctz(~unsigned((first+j)/4));
                 leaf_cursor=muls(leaf_cursor,constants.even_step[carry]);
             }
-            if constexpr(LeafBatch==2) {leaf<2>(a+j,b+j,w);leaf<2>(a+j+2,b+j+2,w+2);}
-            else leaf<4>(a+j,b+j,w);
+            if constexpr(LeafBatch==2) {leaf<2,LeafSchedule>(a+j,b+j,w);leaf<2,LeafSchedule>(a+j+2,b+j+2,w+2);}
+            else leaf<4,LeafSchedule>(a+j,b+j,w);
         }
     }
     void visit(V* a,V* b,int nv,int k) {
@@ -1345,15 +1355,15 @@ struct Kernel {
 };
 }
 
-namespace lazy_tile256 { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,1,256>::run(n,a,b,r,ir,s,fresh);} }
+namespace lazy_leaf_incremental { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,2,256>::run(n,a,b,r,ir,s,fresh);} }
 
-namespace lazy_fixed256 { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,3,256>::run(n,a,b,r,ir,s,fresh);} }
+namespace lazy_hybrid_counted { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,2,256,4,1>::run(n,a,b,r,ir,s,fresh);} }
 
 const Entry entries[] = {
 {"v91",v91::invoke},
 {"direct8_identity",direct8_identity::invoke},
-{"lazy_tile256",lazy_tile256::invoke},
-{"lazy_fixed256",lazy_fixed256::invoke},
+{"lazy_leaf_incremental",lazy_leaf_incremental::invoke},
+{"lazy_hybrid_counted",lazy_hybrid_counted::invoke},
 };
 // Self-contained comparison driver. No problem input/output is required.
 // Empty stdin: max_log2=20, repetitions=5, mode=0 (fresh).

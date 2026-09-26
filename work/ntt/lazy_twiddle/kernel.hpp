@@ -141,7 +141,7 @@ inline void radix4(V* f,int h,const Twiddle& t) {
 
 // Own direct8 method from exploration 002, with explicit incoming [0,4P) handling.
 // Sum bound: 8*(P-1)^2+(2^32-1)*P <2^64. Reduce output <3P to <2P.
-template<int Batch>
+template<int Batch,int Schedule=0>
 inline void leaf(V* a,V* b,const U* weights) {
     alignas(32) U window[Batch][16],coeff[Batch][8];
     V e[Batch],o[Batch];
@@ -152,17 +152,27 @@ inline void leaf(V* a,V* b,const U* weights) {
         _mm256_store_si256((V*)coeff[t],canonical(b[t]));
         e[t]=o[t]=_mm256_setzero_si256();
     }
-    for(int i=0;i<8;++i) for(int t=0;t<Batch;++t) {
-        V x=_mm256_loadu_si256((V*)(window[t]+8-i)),y=splat(coeff[t][i]);
-        e[t]=_mm256_add_epi64(e[t],_mm256_mul_epu32(x,y));
-        o[t]=_mm256_add_epi64(o[t],_mm256_mul_epu32(odd(x),y));
-    }
+    auto step = [&](int i) __attribute__((always_inline)) {
+        for(int t=0;t<Batch;++t) {
+            V x=_mm256_loadu_si256((V*)(window[t]+8-i)),y=splat(coeff[t][i]);
+            e[t]=_mm256_add_epi64(e[t],_mm256_mul_epu32(x,y));
+            o[t]=_mm256_add_epi64(o[t],_mm256_mul_epu32(odd(x),y));
+        }
+    };
+    if constexpr(Schedule==1) {
+        // The fully expanded leaf spilled many products in GCC 13 assembly.
+        #pragma GCC unroll 1
+        for(int i=0;i<8;++i)step(i);
+    } else if constexpr(Schedule==2) {
+        #pragma GCC unroll 2
+        for(int i=0;i<8;++i)step(i);
+    } else for(int i=0;i<8;++i)step(i);
     for(int t=0;t<Batch;++t)a[t]=low(reduce(e[t],o[t]));
 }
 
 // RootMode=0: O(N) root tables. RootMode=1: packed incremental per-stage cursors,
 // and a scalar cursor for batches of four leaf factors. Tile is in AVX2 vectors.
-template<bool Lazy,bool Twist,int RootMode,int Tile,int LeafBatch=4>
+template<bool Lazy,bool Twist,int RootMode,int Tile,int LeafBatch=4,int LeafSchedule=0>
 struct Kernel {
     U *rt,*irt;
     V forward[12],inverse[12]; U leaf_cursor=ONE;
@@ -222,8 +232,8 @@ struct Kernel {
                 int carry=__builtin_ctz(~unsigned((first+j)/4));
                 leaf_cursor=muls(leaf_cursor,constants.even_step[carry]);
             }
-            if constexpr(LeafBatch==2) {leaf<2>(a+j,b+j,w);leaf<2>(a+j+2,b+j+2,w+2);}
-            else leaf<4>(a+j,b+j,w);
+            if constexpr(LeafBatch==2) {leaf<2,LeafSchedule>(a+j,b+j,w);leaf<2,LeafSchedule>(a+j+2,b+j+2,w+2);}
+            else leaf<4,LeafSchedule>(a+j,b+j,w);
         }
     }
     void visit(V* a,V* b,int nv,int k) {

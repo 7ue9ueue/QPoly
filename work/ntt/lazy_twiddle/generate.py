@@ -27,6 +27,11 @@ configs={
     'lazy_fixed64': (True,False,3,64),
     'lazy_fixed1024': (True,False,3,1024),
     'lazy_fixed_batch2': (True,False,3,256,2),
+    'lazy_hybrid_counted': (True,False,2,256,4,1),
+    'lazy_hybrid_unroll2': (True,False,2,256,4,2),
+    'lazy_inc_counted': (True,False,1,256,4,1),
+    'lazy_inc_unroll2': (True,False,1,256,4,2),
+    'lazy_hybrid_counted2': (True,False,2,256,2,1),
 }
 for name,args in configs.items():
     params=','.join(str(x).lower() for x in args)
