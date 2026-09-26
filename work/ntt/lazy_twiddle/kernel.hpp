@@ -51,6 +51,7 @@ struct Fixed {
 struct Constants {
     U q[22]{},iq[22]{},step[22]{},istep[22]{},even_step[21]{},ieven_step[21]{};
     alignas(32) W rates[2][2][21][4]{};
+    alignas(32) W fixed_rates[2][2][21][4]{};
     constexpr Constants() {
         q[21]=mont(power(3,(P-1)>>23)); iq[21]=mont(power(power(3,(P-1)>>23),P-2));
         for(int j=20;j>=0;--j) {q[j]=muls(q[j+1],q[j+1]);iq[j]=muls(iq[j+1],iq[j+1]);}
@@ -65,6 +66,10 @@ struct Constants {
                     U x=inverse?istep[j]:step[j], y=inverse?ieven_step[j]:even_step[j];
                     rates[inverse][twist][j][0]=x; rates[inverse][twist][j][1]=y;
                     rates[inverse][twist][j][2]=twist?muls(x,y):y;rates[inverse][twist][j][3]=ONE;
+                    for(int lane=0;lane<4;++lane) {
+                        U value=U(rates[inverse][twist][j][lane]);
+                        fixed_rates[inverse][twist][j][lane]=W(value)|(W(value*NI)<<32);
+                    }
                 }
             }
         }
@@ -75,6 +80,11 @@ inline V packed_mul(V x,V y) {
     V t=_mm256_mul_epu32(x,y);
     V c=_mm256_mul_epu32(_mm256_mul_epu32(t,splat(NI)),splat(P));
     return shrink(_mm256_srli_epi64(_mm256_add_epi64(t,c),32),P);
+}
+inline V packed_mul_fixed(V x,V rate) {
+    V product=_mm256_mul_epu32(x,rate);
+    V correction=_mm256_mul_epu32(_mm256_mul_epu32(x,odd(rate)),splat(P));
+    return shrink(_mm256_srli_epi64(_mm256_add_epi64(product,correction),32),P);
 }
 struct Twiddle { Fixed x,y,z; Twiddle(V a,V b,V c):x(a),y(b),z(c){} };
 
@@ -152,7 +162,7 @@ inline void leaf(V* a,V* b,const U* weights) {
 
 // RootMode=0: O(N) root tables. RootMode=1: packed incremental per-stage cursors,
 // and a scalar cursor for batches of four leaf factors. Tile is in AVX2 vectors.
-template<bool Lazy,bool Twist,int RootMode,int Tile>
+template<bool Lazy,bool Twist,int RootMode,int Tile,int LeafBatch=4>
 struct Kernel {
     U *rt,*irt;
     V forward[12],inverse[12]; U leaf_cursor=ONE;
@@ -175,15 +185,20 @@ struct Kernel {
     }
     template<bool Inv>
     inline Twiddle twiddle(int h,int k) {
-        if constexpr(RootMode==0) {
+        if constexpr(RootMode==0 || RootMode==2) {
             const U* r=Inv?irt:rt;U x=r[k],y=r[2*k],z=Twist?muls(x,y):r[2*k+1];
             return Twiddle(splat(x),splat(y),splat(z));
         } else {
             int level=__builtin_ctz(unsigned(h))/2;
             V& cursor=Inv?inverse[level]:forward[level]; V current=cursor;
             int carry=__builtin_ctz(~unsigned(k));
-            V step=_mm256_load_si256((const V*)constants.rates[Inv][Twist][carry]);
-            cursor=packed_mul(current,step);
+            if constexpr(RootMode==3) {
+                V step=_mm256_load_si256((const V*)constants.fixed_rates[Inv][Twist][carry]);
+                cursor=packed_mul_fixed(current,step);
+            } else {
+                V step=_mm256_load_si256((const V*)constants.rates[Inv][Twist][carry]);
+                cursor=packed_mul(current,step);
+            }
             return Twiddle(_mm256_permute4x64_epi64(current,0x00),_mm256_permute4x64_epi64(current,0x55),_mm256_permute4x64_epi64(current,0xaa));
         }
     }
@@ -207,7 +222,8 @@ struct Kernel {
                 int carry=__builtin_ctz(~unsigned((first+j)/4));
                 leaf_cursor=muls(leaf_cursor,constants.even_step[carry]);
             }
-            leaf<4>(a+j,b+j,w);
+            if constexpr(LeafBatch==2) {leaf<2>(a+j,b+j,w);leaf<2>(a+j+2,b+j+2,w+2);}
+            else leaf<4>(a+j,b+j,w);
         }
     }
     void visit(V* a,V* b,int nv,int k) {
@@ -223,7 +239,7 @@ struct Kernel {
     }
     static void run(int n,U* aa,U* bb,U* r,U* ir,int& size,bool fresh) {
         assert(n>=64 && n<=(1<<22) && (n&(n-1))==0);
-        if constexpr(RootMode==0)tables(n/8,r,ir,size,fresh);
+        if constexpr(RootMode==0 || RootMode==2)tables(n/(RootMode==2?16:8),r,ir,size,fresh);
         Kernel job(r,ir);V* a=(V*)aa;V* b=(V*)bb;int nv=n/8;
         if(__builtin_ctz(unsigned(nv))&1) {
             int h=nv/2;

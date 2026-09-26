@@ -20,6 +20,13 @@ configs={
     'twist_tile256': (True,True,1,256),
     'twist_tile1024': (True,True,1,1024),
     'twist_recursive': (True,True,1,4),
+    'lazy_leaf_incremental': (True,False,2,256),
+    'lazy_tile64': (True,False,1,64),
+    'lazy_tile1024': (True,False,1,1024),
+    'lazy_fixed256': (True,False,3,256),
+    'lazy_fixed64': (True,False,3,64),
+    'lazy_fixed1024': (True,False,3,1024),
+    'lazy_fixed_batch2': (True,False,3,256,2),
 }
 for name,args in configs.items():
     params=','.join(str(x).lower() for x in args)

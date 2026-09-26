@@ -2,7 +2,7 @@ name: NTT lazy ranges and incremental twiddles
 on:
   push:
     branches: [codex/ntt-simd-explore]
-    paths: [work/ntt/lazy_twiddle/**, .github/workflows/ntt-lazy.yml]
+    paths: [work/ntt/lazy_twiddle/**, work/ntt/atcoder_ntt_compare.cpp, .github/workflows/ntt-lazy.yml]
 permissions:
   contents: read
 jobs:
@@ -21,9 +21,34 @@ jobs:
           { lscpu; g++ --version; git rev-parse HEAD; } | tee results/environment.txt
       - name: Correctness then timings
         run: bash work/ntt/lazy_twiddle/run.sh
+      - name: Native assembly
+        run: objdump -d -Mintel build/lazy_twiddle/lazy_fixed256.o > results/lazy_fixed256-assembly.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lazy-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
+  standalone-and-sanitize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment
+        run: |
+          mkdir -p results
+          { lscpu; g++ --version; git rev-parse HEAD; } > results/environment.txt
+      - name: All variant sanitizers
+        run: SANITIZE=1 bash work/ntt/lazy_twiddle/run.sh
+      - name: Standalone C++17 default and boundary run
+        run: |
+          g++ -std=c++17 -O2 work/ntt/atcoder_ntt_compare.cpp -o build/atcoder
+          sha256sum work/ntt/atcoder_ntt_compare.cpp build/atcoder > results/atcoder-hashes.txt
+          /usr/bin/time -v build/atcoder </dev/null > results/atcoder-default.txt 2>results/atcoder-resources.txt
+          printf '22 3 2\n' | build/atcoder > results/atcoder-large.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lazy-sanitize-standalone
           path: results/
           retention-days: 7
