@@ -1,0 +1,51 @@
+name: NTT low-level kernel exploration
+on:
+  push:
+    branches: [codex/ntt-simd-explore]
+    paths: [work/ntt/lowlevel/**, .github/workflows/ntt-lowlevel.yml]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment
+        run: |
+          mkdir -p results
+          { lscpu; g++ --version; git rev-parse HEAD; } > results/environment.txt
+      - name: Correctness and timings
+        run: python3 work/ntt/lowlevel/run.py
+      - name: Assembly
+        run: |
+          for name in lazy_hybrid_fused ll_static ll_asm ll_inline ll_mullo ll_shoup; do
+            objdump -d -Mintel build/lowlevel/$name.o > results/$name-assembly.txt
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lowlevel-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
+  sanitize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment
+        run: |
+          mkdir -p results
+          { lscpu; g++ --version; git rev-parse HEAD; } > results/environment.txt
+      - name: Correctness with sanitizers
+        run: SANITIZE=1 python3 work/ntt/lowlevel/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lowlevel-sanitize
+          path: results/
+          retention-days: 7
