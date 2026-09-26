@@ -1,0 +1,30 @@
+name: NTT optimization experiments
+on:
+  push:
+    branches: [codex/ntt-simd-explore]
+    paths: [work/ntt/simd_explore/**, study/fast_ntt_v2.cpp, study/fast_ntt_v3.cpp, .github/workflows/ntt-explore.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment
+        run: |
+          mkdir -p results
+          { lscpu; g++ --version; git rev-parse HEAD; } | tee results/environment.txt
+      - name: Correctness then timing
+        run: bash work/ntt/simd_explore/run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ntt-explore-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
