@@ -21,7 +21,7 @@ jobs:
           apt-get update -qq
           apt-get install -y -qq python3 binutils time
           mkdir -p results
-          { lscpu; g++ --version; git rev-parse HEAD; cat /etc/os-release; } > results/environment.txt
+          { lscpu; g++ --version; printf '%s\n' "$GITHUB_SHA"; cat /etc/os-release; } > results/environment.txt
           test "$(g++ -dumpfullversion)" = 15.2.0
           echo 'gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289' > results/container.txt
       - name: Correctness and timing
@@ -48,7 +48,7 @@ jobs:
           apt-get update -qq
           apt-get install -y -qq python3 time
           mkdir -p results
-          { lscpu; g++ --version; git rev-parse HEAD; } > results/environment.txt
+          { lscpu; g++ --version; printf '%s\n' "$GITHUB_SHA"; } > results/environment.txt
       - name: Sanitizers
         run: SANITIZE=1 python3 work/ntt/h14_explore/run.py
       - uses: actions/upload-artifact@v4
