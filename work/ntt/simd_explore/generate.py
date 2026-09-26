@@ -28,6 +28,8 @@ v91 = v91[:v91.index('struct TimingStats')] + v91[v91.index('[[gnu::always_inlin
 v91 = re.sub(r'^.*(?:auto (?:start|end)_|auto start =|auto end =|g_timing\.).*\n', '', v91, flags=re.M)
 base = source('kactl_bench.cpp', 'namespace KACTL')
 record2 = source('study/fast_ntt_v2.cpp', 'struct auto_timer')
+# Portable spelling in an unused allocation-size helper (libc++ has no std::__lg).
+record2 = record2.replace('std::__lg(x-1)', '(std::bit_width(x-1)-1)')
 record3 = source('study/fast_ntt_v3.cpp', '#include <sys/mman.h>')
 
 def function_body(s, name):
@@ -65,6 +67,22 @@ pipe = pipe.replace('A[i] = _mm256_mont_mul_pointwise(A[i], B[i]);', 'A[i] = dit
 half = pipe.replace('root_size, L);', 'root_size, L / 2);')
 
 variants = {'v91': v91, 'kactl_simd': base, 'fused8': fused, 'pipeline8': pipe, 'halfroots': half}
+variants['recursive'] = half + (HERE / 'recursive.inc').read_text()
+# The odd-log outer radix-2 stage uses root[0] == Montgomery(1).
+trivial = half.replace('butterfly_dif_radix2(f + j, f + j + h8, h8, v_rt, v_rt_inv);',
+    'for(int p=0;p<h8;++p) { v8i u=f[j+p], v=f[j+h8+p]; f[j+p]=_mm256_add_mod(u,v); f[j+h8+p]=_mm256_sub_mod(u,v); }')
+trivial = trivial.replace('butterfly_dit_radix2(f + j, f + j + i8, i8, v_irt, v_irt_inv);',
+    'for(int p=0;p<i8;++p) { v8i u=f[j+p], v=f[j+i8+p]; f[j+p]=_mm256_add_mod(u,v); f[j+i8+p]=_mm256_sub_mod(u,v); }')
+variants['trivial_top'] = trivial
+for batch in [1,4]:
+    direct = trivial.replace('void dif_ntt(', (HERE / 'direct8.inc').read_text()+'\nvoid dif_ntt(', 1)
+    direct = direct.replace('root_size, L / 2);', 'root_size, L / 8);')
+    direct = direct.replace('inv_mod(n)', 'inv_mod(n / 8)')
+    old = 'for (int i = 0; i < L8; ++i) {\n        A[i] = dit8(_mm256_mont_mul_pointwise(dif8(A[i], i, roots), dif8(B[i], i, roots)), i, inv_roots);\n    }'
+    assert old in direct
+    direct = direct.replace(old, f'for(int i=0;i<L8;i+={batch}) direct8<{batch}>(A+i,B+i,i,roots);')
+    variants[f'direct8_b{batch}'] = direct
+
 # Copy the local fast-reference algorithms into generated translation units.
 variants['study_v2'] = record2
 variants['study_v3'] = record3
@@ -83,7 +101,7 @@ for name, src in variants.items():
         call = 'plan.convolve_cyclic(__builtin_ctz(n),a,b);'
     else:
         setup = ''
-        func = 'run_test_logic' if name == 'v91' else 'run_simd_convolution'
+        func = 'run_test_logic' if name == 'v91' else ('run_recursive' if name == 'recursive' else 'run_simd_convolution')
         call = f'if(fresh || rs==0) reset_roots(r,ir,rs); {func}(n,(v8i*)a,(v8i*)b,r,ir,rs);'
     wrapper = f'\n{setup}\nvoid invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint32_t* ir, int& rs, bool fresh) {{ {call} }}\n'
     (OUT / (name+'.cpp')).write_text('#include "common.hpp"\nnamespace '+name+' {\n'+src+wrapper+'}\n')

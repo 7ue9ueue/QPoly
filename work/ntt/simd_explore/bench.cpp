@@ -67,6 +67,17 @@ int main(int argc,char**argv) {
         }
     }
     std::cout<<"PASS changing sizes\n";
+    // Maximum-range products at scale, plus an impulse crossing the cyclic boundary.
+    for(int lg:{16,20,22}) {
+        int n=1<<lg; Buffer a(n),b(n),r(n),ir(n);
+        V x(n,P-1),y(n,P-1),want(n,U(n)%P);
+        for(const auto&e:entries) { int rs=0; check(e,x,y,want,a,b,r,ir,rs,true); }
+        std::fill(x.begin(),x.end(),0); x[n-1]=P-1;
+        for(int i=0;i<n;++i)y[i]=rng()%P;
+        for(int i=0;i<n;++i)want[i]=(P-y[(i+1)%n])%P;
+        for(const auto&e:entries) { int rs=0; check(e,x,y,want,a,b,r,ir,rs,true); }
+    }
+    std::cout<<"PASS large coefficient boundaries\n";
     if(only_check) return 0;
     std::cout<<"variant,mode,log2,repeat,microseconds,checksum\n";
     for(int lg:{12,16,18,19,20,21,22}) {
