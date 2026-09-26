@@ -15,5 +15,6 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <sys/mman.h>
 using Fn = void(*)(int,uint32_t*,uint32_t*,uint32_t*,uint32_t*,int&,bool);
 struct Entry { const char* name; Fn fn; };

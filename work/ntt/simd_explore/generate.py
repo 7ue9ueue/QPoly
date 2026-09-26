@@ -82,6 +82,11 @@ for batch in [1,4]:
     assert old in direct
     direct = direct.replace(old, f'for(int i=0;i<L8;i+={batch}) direct8<{batch}>(A+i,B+i,i,roots);')
     variants[f'direct8_b{batch}'] = direct
+recursive_direct = (HERE / 'recursive.inc').read_text()
+recursive_direct = recursive_direct.replace('a[0] = dit8(_mm256_mont_mul_pointwise(dif8(a[0], k, rt), dif8(b[0], k, rt)), k, irt);', 'direct8<1>(a,b,k,rt);')
+recursive_direct = recursive_direct.replace('for(int t=0;t<4;++t) visit(a+t*h,b+t*h,h,4*k+t,rt,irt);', 'if(h==1) direct8<4>(a,b,4*k,rt); else for(int t=0;t<4;++t) visit(a+t*h,b+t*h,h,4*k+t,rt,irt);')
+recursive_direct = recursive_direct.replace('rs,n/2', 'rs,n/8').replace('inv_mod(n)', 'inv_mod(n/8)')
+variants['recursive_direct8'] = half + (HERE / 'direct8.inc').read_text() + recursive_direct
 
 # Copy the local fast-reference algorithms into generated translation units.
 variants['study_v2'] = record2
@@ -101,7 +106,7 @@ for name, src in variants.items():
         call = 'plan.convolve_cyclic(__builtin_ctz(n),a,b);'
     else:
         setup = ''
-        func = 'run_test_logic' if name == 'v91' else ('run_recursive' if name == 'recursive' else 'run_simd_convolution')
+        func = 'run_test_logic' if name == 'v91' else ('run_recursive' if name.startswith('recursive') else 'run_simd_convolution')
         call = f'if(fresh || rs==0) reset_roots(r,ir,rs); {func}(n,(v8i*)a,(v8i*)b,r,ir,rs);'
     wrapper = f'\n{setup}\nvoid invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint32_t* ir, int& rs, bool fresh) {{ {call} }}\n'
     (OUT / (name+'.cpp')).write_text('#include "common.hpp"\nnamespace '+name+' {\n'+src+wrapper+'}\n')
