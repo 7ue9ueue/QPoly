@@ -25,6 +25,8 @@ with (dest/'generated-hashes.txt').open('w') as f:
 (dest/'manifest.json').write_text((out/'manifest.json').read_text())
 subprocess.run([compiler,*flags,'work/ntt/h14_explore/leaf_check.cc','-o',str(out/'leaf_check')],check=True)
 with (dest/'leaf-checks.txt').open('w') as f:subprocess.run([str(out/'leaf_check')],stdout=f,check=True)
+subprocess.run([compiler,*flags,'work/ntt/h14_explore/radix_check.cc','-o',str(out/'radix_check')],check=True)
+with (dest/'radix-checks.txt').open('w') as f:subprocess.run([str(out/'radix_check')],stdout=f,check=True)
 check=sanitize or os.getenv('CHECK_ONLY')=='1'
 filename='correctness.txt' if check else 'timings.csv'
 with (dest/filename).open('w') as f:subprocess.run([str(out/'bench')]+(['--check'] if check else []),stdout=f,check=True)

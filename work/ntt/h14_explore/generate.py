@@ -43,6 +43,20 @@ if (here/'asm_transforms.py').exists():
 if (here/'stage_transforms.py').exists():
     from stage_transforms import transform as stage_transform,VARIANTS as stage_names
     for name in stage_names:configs[name]=('stage',name,'true,false,2,256,4,2,true')
+from radix_asm_transforms import transform as radix_transform,VARIANTS as radix_names
+from pairmul_transforms import transform as pairmul_transform,VARIANTS as pairmul_names
+for name in radix_names:configs[name]=('radix',name,'true,false,2,256,4,2,true')
+for name in pairmul_names:configs[name]=('pairmul',name,'true,false,2,256,4,2,true')
+for name in ['asm_radix4_serial_large','asm_radix4_pair_large','asm_radix4_pair_leaf','asm_radix4_pair_fixed','asm_radix4_pair_large_fixed']:
+    configs[name]=('combo',name,'true,false,2,256,4,2,true')
+def combined(s,name):
+    variant='asm_radix4_serial' if name.startswith('asm_radix4_serial') else 'asm_radix4_pair'
+    s=radix_transform(s,variant)
+    if 'large' in name:
+        s=s.replace('        radix4_forward_asm(f,h,t);\n        return;','        if(h>4){radix4_forward_asm(f,h,t);return;}')
+    if name.endswith('_leaf'):s=asm_transform(s,'asm_leaf_inplace')
+    if name.endswith('_fixed'):s=stage_transform(s,'h14_fixed_bottom')
+    return s
 selected=set(os.environ.get('SELECT_VARIANTS','').split(','))-{''}
 for p in out.glob('*.cpp'):p.unlink()
 for p in out.glob('*.o'):p.unlink()
@@ -59,6 +73,9 @@ for name,(kind,opt,args) in configs.items():
     if kind=='own' and opt:s=own(s,opt)
     elif kind=='asm':s=asm_transform(s,opt)
     elif kind=='stage':s=stage_transform(s,opt)
+    elif kind=='radix':s=radix_transform(s,opt)
+    elif kind=='pairmul':s=pairmul_transform(s,opt)
+    elif kind=='combo':s=combined(s,opt)
     s=s.replace('#pragma once\n','').replace('namespace qpoly_h14_base {',f'namespace kernel_{name} {{')
     s+=f'\nnamespace {name} {{void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh){{kernel_{name}::Kernel<{args}>::run(n,a,b,r,ir,s,fresh);}}}}\n'
     (out/(name+'.cpp')).write_text(prolog+s);names.append(name)
@@ -67,6 +84,10 @@ if (here/'asm_transforms.py').exists():
     for name in asm_names:
         s=asm_transform(base,name).replace('#pragma once\n','').replace('namespace qpoly_h14_base {',f'namespace kernel_{name} {{')
         (checks/(name+'.cpp')).write_text(prolog+s)
+for name in ['asm_baseline',*radix_names]:
+    s=base if name=='asm_baseline' else radix_transform(base,name)
+    s=s.replace('#pragma once\n','').replace('namespace qpoly_h14_base {',f'namespace kernel_{name} {{')
+    (checks/(name+'.cpp')).write_text(prolog+s)
 (out/'registry.hpp').write_text('\n'.join(f'namespace {n} {{void invoke(int,uint32_t*,uint32_t*,uint32_t*,uint32_t*,int&,bool);}}' for n in names)+'\ninline const Entry entries[]={\n'+''.join(f'{{"{n}",{n}::invoke}},\n' for n in names)+'};\n')
 from profile import source as profile_source,DRIVER as profile_driver
 (out/'profile.cc').write_text(prolog+base.replace('#pragma once\n','')+profile_source(base)+profile_driver)

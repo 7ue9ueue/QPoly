@@ -3,6 +3,8 @@ on:
   push:
     branches: [codex/ntt-simd-explore]
     paths: [work/ntt/h14_explore/**, work/ntt/atcoder_ntt_h14_compare.cpp, .github/workflows/ntt-h14.yml]
+env:
+  SELECT_VARIANTS: h14_fixed_bottom,h14_fixed_tile,asm_leaf_inplace,asm_radix4_serial,asm_radix4_pair,asm_radix4_serial_large,asm_radix4_pair_large,h14_pairmul_small,h14_pairmul_all,asm_radix4_pair_leaf,asm_radix4_pair_fixed,asm_radix4_pair_large_fixed
 permissions:
   contents: read
 jobs:
@@ -28,7 +30,7 @@ jobs:
         run: python3 work/ntt/h14_explore/run.py
       - name: Assembly
         run: |
-          for name in ll_inline_h14 h14_noautozero asm_leaf_full asm_leaf_inplace h14_fixed_tile h14_fuse_two; do
+          for name in ll_inline_h14 asm_leaf_inplace h14_fixed_tile h14_fixed_bottom asm_radix4_pair asm_radix4_pair_large asm_radix4_pair_fixed; do
             objdump -d -Mintel build/h14_explore/$name.o > results/$name-assembly.txt
           done
       - uses: actions/upload-artifact@v4
