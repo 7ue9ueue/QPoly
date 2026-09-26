@@ -87,6 +87,35 @@ recursive_direct = recursive_direct.replace('a[0] = dit8(_mm256_mont_mul_pointwi
 recursive_direct = recursive_direct.replace('for(int t=0;t<4;++t) visit(a+t*h,b+t*h,h,4*k+t,rt,irt);', 'if(h==1) direct8<4>(a,b,4*k,rt); else for(int t=0;t<4;++t) visit(a+t*h,b+t*h,h,4*k+t,rt,irt);')
 recursive_direct = recursive_direct.replace('rs,n/2', 'rs,n/8').replace('inv_mod(n)', 'inv_mod(n/8)')
 variants['recursive_direct8'] = half + (HERE / 'direct8.inc').read_text() + recursive_direct
+trivial_helpers = ''
+for direction in ['dif','dit']:
+    name = f'butterfly_{direction}_radix4'
+    pos = base.index('inline void '+name)
+    signature = base[pos:base.index('{',pos)].replace(name,name+'_trivial')
+    body = function_body(base,name)
+    for before, after in {
+        '_mm256_mont_mul_fixed(a3, v_w0, v_w0_inv)': 'a3',
+        '_mm256_mont_mul_fixed(a2, v_w0, v_w0_inv)': 'a2',
+        '_mm256_mont_mul_fixed(t1, v_w1, v_w1_inv)': 't1',
+        '_mm256_mont_mul_fixed(s1, v_iw1, v_iw1_inv)': 's1',
+        '_mm256_mont_mul_fixed(p1, v_iw0, v_iw0_inv)': 'p1',
+        '_mm256_mont_mul_fixed(p2, v_iw0, v_iw0_inv)': 'p2',
+    }.items():
+        body = body.replace(before,after)
+    trivial_helpers += '[[gnu::always_inline]] '+signature+'{'+body+'}\n'
+for parent,label in [('direct8_b4','direct8_identity'),('recursive_direct8','recursive_identity')]:
+    src=variants[parent]
+    src=src.replace('void dif_ntt(', trivial_helpers+'\nvoid dif_ntt(',1)
+    # Dispatch once per butterfly group, outside the vector loop.
+    import_pattern = r'(?m)^(\s*)(butterfly_(?:dif|dit)_radix4)(\([^;]+\);)'
+    src=re.sub(import_pattern, lambda m: m[1]+'if(k==0) '+m[2]+'_trivial'+m[3]+' else '+m[2]+m[3],src)
+    variants[label]=src
+# A separate top-radix2 ablation for paired recursion (only entered at k=0).
+src=variants['recursive_identity']
+src=src.replace('butterfly_dif_radix2(a,a+h,h,w,wi);', 'for(int p=0;p<h;++p) { v8i u=a[p],v=a[p+h]; a[p]=_mm256_add_mod(u,v); a[p+h]=_mm256_sub_mod(u,v); }')
+src=src.replace('butterfly_dif_radix2(b,b+h,h,w,wi);', 'for(int p=0;p<h;++p) { v8i u=b[p],v=b[p+h]; b[p]=_mm256_add_mod(u,v); b[p+h]=_mm256_sub_mod(u,v); }')
+src=src.replace('butterfly_dit_radix2(a,a+h,h,w,wi);', 'for(int p=0;p<h;++p) { v8i u=a[p],v=a[p+h]; a[p]=_mm256_add_mod(u,v); a[p+h]=_mm256_sub_mod(u,v); }')
+variants['recursive_identity2']=src
 
 # Copy the local fast-reference algorithms into generated translation units.
 variants['study_v2'] = record2

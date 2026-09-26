@@ -28,3 +28,20 @@ jobs:
           name: ntt-explore-${{ matrix.sample }}
           path: results/
           retention-days: 7
+  sanitize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment
+        run: |
+          mkdir -p results
+          { lscpu; g++ --version; git rev-parse HEAD; } > results/environment.txt
+      - name: ASan and UBSan correctness
+        run: SANITIZE=1 bash work/ntt/simd_explore/run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ntt-sanitize
+          path: results/
+          retention-days: 7

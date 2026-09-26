@@ -39,6 +39,7 @@ ordering work for registers/cache. These are inspiration, not NTT timing evidenc
 | halfroots | Pipeline8 plus generate N/2 rather than N roots |
 | trivial_top | Halfroots plus omit identity multiply in the outer radix-2 stage |
 | recursive | Halfroots plus paired recursive radix-4 forward/product/inverse traversal |
+| recursive_direct8 | Pair the cache-local traversal with four direct leaf products |
 | direct8_b1 | Trivial_top plus stop at 8 coefficients and directly multiply modulo x^8-w |
 | direct8_b4 | Same leaf arithmetic, interleave four independent products |
 | study_v2 | Existing fast reference, 64-vector traversal block |
@@ -91,8 +92,9 @@ python3 work/ntt/simd_explore/summarize.py notes/results/ntt-simd-local/round2/t
 Rosetta passed an explicit AVX2 probe on this ARM64 Mac, macOS 26.2. Its timings
 are translated Apple Silicon execution and cannot establish native AVX2 gains.
 The Actions workflow uses an isolated clone/branch so existing user edits stay intact.
-Public upload was initially rejected by automatic approval review; remote testing
-requires explicit user approval. No push succeeded at that point.
+Public upload was initially rejected by automatic approval review. The user then
+explicitly approved the public experiment branch and follow-up native runs. The
+branch is `codex/ntt-simd-explore` in `7ue9ueue/QPoly`.
 
 ## Validation
 
