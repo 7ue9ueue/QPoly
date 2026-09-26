@@ -1,0 +1,1 @@
+clang++ -std=c++23 -O3 -mavx2 -mbmi -funroll-loops -Ibuild/lazy_twiddle -Iwork/ntt/simd_explore -Iwork/ntt/lazy_twiddle -arch x86_64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1 -Wno-shift-op-parentheses -Wno-unknown-attributes

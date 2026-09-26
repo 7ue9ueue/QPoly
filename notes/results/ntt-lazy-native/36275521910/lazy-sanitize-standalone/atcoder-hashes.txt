@@ -1,0 +1,2 @@
+cf24fc5a4d0be01516c51095ce193a1cf7e4dc3a0f7c2f08f22a653499830c63  work/ntt/atcoder_ntt_compare.cpp
+213f2c38f636790431bb2154eef843da3d532f0c0828aceac4c26f7278a78ebb  build/atcoder

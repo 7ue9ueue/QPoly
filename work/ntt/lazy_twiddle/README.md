@@ -58,6 +58,19 @@ scratch. All fixed metadata is constexpr; setup/allocation of metadata is not ti
 `Tile` is measured in 8-coefficient vectors. Two input tiles of 256 vectors occupy
 16 KiB. LeafBatch=2 tests lower register pressure against the default batch of four.
 
+**Leaf scheduling.** LeafSchedule=0 permits compiler unrolling; 1 forces a counted
+eight-step accumulation loop; 2 requests two-way unrolling. On GCC 13, the counted
+version reduced the leaf function from 646 to 262 static instructions, its stack
+reservation from 0x720 to 0x1a0 bytes, and vector instructions referencing rsp from
+160 to 12. These are assembly counts, not hardware-counter measurements. Runtime
+improved modestly; the counted and two-way variants have CPU-dependent ordering.
+
+**Final normalization.** FuseTop=true combines the outer inverse radix-2 stage
+with normalization when log2(N) is even (including 20 and 22). Its unreduced sums
+and differences are <4P, legal inputs to the canonical scaling multiplier, so two
+reduce2 operations and a memory pass disappear. Odd log2 sizes use the ordinary
+normalization path. The separate variant makes this change measurable.
+
 ## Reproduce
 
 ```sh
@@ -102,3 +115,11 @@ This is a benchmark/custom-test program, not an answer submission for an NTT pro
 The scalar correctness oracle is independent ordinary radix-2 code; it is not a
 timed competitor. The historical baseline has only its internal profiling removed.
 The previous direct8 candidate and selected new kernels share timing boundaries.
+
+The final file compares v0.91, the previous direct8 candidate, full incremental
+with a counted leaf loop, and the full-incremental/hybrid variants with fused final
+normalization. It compiled with plain `g++ -std=c++17 -O2` and passed empty-input
+and `22 3 2` tests. The default used 1.36 s wall time / 36,336 KiB RSS on one Xeon
+8370C runner; actual AtCoder limits/performance can differ. No AtCoder submission
+was performed. See [exploration 003](../../../notes/explorations/003-lazy-twiddles.md)
+for CPU-specific timings, rejected ideas, exact commits and native evidence.

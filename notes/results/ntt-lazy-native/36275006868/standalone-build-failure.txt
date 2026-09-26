@@ -1,0 +1,86 @@
+standalone-and-sanitize	Standalone C++17 default and boundary run	﻿2026-09-26T22:04:45.9867664Z ##[group]Run g++ -std=c++17 -O2 work/ntt/atcoder_ntt_compare.cpp -o build/atcoder
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:45.9868268Z ^[[36;1mg++ -std=c++17 -O2 work/ntt/atcoder_ntt_compare.cpp -o build/atcoder^[[0m
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:45.9868849Z ^[[36;1msha256sum work/ntt/atcoder_ntt_compare.cpp build/atcoder > results/atcoder-hashes.txt^[[0m
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:45.9870031Z ^[[36;1m/usr/bin/time -v build/atcoder </dev/null > results/atcoder-default.txt 2>results/atcoder-resources.txt^[[0m
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:45.9870641Z ^[[36;1mprintf '22 3 2\n' | build/atcoder > results/atcoder-large.txt^[[0m
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:45.9935641Z shell: /usr/bin/bash -e {0}
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:45.9935917Z ##[endgroup]
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9586798Z work/ntt/atcoder_ntt_compare.cpp: In function ‘void __static_initialization_and_destruction_0()’:
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9588581Z work/ntt/atcoder_ntt_compare.cpp:46:36: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9590446Z    46 | const v8i v_mod = _mm256_set1_epi32(MOD);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9590893Z       |                   ~~~~~~~~~~~~~~~~~^~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9741969Z In file included from /usr/lib/gcc/x86_64-linux-gnu/13/include/immintrin.h:43,
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9743102Z                  from work/ntt/atcoder_ntt_compare.cpp:8:
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9744765Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1251:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_setzero_si256()’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9745726Z  1251 | _mm256_setzero_si256 (void)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9746082Z       | ^~~~~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9746468Z work/ntt/atcoder_ntt_compare.cpp:489:40: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9746936Z   489 | const v8i v_zero = _mm256_setzero_si256();
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9747314Z       |                    ~~~~~~~~~~~~~~~~~~~~^~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9748365Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9749677Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9750001Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9750334Z work/ntt/atcoder_ntt_compare.cpp:488:36: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9750780Z   488 | const v8i v_one = _mm256_set1_epi32(1);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9751134Z       |                   ~~~~~~~~~~~~~~~~~^~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9752108Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9753387Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9753663Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9754017Z work/ntt/atcoder_ntt_compare.cpp:487:35: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9754434Z   487 | const v8i v_r2 = _mm256_set1_epi32(R2_MOD);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9754768Z       |                  ~~~~~~~~~~~~~~~~~^~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9755703Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9756515Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9756790Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9757117Z work/ntt/atcoder_ntt_compare.cpp:486:34: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9757532Z   486 | const v8i v_m = _mm256_set1_epi32(M_INV);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9757857Z       |                 ~~~~~~~~~~~~~~~~~^~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9758788Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9759747Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9760021Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9760356Z work/ntt/atcoder_ntt_compare.cpp:485:37: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9760767Z   485 | const v8i v_wmod = _mm256_set1_epi32(WMOD);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9761287Z       |                    ~~~~~~~~~~~~~~~~~^~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9762108Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9762792Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9763025Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9763307Z work/ntt/atcoder_ntt_compare.cpp:484:36: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9763670Z   484 | const v8i v_mod = _mm256_set1_epi32(MOD);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9763956Z       |                   ~~~~~~~~~~~~~~~~~^~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9764750Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1251:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_setzero_si256()’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9765447Z  1251 | _mm256_setzero_si256 (void)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9765702Z       | ^~~~~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9766010Z work/ntt/atcoder_ntt_compare.cpp:51:40: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9766383Z    51 | const v8i v_zero = _mm256_setzero_si256();
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9766673Z       |                    ~~~~~~~~~~~~~~~~~~~~^~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9767487Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9768183Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9768426Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9768724Z work/ntt/atcoder_ntt_compare.cpp:50:36: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9769219Z    50 | const v8i v_one = _mm256_set1_epi32(1);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9769513Z       |                   ~~~~~~~~~~~~~~~~~^~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9770324Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9771017Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9771265Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9771549Z work/ntt/atcoder_ntt_compare.cpp:49:35: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9771910Z    49 | const v8i v_r2 = _mm256_set1_epi32(R2_MOD);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9772202Z       |                  ~~~~~~~~~~~~~~~~~^~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9773006Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9773848Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9774084Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9774363Z work/ntt/atcoder_ntt_compare.cpp:48:34: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9774710Z    48 | const v8i v_m = _mm256_set1_epi32(M_INV);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9775010Z       |                 ~~~~~~~~~~~~~~~~~^~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9775892Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9776587Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9776824Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9777103Z work/ntt/atcoder_ntt_compare.cpp:47:37: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9777456Z    47 | const v8i v_wmod = _mm256_set1_epi32(WMOD);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9777749Z       |                    ~~~~~~~~~~~~~~~~~^~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9778551Z /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h:1335:1: error: inlining failed in call to ‘always_inline’ ‘__m256i _mm256_set1_epi32(int)’: target specific option mismatch
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9779394Z  1335 | _mm256_set1_epi32 (int __A)
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9779630Z       | ^~~~~~~~~~~~~~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9779911Z work/ntt/atcoder_ntt_compare.cpp:46:36: note: called from here
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9780277Z    46 | const v8i v_mod = _mm256_set1_epi32(MOD);
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9780557Z       |                   ~~~~~~~~~~~~~~~~~^~~~~
+standalone-and-sanitize	Standalone C++17 default and boundary run	2026-09-26T22:04:46.9907828Z ##[error]Process completed with exit code 1.

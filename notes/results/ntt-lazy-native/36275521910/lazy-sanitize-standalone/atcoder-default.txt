@@ -1,0 +1,68 @@
+QPoly NTT comparison / modulus 998244353 / cyclic convolution
+Compiler: 13.3.0
+max_log2=20 repetitions=5 mode=0
+Heap allocation and input copies excluded. Full convolution timed.
+fresh regenerates size-dependent roots; reuse primes each implementation. Fixed constexpr metadata is never timed.
+PASS 2^6 all implementations
+PASS 2^7 all implementations
+PASS 2^8 all implementations
+PASS 2^9 all implementations
+PASS 2^10 all implementations
+PASS 2^11 all implementations
+PASS 2^12 all implementations
+PASS 2^13 all implementations
+PASS 2^14 all implementations
+PASS 2^15 all implementations
+PASS 2^16 all implementations
+PASS 2^17 all implementations
+PASS 2^18 all implementations
+PASS 2^19 all implementations
+PASS 2^20 all implementations
+PASS maximum coefficients, wraparound, and changing sizes
+mode,log2,implementation,median_ms,min_ms,max_ms,speedup_vs_v91
+fresh,12,v91,0.0318,0.0318,0.0319,1.0000
+fresh,12,direct8_identity,0.0227,0.0226,0.0227,1.4037
+fresh,12,lazy_inc_counted,0.0189,0.0189,0.0189,1.6854
+fresh,12,lazy_inc_fused,0.0188,0.0187,0.0188,1.6938
+fresh,12,lazy_hybrid_fused,0.0184,0.0183,0.0248,1.7287
+fresh,13,v91,0.0648,0.0647,0.0649,1.0000
+fresh,13,direct8_identity,0.0463,0.0462,0.0510,1.4002
+fresh,13,lazy_inc_counted,0.0404,0.0403,0.0405,1.6056
+fresh,13,lazy_inc_fused,0.0402,0.0402,0.0404,1.6110
+fresh,13,lazy_hybrid_fused,0.0402,0.0401,0.0403,1.6138
+fresh,14,v91,0.1340,0.1338,0.1340,1.0000
+fresh,14,direct8_identity,0.0981,0.0980,0.0981,1.3662
+fresh,14,lazy_inc_counted,0.0894,0.0868,0.0917,1.4989
+fresh,14,lazy_inc_fused,0.0861,0.0860,0.0907,1.5558
+fresh,14,lazy_hybrid_fused,0.0858,0.0858,0.0859,1.5605
+fresh,15,v91,0.2793,0.2792,0.2794,1.0000
+fresh,15,direct8_identity,0.2048,0.2047,0.2094,1.3640
+fresh,15,lazy_inc_counted,0.1832,0.1830,0.1833,1.5245
+fresh,15,lazy_inc_fused,0.1834,0.1829,0.1879,1.5226
+fresh,15,lazy_hybrid_fused,0.1800,0.1798,0.1805,1.5516
+fresh,16,v91,0.5905,0.5822,0.5916,1.0000
+fresh,16,direct8_identity,0.4438,0.4375,0.4453,1.3307
+fresh,16,lazy_inc_counted,0.3930,0.3925,0.3996,1.5027
+fresh,16,lazy_inc_fused,0.3902,0.3900,0.3960,1.5134
+fresh,16,lazy_hybrid_fused,0.3841,0.3835,0.3878,1.5375
+fresh,17,v91,1.2331,1.2316,1.2395,1.0000
+fresh,17,direct8_identity,0.9294,0.9275,0.9534,1.3268
+fresh,17,lazy_inc_counted,0.8373,0.8362,0.8378,1.4727
+fresh,17,lazy_inc_fused,0.8357,0.8352,0.8393,1.4755
+fresh,17,lazy_hybrid_fused,0.8340,0.8328,0.8361,1.4785
+fresh,18,v91,2.6562,2.6350,2.6730,1.0000
+fresh,18,direct8_identity,2.0137,2.0110,2.0395,1.3190
+fresh,18,lazy_inc_counted,1.8210,1.8138,1.8986,1.4586
+fresh,18,lazy_inc_fused,1.8048,1.8030,1.8063,1.4717
+fresh,18,lazy_hybrid_fused,1.8029,1.7921,1.8388,1.4733
+fresh,19,v91,5.7062,5.6133,5.8215,1.0000
+fresh,19,direct8_identity,4.2593,4.2574,4.2802,1.3397
+fresh,19,lazy_inc_counted,3.7719,3.7668,3.7930,1.5128
+fresh,19,lazy_inc_fused,3.7680,3.7597,3.7719,1.5144
+fresh,19,lazy_hybrid_fused,3.7156,3.7128,3.7193,1.5358
+fresh,20,v91,12.0622,12.0122,12.1330,1.0000
+fresh,20,direct8_identity,9.2330,9.1853,9.2891,1.3064
+fresh,20,lazy_inc_counted,8.2491,8.2377,8.3150,1.4622
+fresh,20,lazy_inc_fused,8.1525,8.1194,8.1688,1.4796
+fresh,20,lazy_hybrid_fused,7.9867,7.9784,8.0381,1.5103
+ALL CHECKS PASSED checksum=9904829975434143650

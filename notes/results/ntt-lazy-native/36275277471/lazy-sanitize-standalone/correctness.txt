@@ -1,0 +1,19 @@
+PASS log2=6 all variants fresh/repeated
+PASS log2=7 all variants fresh/repeated
+PASS log2=8 all variants fresh/repeated
+PASS log2=9 all variants fresh/repeated
+PASS log2=10 all variants fresh/repeated
+PASS log2=11 all variants fresh/repeated
+PASS log2=12 all variants fresh/repeated
+PASS log2=13 all variants fresh/repeated
+PASS log2=14 all variants fresh/repeated
+PASS log2=15 all variants fresh/repeated
+PASS log2=16 all variants fresh/repeated
+PASS log2=17 all variants fresh/repeated
+PASS log2=18 all variants fresh/repeated
+PASS log2=19 all variants fresh/repeated
+PASS log2=20 all variants fresh/repeated
+PASS log2=21 all variants fresh/repeated
+PASS log2=22 all variants fresh/repeated
+PASS changing sizes
+PASS large coefficient boundaries

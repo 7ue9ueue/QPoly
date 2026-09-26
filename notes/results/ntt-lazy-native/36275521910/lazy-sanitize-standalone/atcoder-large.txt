@@ -1,0 +1,135 @@
+QPoly NTT comparison / modulus 998244353 / cyclic convolution
+Compiler: 13.3.0
+max_log2=22 repetitions=3 mode=2
+Heap allocation and input copies excluded. Full convolution timed.
+fresh regenerates size-dependent roots; reuse primes each implementation. Fixed constexpr metadata is never timed.
+PASS 2^6 all implementations
+PASS 2^7 all implementations
+PASS 2^8 all implementations
+PASS 2^9 all implementations
+PASS 2^10 all implementations
+PASS 2^11 all implementations
+PASS 2^12 all implementations
+PASS 2^13 all implementations
+PASS 2^14 all implementations
+PASS 2^15 all implementations
+PASS 2^16 all implementations
+PASS 2^17 all implementations
+PASS 2^18 all implementations
+PASS 2^19 all implementations
+PASS 2^20 all implementations
+PASS 2^21 all implementations
+PASS 2^22 all implementations
+PASS maximum coefficients, wraparound, and changing sizes
+mode,log2,implementation,median_ms,min_ms,max_ms,speedup_vs_v91
+fresh,12,v91,0.0319,0.0318,0.0384,1.0000
+fresh,12,direct8_identity,0.0223,0.0222,0.0223,1.4310
+fresh,12,lazy_inc_counted,0.0184,0.0184,0.0185,1.7290
+fresh,12,lazy_inc_fused,0.0182,0.0182,0.0183,1.7474
+fresh,12,lazy_hybrid_fused,0.0188,0.0187,0.0188,1.6978
+reuse,12,v91,0.0317,0.0317,0.0318,1.0000
+reuse,12,direct8_identity,0.0201,0.0200,0.0201,1.5779
+reuse,12,lazy_inc_counted,0.0183,0.0182,0.0183,1.7335
+reuse,12,lazy_inc_fused,0.0182,0.0182,0.0182,1.7416
+reuse,12,lazy_hybrid_fused,0.0186,0.0185,0.0186,1.7074
+fresh,13,v91,0.0648,0.0648,0.0650,1.0000
+fresh,13,direct8_identity,0.0454,0.0454,0.0456,1.4258
+fresh,13,lazy_inc_counted,0.0392,0.0392,0.0499,1.6512
+fresh,13,lazy_inc_fused,0.0392,0.0391,0.0393,1.6521
+fresh,13,lazy_hybrid_fused,0.0395,0.0394,0.0396,1.6404
+reuse,13,v91,0.0648,0.0647,0.0648,1.0000
+reuse,13,direct8_identity,0.0429,0.0428,0.0430,1.5081
+reuse,13,lazy_inc_counted,0.0391,0.0390,0.0392,1.6565
+reuse,13,lazy_inc_fused,0.0391,0.0391,0.0391,1.6554
+reuse,13,lazy_hybrid_fused,0.0394,0.0393,0.0437,1.6442
+fresh,14,v91,0.1340,0.1339,0.1393,1.0000
+fresh,14,direct8_identity,0.0961,0.0960,0.0962,1.3944
+fresh,14,lazy_inc_counted,0.0845,0.0844,0.0845,1.5859
+fresh,14,lazy_inc_fused,0.0839,0.0838,0.0840,1.5968
+fresh,14,lazy_hybrid_fused,0.0846,0.0844,0.0934,1.5838
+reuse,14,v91,0.1340,0.1339,0.1341,1.0000
+reuse,14,direct8_identity,0.0931,0.0930,0.0931,1.4392
+reuse,14,lazy_inc_counted,0.0845,0.0845,0.0845,1.5860
+reuse,14,lazy_inc_fused,0.0839,0.0839,0.0889,1.5962
+reuse,14,lazy_hybrid_fused,0.0842,0.0841,0.0843,1.5914
+fresh,15,v91,0.2789,0.2789,0.2797,1.0000
+fresh,15,direct8_identity,0.2008,0.2007,0.2011,1.3890
+fresh,15,lazy_inc_counted,0.1791,0.1789,0.1793,1.5571
+fresh,15,lazy_inc_fused,0.1788,0.1787,0.1836,1.5602
+fresh,15,lazy_hybrid_fused,0.1905,0.1864,0.1913,1.4646
+reuse,15,v91,0.2838,0.2789,0.2860,1.0000
+reuse,15,direct8_identity,0.1973,0.1971,0.1973,1.4387
+reuse,15,lazy_inc_counted,0.1836,0.1788,0.1836,1.5459
+reuse,15,lazy_inc_fused,0.1787,0.1783,0.1787,1.5882
+reuse,15,lazy_hybrid_fused,0.1855,0.1851,0.1855,1.5297
+fresh,16,v91,0.5893,0.5825,0.5910,1.0000
+fresh,16,direct8_identity,0.4299,0.4298,0.4352,1.3709
+fresh,16,lazy_inc_counted,0.3901,0.3845,0.3913,1.5109
+fresh,16,lazy_inc_fused,0.3814,0.3810,0.3816,1.5452
+fresh,16,lazy_hybrid_fused,0.3968,0.3963,0.4023,1.4851
+reuse,16,v91,0.5890,0.5885,0.6459,1.0000
+reuse,16,direct8_identity,0.4303,0.4252,0.4312,1.3688
+reuse,16,lazy_inc_counted,0.3895,0.3841,0.3903,1.5124
+reuse,16,lazy_inc_fused,0.3871,0.3867,0.3871,1.5216
+reuse,16,lazy_hybrid_fused,0.3947,0.3946,0.4012,1.4925
+fresh,17,v91,1.2576,1.2361,1.2669,1.0000
+fresh,17,direct8_identity,0.9140,0.9129,0.9154,1.3760
+fresh,17,lazy_inc_counted,0.8186,0.8179,0.8238,1.5363
+fresh,17,lazy_inc_fused,0.8181,0.8171,0.8186,1.5373
+fresh,17,lazy_hybrid_fused,0.8227,0.8224,0.8240,1.5286
+reuse,17,v91,1.2330,1.2317,1.2351,1.0000
+reuse,17,direct8_identity,0.9035,0.9026,0.9153,1.3646
+reuse,17,lazy_inc_counted,0.8178,0.8098,0.8188,1.5078
+reuse,17,lazy_inc_fused,0.8162,0.8089,0.8166,1.5106
+reuse,17,lazy_hybrid_fused,0.8188,0.8181,0.8412,1.5059
+fresh,18,v91,2.6155,2.6109,2.6417,1.0000
+fresh,18,direct8_identity,1.9756,1.9742,1.9962,1.3239
+fresh,18,lazy_inc_counted,1.7860,1.7825,1.7865,1.4644
+fresh,18,lazy_inc_fused,1.7695,1.7693,1.7716,1.4781
+fresh,18,lazy_hybrid_fused,1.7760,1.7674,1.7834,1.4727
+reuse,18,v91,2.6195,2.6158,2.6415,1.0000
+reuse,18,direct8_identity,1.9605,1.9602,1.9638,1.3361
+reuse,18,lazy_inc_counted,1.7852,1.7801,1.7856,1.4674
+reuse,18,lazy_inc_fused,1.7694,1.7605,1.7721,1.4805
+reuse,18,lazy_hybrid_fused,1.7665,1.7638,1.7696,1.4829
+fresh,19,v91,5.6324,5.6317,5.7024,1.0000
+fresh,19,direct8_identity,4.1983,4.1932,4.2004,1.3416
+fresh,19,lazy_inc_counted,3.7319,3.7241,3.7324,1.5092
+fresh,19,lazy_inc_fused,3.7316,3.7264,3.7707,1.5094
+fresh,19,lazy_hybrid_fused,3.7925,3.7772,3.8526,1.4851
+reuse,19,v91,5.6085,5.6065,6.5128,1.0000
+reuse,19,direct8_identity,4.1784,4.1737,4.1991,1.3423
+reuse,19,lazy_inc_counted,3.7355,3.7337,3.7359,1.5014
+reuse,19,lazy_inc_fused,3.7259,3.7196,3.7270,1.5053
+reuse,19,lazy_hybrid_fused,3.7642,3.7605,3.7696,1.4900
+fresh,20,v91,11.9636,11.9345,11.9886,1.0000
+fresh,20,direct8_identity,9.0792,9.0787,9.0811,1.3177
+fresh,20,lazy_inc_counted,8.1901,8.1540,8.1908,1.4607
+fresh,20,lazy_inc_fused,8.0317,8.0310,8.0752,1.4896
+fresh,20,lazy_hybrid_fused,8.1105,8.1098,8.1555,1.4751
+reuse,20,v91,11.9142,11.8744,11.9795,1.0000
+reuse,20,direct8_identity,9.0271,9.0222,9.0346,1.3198
+reuse,20,lazy_inc_counted,8.1504,8.1482,8.1907,1.4618
+reuse,20,lazy_inc_fused,8.0323,8.0322,8.0437,1.4833
+reuse,20,lazy_hybrid_fused,8.1143,8.0828,8.1298,1.4683
+fresh,21,v91,25.5108,24.9383,25.5601,1.0000
+fresh,21,direct8_identity,18.6781,18.5720,18.6953,1.3658
+fresh,21,lazy_inc_counted,16.8610,16.7176,16.8706,1.5130
+fresh,21,lazy_inc_fused,16.7176,16.6550,16.7590,1.5260
+fresh,21,lazy_hybrid_fused,16.8141,16.6330,17.0231,1.5172
+reuse,21,v91,25.0549,24.6370,25.1429,1.0000
+reuse,21,direct8_identity,18.5867,18.5622,18.7183,1.3480
+reuse,21,lazy_inc_counted,16.6942,16.6775,16.7907,1.5008
+reuse,21,lazy_inc_fused,16.7100,16.6689,16.7751,1.4994
+reuse,21,lazy_hybrid_fused,16.5996,16.5668,16.6305,1.5094
+fresh,22,v91,54.7217,54.7093,54.8632,1.0000
+fresh,22,direct8_identity,41.5550,41.4152,41.7581,1.3168
+fresh,22,lazy_inc_counted,37.3721,37.1455,37.8184,1.4642
+fresh,22,lazy_inc_fused,36.9839,36.4266,38.5437,1.4796
+fresh,22,lazy_hybrid_fused,36.7018,36.0411,36.8224,1.4910
+reuse,22,v91,55.1278,54.1342,55.4851,1.0000
+reuse,22,direct8_identity,40.5429,40.3514,41.1802,1.3597
+reuse,22,lazy_inc_counted,36.9384,36.6604,37.2744,1.4924
+reuse,22,lazy_inc_fused,36.5639,36.3106,36.6820,1.5077
+reuse,22,lazy_hybrid_fused,36.2881,36.2240,36.5757,1.5192
+ALL CHECKS PASSED checksum=18094894233420999337

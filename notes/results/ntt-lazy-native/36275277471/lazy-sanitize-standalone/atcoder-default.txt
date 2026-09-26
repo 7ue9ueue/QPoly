@@ -1,0 +1,59 @@
+QPoly NTT comparison / modulus 998244353 / cyclic convolution
+Compiler: 13.3.0
+max_log2=20 repetitions=5 mode=0
+Heap allocation and input copies excluded. Full convolution timed.
+fresh regenerates size-dependent roots; reuse primes each implementation. Fixed constexpr metadata is never timed.
+PASS 2^6 all implementations
+PASS 2^7 all implementations
+PASS 2^8 all implementations
+PASS 2^9 all implementations
+PASS 2^10 all implementations
+PASS 2^11 all implementations
+PASS 2^12 all implementations
+PASS 2^13 all implementations
+PASS 2^14 all implementations
+PASS 2^15 all implementations
+PASS 2^16 all implementations
+PASS 2^17 all implementations
+PASS 2^18 all implementations
+PASS 2^19 all implementations
+PASS 2^20 all implementations
+PASS maximum coefficients, wraparound, and changing sizes
+mode,log2,implementation,median_ms,min_ms,max_ms,speedup_vs_v91
+fresh,12,v91,0.0289,0.0289,0.0291,1.0000
+fresh,12,direct8_identity,0.0196,0.0196,0.0197,1.4722
+fresh,12,lazy_leaf_incremental,0.0175,0.0173,0.0179,1.6525
+fresh,12,lazy_hybrid_counted,0.0170,0.0170,0.0287,1.7023
+fresh,13,v91,0.0586,0.0586,0.0698,1.0000
+fresh,13,direct8_identity,0.0397,0.0397,0.0398,1.4754
+fresh,13,lazy_leaf_incremental,0.0352,0.0351,0.0354,1.6638
+fresh,13,lazy_hybrid_counted,0.0344,0.0343,0.0346,1.7029
+fresh,14,v91,0.1201,0.1201,0.1233,1.0000
+fresh,14,direct8_identity,0.0846,0.0842,0.0949,1.4198
+fresh,14,lazy_leaf_incremental,0.0763,0.0761,0.0868,1.5739
+fresh,14,lazy_hybrid_counted,0.0749,0.0743,0.0850,1.6036
+fresh,15,v91,0.2492,0.2488,0.2600,1.0000
+fresh,15,direct8_identity,0.1755,0.1751,0.1819,1.4203
+fresh,15,lazy_leaf_incremental,0.1666,0.1649,0.1803,1.4958
+fresh,15,lazy_hybrid_counted,0.1632,0.1624,0.1754,1.5275
+fresh,16,v91,0.5262,0.5258,0.5414,1.0000
+fresh,16,direct8_identity,0.3779,0.3773,0.3786,1.3925
+fresh,16,lazy_leaf_incremental,0.3689,0.3588,0.3694,1.4262
+fresh,16,lazy_hybrid_counted,0.3518,0.3515,0.3518,1.4958
+fresh,17,v91,1.1055,1.1048,1.1153,1.0000
+fresh,17,direct8_identity,0.8043,0.8040,0.8091,1.3745
+fresh,17,lazy_leaf_incremental,0.7316,0.7306,0.7422,1.5110
+fresh,17,lazy_hybrid_counted,0.7182,0.7169,0.7315,1.5393
+fresh,18,v91,2.2956,2.2899,2.3151,1.0000
+fresh,18,direct8_identity,1.7455,1.7301,1.7484,1.3152
+fresh,18,lazy_leaf_incremental,1.5727,1.5636,1.5762,1.4596
+fresh,18,lazy_hybrid_counted,1.5459,1.5333,1.5462,1.4849
+fresh,19,v91,4.8033,4.7876,4.8164,1.0000
+fresh,19,direct8_identity,3.5918,3.5814,3.6134,1.3373
+fresh,19,lazy_leaf_incremental,3.3513,3.3390,3.3602,1.4332
+fresh,19,lazy_hybrid_counted,3.2880,3.2853,3.2946,1.4609
+fresh,20,v91,10.0077,9.9610,10.0283,1.0000
+fresh,20,direct8_identity,7.7633,7.7102,7.7811,1.2891
+fresh,20,lazy_leaf_incremental,7.1425,7.1224,7.1604,1.4012
+fresh,20,lazy_hybrid_counted,7.0352,7.0231,7.0540,1.4225
+ALL CHECKS PASSED checksum=9904829975434143650

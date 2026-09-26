@@ -1,0 +1,1 @@
+g++ -std=c++23 -O3 -mavx2 -mbmi -funroll-loops -Ibuild/lazy_twiddle -Iwork/ntt/simd_explore -Iwork/ntt/lazy_twiddle -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer
