@@ -25,3 +25,11 @@ and reused roots. It compares v0.91, the previous direct8 candidate, and three
 new variants, checks against an independent scalar oracle, and contains no fast
 study-reference kernel. See [exploration 003](../../notes/explorations/003-lazy-twiddles.md)
 for native evidence and limitations.
+
+The [low-level continuation](lowlevel/README.md) tests assembly, C++ controls,
+Shoup multiplication and their combinations. Shoup cursor/prepacked candidates
+beat the same-job study reference on measured AMD CPUs; Intel retains different
+preferences. [atcoder_ntt_lowlevel_compare.cpp](atcoder_ntt_lowlevel_compare.cpp)
+is the new single-file comparison, with the same empty-input / `20 9 2` interface.
+The previous file remains unchanged. The wide-product Shoup entry is retained as
+an unsuccessful comparison, not a recommended default kernel.

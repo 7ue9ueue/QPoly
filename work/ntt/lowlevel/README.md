@@ -42,3 +42,43 @@ Primary sources consulted (concepts and compiler semantics; no source pasted):
 
 No external implementation was copied or vendored; no new third-party license
 notice is needed. Existing control-source attribution is retained by its generator.
+
+## Combinations and further arithmetic variants
+
+`extra_transforms.py` implements the second/third-round combinations:
+- `shoup_cursor`: force-inline selected kernel functions and store incremental
+  cursors as ordinary roots. The carry multipliers remain Montgomery encoded,
+  so updating the ordinary cursor still uses the same Montgomery multiply.
+- `shoup_prepack`: stage tables store two uint32 values per root: ordinary root
+  and floor(root*2^32/P). Scratch is N/8 uint32 entries per direction. Tables and
+  quotient preparation are timed, and reuse/growth/shrink cases are checked.
+- `shoup_wide`: use only 32x32-to-64 products for quotient and residual formation;
+  avoids packed low-32 multiplies. No representation or output-range change.
+- `inline_h14`: specialize h=1,4 radix groups while keeping Montgomery arithmetic.
+- Paired assembly: schedule two leaves' independent products together, retaining
+  eight accumulators and using the remaining eight YMM registers as temporaries.
+
+`SELECT_VARIANTS=name1,name2` selects new variants; four controls are always kept.
+`CXX=clang++` selects native Clang. All other options retain the same timing bounds.
+`arithmetic_driver.inc` separately tests 786,432 lanes per alternative multiplier,
+including 0, P boundaries, 4P-1, and the signed 32-bit boundary, against ordinary
+modulo arithmetic. These checks verify both congruence and output <2P.
+
+The standalone follow-up is `work/ntt/atcoder_ntt_lowlevel_compare.cpp`, generated
+by `make_atcoder.py`; the old verified comparison is preserved separately. It
+contains seven timed implementations (original baseline, both previous fused
+candidates, Montgomery h=1/4 specialization, Shoup cursor, Shoup prepacked, and
+Shoup-wide cursor) and no study-reference kernel. Empty input and optional
+`20 9 2` retain the previous comparison's interface and checks. GCC embeds AVX2/BMI
+pragmas; no external files or extra -mavx2 switch are needed. Native Clang builds
+need explicit target flags. This is for a custom test, not a problem submission.
+
+Read [exploration 004](../../../notes/explorations/004-lowlevel.md) for measured
+results, CPU/compiler dependence, rejected variants and exact evidence.
+
+Final decision: prefer Shoup cursor or prepacked roots on the measured AMD
+configurations; keep Montgomery for the tested Intel configurations. The wide
+variant in the comparison is an unsuccessful ablation, not a recommendation.
+There is no universal CPU dispatch rule. Assembly and static scratch did not
+establish a robust improvement. The exact standalone passed native GCC C++17
+with empty input and `22 3 2`; it has not been submitted to AtCoder.

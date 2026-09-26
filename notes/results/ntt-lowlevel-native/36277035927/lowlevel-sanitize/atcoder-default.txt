@@ -1,0 +1,86 @@
+QPoly NTT comparison / modulus 998244353 / cyclic convolution
+Compiler: 13.3.0
+max_log2=20 repetitions=5 mode=0
+Heap allocation and input copies excluded. Full convolution timed.
+fresh regenerates size-dependent roots; reuse primes each implementation. Fixed constexpr metadata is never timed.
+PASS 2^6 all implementations
+PASS 2^7 all implementations
+PASS 2^8 all implementations
+PASS 2^9 all implementations
+PASS 2^10 all implementations
+PASS 2^11 all implementations
+PASS 2^12 all implementations
+PASS 2^13 all implementations
+PASS 2^14 all implementations
+PASS 2^15 all implementations
+PASS 2^16 all implementations
+PASS 2^17 all implementations
+PASS 2^18 all implementations
+PASS 2^19 all implementations
+PASS 2^20 all implementations
+PASS maximum coefficients, wraparound, and changing sizes
+mode,log2,implementation,median_ms,min_ms,max_ms,speedup_vs_v91
+fresh,12,v91,0.0194,0.0194,0.0195,1.0000
+fresh,12,lazy_inc_fused,0.0107,0.0107,0.0107,1.8192
+fresh,12,lazy_hybrid_fused,0.0110,0.0110,0.0110,1.7631
+fresh,12,ll_inline_h14,0.0109,0.0108,0.0109,1.7841
+fresh,12,ll_shoup_cursor,0.0107,0.0107,0.0107,1.8224
+fresh,12,ll_shoup_prepack,0.0097,0.0097,0.0097,2.0033
+fresh,12,ll_shoup_wide_cursor,0.0126,0.0126,0.0126,1.5430
+fresh,13,v91,0.0395,0.0394,0.0398,1.0000
+fresh,13,lazy_inc_fused,0.0230,0.0229,0.0283,1.7168
+fresh,13,lazy_hybrid_fused,0.0226,0.0224,0.0226,1.7488
+fresh,13,ll_inline_h14,0.0222,0.0222,0.0223,1.7764
+fresh,13,ll_shoup_cursor,0.0215,0.0215,0.0216,1.8317
+fresh,13,ll_shoup_prepack,0.0219,0.0219,0.0220,1.7983
+fresh,13,ll_shoup_wide_cursor,0.0271,0.0271,0.0271,1.4571
+fresh,14,v91,0.0808,0.0807,0.0809,1.0000
+fresh,14,lazy_inc_fused,0.0491,0.0490,0.0542,1.6467
+fresh,14,lazy_hybrid_fused,0.0482,0.0482,0.0536,1.6771
+fresh,14,ll_inline_h14,0.0475,0.0475,0.0475,1.7022
+fresh,14,ll_shoup_cursor,0.0457,0.0457,0.0476,1.7670
+fresh,14,ll_shoup_prepack,0.0466,0.0465,0.0518,1.7359
+fresh,14,ll_shoup_wide_cursor,0.0578,0.0578,0.0579,1.3975
+fresh,15,v91,0.1683,0.1681,0.1741,1.0000
+fresh,15,lazy_inc_fused,0.1050,0.1048,0.1051,1.6027
+fresh,15,lazy_hybrid_fused,0.1075,0.1071,0.1077,1.5652
+fresh,15,ll_inline_h14,0.1061,0.1059,0.1062,1.5870
+fresh,15,ll_shoup_cursor,0.1024,0.1022,0.1025,1.6444
+fresh,15,ll_shoup_prepack,0.0944,0.0943,0.0946,1.7826
+fresh,15,ll_shoup_wide_cursor,0.1235,0.1234,0.1293,1.3625
+fresh,16,v91,0.3488,0.3476,0.3566,1.0000
+fresh,16,lazy_inc_fused,0.2231,0.2229,0.2388,1.5635
+fresh,16,lazy_hybrid_fused,0.2285,0.2272,0.2353,1.5265
+fresh,16,ll_inline_h14,0.2255,0.2250,0.2327,1.5470
+fresh,16,ll_shoup_cursor,0.2157,0.2154,0.2224,1.6168
+fresh,16,ll_shoup_prepack,0.2005,0.2002,0.2006,1.7393
+fresh,16,ll_shoup_wide_cursor,0.2641,0.2623,0.2693,1.3205
+fresh,17,v91,0.7364,0.7318,0.7396,1.0000
+fresh,17,lazy_inc_fused,0.4754,0.4729,0.4816,1.5490
+fresh,17,lazy_hybrid_fused,0.4655,0.4645,0.4724,1.5821
+fresh,17,ll_inline_h14,0.4596,0.4588,0.4674,1.6022
+fresh,17,ll_shoup_cursor,0.4417,0.4355,0.4422,1.6673
+fresh,17,ll_shoup_prepack,0.4434,0.4419,0.4495,1.6609
+fresh,17,ll_shoup_wide_cursor,0.5614,0.5544,0.5732,1.3117
+fresh,18,v91,1.5341,1.5309,1.5454,1.0000
+fresh,18,lazy_inc_fused,1.0109,1.0093,1.0126,1.5176
+fresh,18,lazy_hybrid_fused,0.9951,0.9919,0.9998,1.5416
+fresh,18,ll_inline_h14,0.9859,0.9827,0.9940,1.5560
+fresh,18,ll_shoup_cursor,0.9272,0.9218,0.9300,1.6545
+fresh,18,ll_shoup_prepack,0.9455,0.9450,0.9496,1.6226
+fresh,18,ll_shoup_wide_cursor,1.1871,1.1831,1.1941,1.2923
+fresh,19,v91,3.2093,3.2037,3.2251,1.0000
+fresh,19,lazy_inc_fused,2.1311,2.1198,2.1459,1.5059
+fresh,19,lazy_hybrid_fused,2.1693,2.1612,2.1834,1.4794
+fresh,19,ll_inline_h14,2.1452,2.1379,2.1653,1.4960
+fresh,19,ll_shoup_cursor,2.0228,2.0173,2.0277,1.5865
+fresh,19,ll_shoup_prepack,1.9124,1.9097,1.9208,1.6781
+fresh,19,ll_shoup_wide_cursor,2.4967,2.4845,2.4995,1.2854
+fresh,20,v91,6.9865,6.9492,7.0283,1.0000
+fresh,20,lazy_inc_fused,4.6732,4.6611,4.6947,1.4950
+fresh,20,lazy_hybrid_fused,4.7479,4.5787,4.8105,1.4715
+fresh,20,ll_inline_h14,4.7090,4.5958,4.7451,1.4836
+fresh,20,ll_shoup_cursor,4.4065,4.3298,4.4478,1.5855
+fresh,20,ll_shoup_prepack,4.1993,4.1937,4.2275,1.6637
+fresh,20,ll_shoup_wide_cursor,5.4610,5.4454,5.4944,1.2793
+ALL CHECKS PASSED checksum=9904829975434143650

@@ -1,0 +1,2616 @@
+
+build/lowlevel/lazy_hybrid_fused.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <_ZN17lazy_hybrid_fused6invokeEiPjS0_S0_S0_Rib>:
+   0:	f3 0f 1e fa          	endbr64
+   4:	0f b6 44 24 08       	movzx  eax,BYTE PTR [rsp+0x8]
+   9:	89 44 24 08          	mov    DWORD PTR [rsp+0x8],eax
+   d:	e9 00 00 00 00       	jmp    12 <_ZN17lazy_hybrid_fused6invokeEiPjS0_S0_S0_Rib+0x12>
+
+Disassembly of section .text._ZN10qpoly_lazy4leafILi4ELi2EEEvPDv4_xS2_PKj:
+
+0000000000000000 <_ZN10qpoly_lazy4leafILi4ELi2EEEvPDv4_xS2_PKj>:
+   0:	f3 0f 1e fa          	endbr64
+   4:	55                   	push   rbp
+   5:	48 89 f1             	mov    rcx,rsi
+   8:	be ff ff 7f c4       	mov    esi,0xc47fffff
+   d:	41 ba 01 00 80 3b    	mov    r10d,0x3b800001
+  13:	c5 f9 6e ce          	vmovd  xmm1,esi
+  17:	c4 62 7d 58 d1       	vpbroadcastd ymm10,xmm1
+  1c:	48 89 e5             	mov    rbp,rsp
+  1f:	48 83 e4 e0          	and    rsp,0xffffffffffffffe0
+  23:	48 81 ec a0 01 00 00 	sub    rsp,0x1a0
+  2a:	44 8b 02             	mov    r8d,DWORD PTR [rdx]
+  2d:	44 8b 5a 04          	mov    r11d,DWORD PTR [rdx+0x4]
+  31:	64 48 8b 04 25 28 00 	mov    rax,QWORD PTR fs:0x28
+  38:	00 00 
+  3a:	48 89 84 24 98 01 00 	mov    QWORD PTR [rsp+0x198],rax
+  41:	00 
+  42:	b8 fe ff ff 88       	mov    eax,0x88fffffe
+  47:	8b 72 08             	mov    esi,DWORD PTR [rdx+0x8]
+  4a:	8b 52 0c             	mov    edx,DWORD PTR [rdx+0xc]
+  4d:	45 69 c8 ff ff 7f 3b 	imul   r9d,r8d,0x3b7fffff
+  54:	c4 c1 79 6e e8       	vmovd  xmm5,r8d
+  59:	c4 62 7d 58 c5       	vpbroadcastd ymm8,xmm5
+  5e:	44 69 c6 ff ff 7f 3b 	imul   r8d,esi,0x3b7fffff
+  65:	c4 c1 79 6e f1       	vmovd  xmm6,r9d
+  6a:	44 69 ca ff ff 7f 3b 	imul   r9d,edx,0x3b7fffff
+  71:	c4 62 7d 58 e6       	vpbroadcastd ymm12,xmm6
+  76:	c5 f9 6e d0          	vmovd  xmm2,eax
+  7a:	41 69 c3 ff ff 7f 3b 	imul   eax,r11d,0x3b7fffff
+  81:	c4 62 7d 58 ca       	vpbroadcastd ymm9,xmm2
+  86:	c5 b5 fe 07          	vpaddd ymm0,ymm9,YMMWORD PTR [rdi]
+  8a:	c4 e2 7d 3b 27       	vpminud ymm4,ymm0,YMMWORD PTR [rdi]
+  8f:	c4 c1 79 6e d2       	vmovd  xmm2,r10d
+  94:	4c 8d 94 24 a0 00 00 	lea    r10,[rsp+0xa0]
+  9b:	00 
+  9c:	c4 c1 5d fe da       	vpaddd ymm3,ymm4,ymm10
+  a1:	c4 e2 7d 58 c2       	vpbroadcastd ymm0,xmm2
+  a6:	c4 62 5d 3b db       	vpminud ymm11,ymm4,ymm3
+  ab:	c4 c1 15 73 d3 20    	vpsrlq ymm13,ymm11,0x20
+  b1:	c4 41 25 f4 fc       	vpmuludq ymm15,ymm11,ymm12
+  b6:	c5 7d 7f 9c 24 a0 00 	vmovdqa YMMWORD PTR [rsp+0xa0],ymm11
+  bd:	00 00 
+  bf:	c4 c1 15 f4 cc       	vpmuludq ymm1,ymm13,ymm12
+  c4:	c4 41 15 f4 f0       	vpmuludq ymm14,ymm13,ymm8
+  c9:	c4 c1 25 f4 f8       	vpmuludq ymm7,ymm11,ymm8
+  ce:	c5 35 fe 5f 20       	vpaddd ymm11,ymm9,YMMWORD PTR [rdi+0x20]
+  d3:	c5 85 f4 e0          	vpmuludq ymm4,ymm15,ymm0
+  d7:	c5 f5 f4 d8          	vpmuludq ymm3,ymm1,ymm0
+  db:	c5 c5 d4 ec          	vpaddq ymm5,ymm7,ymm4
+  df:	c4 c1 79 6e e3       	vmovd  xmm4,r11d
+  e4:	49 89 e3             	mov    r11,rsp
+  e7:	c5 8d d4 f3          	vpaddq ymm6,ymm14,ymm3
+  eb:	c4 62 25 3b 77 20    	vpminud ymm14,ymm11,YMMWORD PTR [rdi+0x20]
+  f1:	c5 f9 6e d8          	vmovd  xmm3,eax
+  f5:	c5 bd 73 d5 20       	vpsrlq ymm8,ymm5,0x20
+  fa:	c4 e2 7d 58 eb       	vpbroadcastd ymm5,xmm3
+  ff:	c4 e2 7d 58 cc       	vpbroadcastd ymm1,xmm4
+ 104:	c4 41 0d fe fa       	vpaddd ymm15,ymm14,ymm10
+ 109:	c4 41 4d eb e0       	vpor   ymm12,ymm6,ymm8
+ 10e:	c4 c2 0d 3b d7       	vpminud ymm2,ymm14,ymm15
+ 113:	c4 c1 1d fe fa       	vpaddd ymm7,ymm12,ymm10
+ 118:	c5 6d f4 c5          	vpmuludq ymm8,ymm2,ymm5
+ 11c:	c5 cd 73 d2 20       	vpsrlq ymm6,ymm2,0x20
+ 121:	c4 62 1d 3b ef       	vpminud ymm13,ymm12,ymm7
+ 126:	c5 fd 7f 94 24 e0 00 	vmovdqa YMMWORD PTR [rsp+0xe0],ymm2
+ 12d:	00 00 
+ 12f:	c5 4d f4 dd          	vpmuludq ymm11,ymm6,ymm5
+ 133:	c5 6d f4 e1          	vpmuludq ymm12,ymm2,ymm1
+ 137:	c5 b5 fe 57 40       	vpaddd ymm2,ymm9,YMMWORD PTR [rdi+0x40]
+ 13c:	c5 7d 7f ac 24 80 00 	vmovdqa YMMWORD PTR [rsp+0x80],ymm13
+ 143:	00 00 
+ 145:	c5 cd f4 f9          	vpmuludq ymm7,ymm6,ymm1
+ 149:	c4 e2 6d 3b 77 40    	vpminud ymm6,ymm2,YMMWORD PTR [rdi+0x40]
+ 14f:	c5 3d f4 e8          	vpmuludq ymm13,ymm8,ymm0
+ 153:	c5 79 6e c6          	vmovd  xmm8,esi
+ 157:	c5 25 f4 f0          	vpmuludq ymm14,ymm11,ymm0
+ 15b:	c4 42 7d 58 d8       	vpbroadcastd ymm11,xmm8
+ 160:	c4 41 1d d4 fd       	vpaddq ymm15,ymm12,ymm13
+ 165:	c4 c1 45 d4 ce       	vpaddq ymm1,ymm7,ymm14
+ 16a:	c4 c1 5d 73 d7 20    	vpsrlq ymm4,ymm15,0x20
+ 170:	c4 c1 4d fe fa       	vpaddd ymm7,ymm6,ymm10
+ 175:	c5 f5 eb dc          	vpor   ymm3,ymm1,ymm4
+ 179:	c4 41 79 6e f0       	vmovd  xmm14,r8d
+ 17e:	c4 62 4d 3b ef       	vpminud ymm13,ymm6,ymm7
+ 183:	c4 c1 65 fe ea       	vpaddd ymm5,ymm3,ymm10
+ 188:	c4 42 7d 58 fe       	vpbroadcastd ymm15,xmm14
+ 18d:	c5 7d 7f ac 24 20 01 	vmovdqa YMMWORD PTR [rsp+0x120],ymm13
+ 194:	00 00 
+ 196:	c4 62 65 3b e5       	vpminud ymm12,ymm3,ymm5
+ 19b:	c4 c1 15 f4 ef       	vpmuludq ymm5,ymm13,ymm15
+ 1a0:	c4 c1 65 73 d5 20    	vpsrlq ymm3,ymm13,0x20
+ 1a6:	c4 c1 15 f4 e3       	vpmuludq ymm4,ymm13,ymm11
+ 1ab:	c5 7d 7f a4 24 c0 00 	vmovdqa YMMWORD PTR [rsp+0xc0],ymm12
+ 1b2:	00 00 
+ 1b4:	c5 35 fe 6f 60       	vpaddd ymm13,ymm9,YMMWORD PTR [rdi+0x60]
+ 1b9:	c4 c1 65 f4 d7       	vpmuludq ymm2,ymm3,ymm15
+ 1be:	c4 c1 65 f4 cb       	vpmuludq ymm1,ymm3,ymm11
+ 1c3:	c4 e2 15 3b 5f 60    	vpminud ymm3,ymm13,YMMWORD PTR [rdi+0x60]
+ 1c9:	c5 55 f4 e0          	vpmuludq ymm12,ymm5,ymm0
+ 1cd:	c5 f9 6e ea          	vmovd  xmm5,edx
+ 1d1:	c5 ed f4 f0          	vpmuludq ymm6,ymm2,ymm0
+ 1d5:	c4 e2 7d 58 d5       	vpbroadcastd ymm2,xmm5
+ 1da:	c4 c1 5d d4 fc       	vpaddq ymm7,ymm4,ymm12
+ 1df:	c5 bd 73 d7 20       	vpsrlq ymm8,ymm7,0x20
+ 1e4:	c5 75 d4 de          	vpaddq ymm11,ymm1,ymm6
+ 1e8:	c4 c1 65 fe ca       	vpaddd ymm1,ymm3,ymm10
+ 1ed:	c4 c1 79 6e f1       	vmovd  xmm6,r9d
+ 1f2:	c4 41 25 eb f0       	vpor   ymm14,ymm11,ymm8
+ 1f7:	c4 62 65 3b e1       	vpminud ymm12,ymm3,ymm1
+ 1fc:	c4 62 7d 58 de       	vpbroadcastd ymm11,xmm6
+ 201:	c4 41 0d fe fa       	vpaddd ymm15,ymm14,ymm10
+ 206:	c5 1d f4 c2          	vpmuludq ymm8,ymm12,ymm2
+ 20a:	c5 7d 7f a4 24 60 01 	vmovdqa YMMWORD PTR [rsp+0x160],ymm12
+ 211:	00 00 
+ 213:	c4 c2 0d 3b e7       	vpminud ymm4,ymm14,ymm15
+ 218:	c4 41 1d f4 fb       	vpmuludq ymm15,ymm12,ymm11
+ 21d:	c5 fd 7f a4 24 00 01 	vmovdqa YMMWORD PTR [rsp+0x100],ymm4
+ 224:	00 00 
+ 226:	c4 c1 0d 73 d4 20    	vpsrlq ymm14,ymm12,0x20
+ 22c:	c5 35 fe 21          	vpaddd ymm12,ymm9,YMMWORD PTR [rcx]
+ 230:	c4 41 0d f4 eb       	vpmuludq ymm13,ymm14,ymm11
+ 235:	c5 8d f4 fa          	vpmuludq ymm7,ymm14,ymm2
+ 239:	c5 85 f4 e0          	vpmuludq ymm4,ymm15,ymm0
+ 23d:	c5 35 fe 79 20       	vpaddd ymm15,ymm9,YMMWORD PTR [rcx+0x20]
+ 242:	c5 95 f4 c0          	vpmuludq ymm0,ymm13,ymm0
+ 246:	c4 c1 5d d4 d8       	vpaddq ymm3,ymm4,ymm8
+ 24b:	c4 62 1d 3b 01       	vpminud ymm8,ymm12,YMMWORD PTR [rcx]
+ 250:	c4 e2 05 3b 61 20    	vpminud ymm4,ymm15,YMMWORD PTR [rcx+0x20]
+ 256:	c5 d5 73 d3 20       	vpsrlq ymm5,ymm3,0x20
+ 25b:	c5 fd d4 cf          	vpaddq ymm1,ymm0,ymm7
+ 25f:	c4 41 3d fe f2       	vpaddd ymm14,ymm8,ymm10
+ 264:	c5 f5 eb d5          	vpor   ymm2,ymm1,ymm5
+ 268:	c4 41 5d fe ea       	vpaddd ymm13,ymm4,ymm10
+ 26d:	c4 c2 3d 3b fe       	vpminud ymm7,ymm8,ymm14
+ 272:	c4 c1 6d fe f2       	vpaddd ymm6,ymm2,ymm10
+ 277:	c4 c2 5d 3b c5       	vpminud ymm0,ymm4,ymm13
+ 27c:	c5 fd 7f 3c 24       	vmovdqa YMMWORD PTR [rsp],ymm7
+ 281:	c4 62 6d 3b de       	vpminud ymm11,ymm2,ymm6
+ 286:	c5 7d 7f 9c 24 40 01 	vmovdqa YMMWORD PTR [rsp+0x140],ymm11
+ 28d:	00 00 
+ 28f:	c5 fd 7f 44 24 20    	vmovdqa YMMWORD PTR [rsp+0x20],ymm0
+ 295:	c5 fd 6f 71 60       	vmovdqa ymm6,YMMWORD PTR [rcx+0x60]
+ 29a:	c5 b5 fe 59 40       	vpaddd ymm3,ymm9,YMMWORD PTR [rcx+0x40]
+ 29f:	c5 f9 ef c0          	vpxor  xmm0,xmm0,xmm0
+ 2a3:	c4 e2 65 3b 69 40    	vpminud ymm5,ymm3,YMMWORD PTR [rcx+0x40]
+ 2a9:	c5 7d 6f e8          	vmovdqa ymm13,ymm0
+ 2ad:	c5 fd 6f d8          	vmovdqa ymm3,ymm0
+ 2b1:	c4 41 4d fe c9       	vpaddd ymm9,ymm6,ymm9
+ 2b6:	48 8d 8c 24 80 00 00 	lea    rcx,[rsp+0x80]
+ 2bd:	00 
+ 2be:	c5 fd 6f f8          	vmovdqa ymm7,ymm0
+ 2c2:	c4 42 4d 3b d9       	vpminud ymm11,ymm6,ymm9
+ 2c7:	c4 c1 55 fe ca       	vpaddd ymm1,ymm5,ymm10
+ 2cc:	c5 7d 6f c8          	vmovdqa ymm9,ymm0
+ 2d0:	c4 41 25 fe d2       	vpaddd ymm10,ymm11,ymm10
+ 2d5:	c4 e2 55 3b d1       	vpminud ymm2,ymm5,ymm1
+ 2da:	c5 7d 6f c0          	vmovdqa ymm8,ymm0
+ 2de:	c4 42 25 3b e2       	vpminud ymm12,ymm11,ymm10
+ 2e3:	c5 fd 7f 54 24 40    	vmovdqa YMMWORD PTR [rsp+0x40],ymm2
+ 2e9:	c5 fd 6f c8          	vmovdqa ymm1,ymm0
+ 2ed:	c5 fd 6f e8          	vmovdqa ymm5,ymm0
+ 2f1:	c5 7d 7f 64 24 60    	vmovdqa YMMWORD PTR [rsp+0x60],ymm12
+ 2f7:	c4 42 7d 58 33       	vpbroadcastd ymm14,DWORD PTR [r11]
+ 2fc:	c4 41 0d f4 3a       	vpmuludq ymm15,ymm14,YMMWORD PTR [r10]
+ 301:	c4 41 3d d4 ff       	vpaddq ymm15,ymm8,ymm15
+ 306:	c4 41 7e 6f 02       	vmovdqu ymm8,YMMWORD PTR [r10]
+ 30b:	49 83 ea 08          	sub    r10,0x8
+ 30f:	49 83 c3 08          	add    r11,0x8
+ 313:	c4 c1 5d 73 d0 20    	vpsrlq ymm4,ymm8,0x20
+ 319:	c4 c1 5d f4 d6       	vpmuludq ymm2,ymm4,ymm14
+ 31e:	c5 d5 d4 d2          	vpaddq ymm2,ymm5,ymm2
+ 322:	c4 c2 7d 58 6b 18    	vpbroadcastd ymm5,DWORD PTR [r11+0x18]
+ 328:	c4 c1 55 f4 72 48    	vpmuludq ymm6,ymm5,YMMWORD PTR [r10+0x48]
+ 32e:	c5 45 d4 f6          	vpaddq ymm14,ymm7,ymm6
+ 332:	c4 c1 7e 6f 7a 48    	vmovdqu ymm7,YMMWORD PTR [r10+0x48]
+ 338:	c5 a5 73 d7 20       	vpsrlq ymm11,ymm7,0x20
+ 33d:	c5 25 f4 d5          	vpmuludq ymm10,ymm11,ymm5
+ 341:	c4 c1 65 d4 e2       	vpaddq ymm4,ymm3,ymm10
+ 346:	c4 c2 7d 58 5b 38    	vpbroadcastd ymm3,DWORD PTR [r11+0x38]
+ 34c:	c4 41 65 f4 a2 88 00 	vpmuludq ymm12,ymm3,YMMWORD PTR [r10+0x88]
+ 353:	00 00 
+ 355:	c4 41 35 d4 e4       	vpaddq ymm12,ymm9,ymm12
+ 35a:	c4 41 7e 6f 8a 88 00 	vmovdqu ymm9,YMMWORD PTR [r10+0x88]
+ 361:	00 00 
+ 363:	c4 c1 3d 73 d1 20    	vpsrlq ymm8,ymm9,0x20
+ 369:	c5 bd f4 eb          	vpmuludq ymm5,ymm8,ymm3
+ 36d:	c5 75 d4 dd          	vpaddq ymm11,ymm1,ymm5
+ 371:	c4 c2 7d 58 4b 58    	vpbroadcastd ymm1,DWORD PTR [r11+0x58]
+ 377:	c4 c1 75 f4 b2 c8 00 	vpmuludq ymm6,ymm1,YMMWORD PTR [r10+0xc8]
+ 37e:	00 00 
+ 380:	c5 15 d4 d6          	vpaddq ymm10,ymm13,ymm6
+ 384:	c4 41 7e 6f aa c8 00 	vmovdqu ymm13,YMMWORD PTR [r10+0xc8]
+ 38b:	00 00 
+ 38d:	c4 c1 45 73 d5 20    	vpsrlq ymm7,ymm13,0x20
+ 393:	c4 42 7d 58 6b 1c    	vpbroadcastd ymm13,DWORD PTR [r11+0x1c]
+ 399:	c5 c5 f4 d9          	vpmuludq ymm3,ymm7,ymm1
+ 39d:	c5 fd d4 f3          	vpaddq ymm6,ymm0,ymm3
+ 3a1:	c4 c2 7d 58 43 fc    	vpbroadcastd ymm0,DWORD PTR [r11-0x4]
+ 3a7:	c4 41 7d f4 4a 04    	vpmuludq ymm9,ymm0,YMMWORD PTR [r10+0x4]
+ 3ad:	c4 41 05 d4 c1       	vpaddq ymm8,ymm15,ymm9
+ 3b2:	c4 41 7e 6f 7a 04    	vmovdqu ymm15,YMMWORD PTR [r10+0x4]
+ 3b8:	c4 c1 55 73 d7 20    	vpsrlq ymm5,ymm15,0x20
+ 3be:	c5 d5 f4 c8          	vpmuludq ymm1,ymm5,ymm0
+ 3c2:	c5 ed d4 e9          	vpaddq ymm5,ymm2,ymm1
+ 3c6:	c4 c1 15 f4 52 44    	vpmuludq ymm2,ymm13,YMMWORD PTR [r10+0x44]
+ 3cc:	c5 8d d4 fa          	vpaddq ymm7,ymm14,ymm2
+ 3d0:	c4 41 7e 6f 72 44    	vmovdqu ymm14,YMMWORD PTR [r10+0x44]
+ 3d6:	c4 c2 7d 58 53 5c    	vpbroadcastd ymm2,DWORD PTR [r11+0x5c]
+ 3dc:	c4 c1 65 73 d6 20    	vpsrlq ymm3,ymm14,0x20
+ 3e2:	c4 c1 65 f4 c5       	vpmuludq ymm0,ymm3,ymm13
+ 3e7:	c5 dd d4 d8          	vpaddq ymm3,ymm4,ymm0
+ 3eb:	c4 c2 7d 58 63 3c    	vpbroadcastd ymm4,DWORD PTR [r11+0x3c]
+ 3f1:	c4 41 5d f4 8a 84 00 	vpmuludq ymm9,ymm4,YMMWORD PTR [r10+0x84]
+ 3f8:	00 00 
+ 3fa:	c4 41 1d d4 c9       	vpaddq ymm9,ymm12,ymm9
+ 3ff:	c4 41 7e 6f a2 84 00 	vmovdqu ymm12,YMMWORD PTR [r10+0x84]
+ 406:	00 00 
+ 408:	c4 c1 05 73 d4 20    	vpsrlq ymm15,ymm12,0x20
+ 40e:	c5 85 f4 cc          	vpmuludq ymm1,ymm15,ymm4
+ 412:	c5 a5 d4 c9          	vpaddq ymm1,ymm11,ymm1
+ 416:	c4 41 7e 6f 9a c4 00 	vmovdqu ymm11,YMMWORD PTR [r10+0xc4]
+ 41d:	00 00 
+ 41f:	c5 25 f4 ea          	vpmuludq ymm13,ymm11,ymm2
+ 423:	c4 41 2d d4 ed       	vpaddq ymm13,ymm10,ymm13
+ 428:	c4 c1 2d 73 d3 20    	vpsrlq ymm10,ymm11,0x20
+ 42e:	c5 2d f4 f2          	vpmuludq ymm14,ymm10,ymm2
+ 432:	c4 c1 4d d4 c6       	vpaddq ymm0,ymm6,ymm14
+ 437:	49 39 ca             	cmp    r10,rcx
+ 43a:	0f 85 b7 fe ff ff    	jne    2f7 <_ZN10qpoly_lazy4leafILi4ELi2EEEvPDv4_xS2_PKj+0x2f7>
+ 440:	b8 ff ff 7f 3b       	mov    eax,0x3b7fffff
+ 445:	be 01 00 80 3b       	mov    esi,0x3b800001
+ 44a:	41 b8 fe ff ff 88    	mov    r8d,0x88fffffe
+ 450:	c5 f9 6e f0          	vmovd  xmm6,eax
+ 454:	c5 f9 6e e6          	vmovd  xmm4,esi
+ 458:	c4 62 7d 58 e6       	vpbroadcastd ymm12,xmm6
+ 45d:	c4 62 7d 58 dc       	vpbroadcastd ymm11,xmm4
+ 462:	c4 c1 79 6e e0       	vmovd  xmm4,r8d
+ 467:	c4 41 3d f4 fc       	vpmuludq ymm15,ymm8,ymm12
+ 46c:	c4 41 55 f4 d4       	vpmuludq ymm10,ymm5,ymm12
+ 471:	c4 c1 05 f4 d3       	vpmuludq ymm2,ymm15,ymm11
+ 476:	c4 41 2d f4 f3       	vpmuludq ymm14,ymm10,ymm11
+ 47b:	c4 62 7d 58 d4       	vpbroadcastd ymm10,xmm4
+ 480:	c4 41 6d d4 c0       	vpaddq ymm8,ymm2,ymm8
+ 485:	c5 8d d4 ed          	vpaddq ymm5,ymm14,ymm5
+ 489:	c4 c1 05 73 d0 20    	vpsrlq ymm15,ymm8,0x20
+ 48f:	c4 41 45 f4 c4       	vpmuludq ymm8,ymm7,ymm12
+ 494:	c4 c1 55 eb f7       	vpor   ymm6,ymm5,ymm15
+ 499:	c4 c1 65 f4 ec       	vpmuludq ymm5,ymm3,ymm12
+ 49e:	c4 c1 4d fe d2       	vpaddd ymm2,ymm6,ymm10
+ 4a3:	c4 62 4d 3b f2       	vpminud ymm14,ymm6,ymm2
+ 4a8:	c5 7d 7f 37          	vmovdqa YMMWORD PTR [rdi],ymm14
+ 4ac:	c4 41 3d f4 fb       	vpmuludq ymm15,ymm8,ymm11
+ 4b1:	c4 c1 55 f4 f3       	vpmuludq ymm6,ymm5,ymm11
+ 4b6:	c5 85 d4 ff          	vpaddq ymm7,ymm15,ymm7
+ 4ba:	c4 41 35 f4 fc       	vpmuludq ymm15,ymm9,ymm12
+ 4bf:	c5 dd 73 d7 20       	vpsrlq ymm4,ymm7,0x20
+ 4c4:	c5 cd d4 db          	vpaddq ymm3,ymm6,ymm3
+ 4c8:	c5 e5 eb d4          	vpor   ymm2,ymm3,ymm4
+ 4cc:	c4 c1 75 f4 f4       	vpmuludq ymm6,ymm1,ymm12
+ 4d1:	c4 41 6d fe f2       	vpaddd ymm14,ymm2,ymm10
+ 4d6:	c4 42 6d 3b c6       	vpminud ymm8,ymm2,ymm14
+ 4db:	c5 7d 7f 47 20       	vmovdqa YMMWORD PTR [rdi+0x20],ymm8
+ 4e0:	c4 41 15 f4 c4       	vpmuludq ymm8,ymm13,ymm12
+ 4e5:	c4 41 7d f4 e4       	vpmuludq ymm12,ymm0,ymm12
+ 4ea:	c4 c1 05 f4 eb       	vpmuludq ymm5,ymm15,ymm11
+ 4ef:	c4 c1 4d f4 fb       	vpmuludq ymm7,ymm6,ymm11
+ 4f4:	c4 41 3d f4 fb       	vpmuludq ymm15,ymm8,ymm11
+ 4f9:	c4 41 1d f4 db       	vpmuludq ymm11,ymm12,ymm11
+ 4fe:	c4 41 55 d4 c9       	vpaddq ymm9,ymm5,ymm9
+ 503:	c5 c5 d4 c9          	vpaddq ymm1,ymm7,ymm1
+ 507:	c4 c1 5d 73 d1 20    	vpsrlq ymm4,ymm9,0x20
+ 50d:	c5 f5 eb d4          	vpor   ymm2,ymm1,ymm4
+ 511:	c4 c1 6d fe da       	vpaddd ymm3,ymm2,ymm10
+ 516:	c4 41 05 d4 ed       	vpaddq ymm13,ymm15,ymm13
+ 51b:	c5 a5 d4 c0          	vpaddq ymm0,ymm11,ymm0
+ 51f:	c4 c1 55 73 d5 20    	vpsrlq ymm5,ymm13,0x20
+ 525:	c4 62 6d 3b f3       	vpminud ymm14,ymm2,ymm3
+ 52a:	c5 fd eb f5          	vpor   ymm6,ymm0,ymm5
+ 52e:	c5 7d 7f 77 40       	vmovdqa YMMWORD PTR [rdi+0x40],ymm14
+ 533:	c4 41 4d fe d2       	vpaddd ymm10,ymm6,ymm10
+ 538:	c4 c2 4d 3b fa       	vpminud ymm7,ymm6,ymm10
+ 53d:	c5 fd 7f 7f 60       	vmovdqa YMMWORD PTR [rdi+0x60],ymm7
+ 542:	48 8b 84 24 98 01 00 	mov    rax,QWORD PTR [rsp+0x198]
+ 549:	00 
+ 54a:	64 48 2b 04 25 28 00 	sub    rax,QWORD PTR fs:0x28
+ 551:	00 00 
+ 553:	75 05                	jne    55a <_ZN10qpoly_lazy4leafILi4ELi2EEEvPDv4_xS2_PKj+0x55a>
+ 555:	c5 f8 77             	vzeroupper
+ 558:	c9                   	leave
+ 559:	c3                   	ret
+ 55a:	c5 f8 77             	vzeroupper
+ 55d:	e8 00 00 00 00       	call   562 <.LC7+0x3da>
+
+Disassembly of section .text._ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii:
+
+0000000000000000 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii>:
+       0:	f3 0f 1e fa          	endbr64
+       4:	55                   	push   rbp
+       5:	48 89 e5             	mov    rbp,rsp
+       8:	41 57                	push   r15
+       a:	49 89 f7             	mov    r15,rsi
+       d:	41 56                	push   r14
+       f:	49 89 d6             	mov    r14,rdx
+      12:	41 55                	push   r13
+      14:	49 89 fd             	mov    r13,rdi
+      17:	41 54                	push   r12
+      19:	53                   	push   rbx
+      1a:	48 83 e4 e0          	and    rsp,0xffffffffffffffe0
+      1e:	48 81 ec e0 00 00 00 	sub    rsp,0xe0
+      25:	89 4c 24 58          	mov    DWORD PTR [rsp+0x58],ecx
+      29:	44 89 44 24 44       	mov    DWORD PTR [rsp+0x44],r8d
+      2e:	64 48 8b 04 25 28 00 	mov    rax,QWORD PTR fs:0x28
+      35:	00 00 
+      37:	48 89 84 24 d8 00 00 	mov    QWORD PTR [rsp+0xd8],rax
+      3e:	00 
+      3f:	31 c0                	xor    eax,eax
+      41:	81 f9 00 01 00 00    	cmp    ecx,0x100
+      47:	0f 8f 02 0c 00 00    	jg     c4f <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xc4f>
+      4d:	85 c9                	test   ecx,ecx
+      4f:	44 8d 49 03          	lea    r9d,[rcx+0x3]
+      53:	44 0f 49 c9          	cmovns r9d,ecx
+      57:	41 c1 f9 02          	sar    r9d,0x2
+      5b:	44 89 4c 24 50       	mov    DWORD PTR [rsp+0x50],r9d
+      60:	0f 84 20 16 00 00    	je     1686 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x1686>
+      66:	85 c9                	test   ecx,ecx
+      68:	0f 8e b3 08 00 00    	jle    921 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x921>
+      6e:	bf ff ff 7f 3b       	mov    edi,0x3b7fffff
+      73:	ba fe ff ff 88       	mov    edx,0x88fffffe
+      78:	b9 02 00 00 77       	mov    ecx,0x77000002
+      7d:	bb 01 00 80 3b       	mov    ebx,0x3b800001
+      82:	c5 79 6e ef          	vmovd  xmm13,edi
+      86:	48 89 74 24 18       	mov    QWORD PTR [rsp+0x18],rsi
+      8b:	c5 79 6e e2          	vmovd  xmm12,edx
+      8f:	4d 89 ef             	mov    r15,r13
+      92:	4c 89 74 24 10       	mov    QWORD PTR [rsp+0x10],r14
+      97:	c4 42 7d 58 f5       	vpbroadcastd ymm14,xmm13
+      9c:	c5 f9 6e e1          	vmovd  xmm4,ecx
+      a0:	c5 f9 6e eb          	vmovd  xmm5,ebx
+      a4:	c4 c2 7d 58 c4       	vpbroadcastd ymm0,xmm12
+      a9:	c5 7d 7f 74 24 20    	vmovdqa YMMWORD PTR [rsp+0x20],ymm14
+      af:	c4 62 7d 58 e4       	vpbroadcastd ymm12,xmm4
+      b4:	c4 62 7d 58 ed       	vpbroadcastd ymm13,xmm5
+      b9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+      c0:	44 8b 54 24 50       	mov    r10d,DWORD PTR [rsp+0x50]
+      c5:	8b 44 24 58          	mov    eax,DWORD PTR [rsp+0x58]
+      c9:	44 8b 6c 24 44       	mov    r13d,DWORD PTR [rsp+0x44]
+      ce:	4c 8b 64 24 10       	mov    r12,QWORD PTR [rsp+0x10]
+      d3:	46 8d 34 95 00 00 00 	lea    r14d,[r10*4+0x0]
+      da:	00 
+      db:	99                   	cdq
+      dc:	49 63 f2             	movsxd rsi,r10d
+      df:	4c 8b 44 24 18       	mov    r8,QWORD PTR [rsp+0x18]
+      e4:	41 f7 fe             	idiv   r14d
+      e7:	48 89 f7             	mov    rdi,rsi
+      ea:	4d 63 de             	movsxd r11,r14d
+      ed:	48 c1 e6 05          	shl    rsi,0x5
+      f1:	89 f9                	mov    ecx,edi
+      f3:	8d 1c 3f             	lea    ebx,[rdi+rdi*1]
+      f6:	4e 8d 0c 26          	lea    r9,[rsi+r12*1]
+      fa:	49 c1 e3 05          	shl    r11,0x5
+      fe:	44 8d 14 0b          	lea    r10d,[rbx+rcx*1]
+     102:	48 63 fb             	movsxd rdi,ebx
+     105:	48 c1 e7 05          	shl    rdi,0x5
+     109:	41 0f af c5          	imul   eax,r13d
+     10d:	4d 89 e5             	mov    r13,r12
+     110:	4d 89 c4             	mov    r12,r8
+     113:	4d 8d 04 30          	lea    r8,[r8+rsi*1]
+     117:	89 44 24 48          	mov    DWORD PTR [rsp+0x48],eax
+     11b:	49 63 c2             	movsxd rax,r10d
+     11e:	45 31 d2             	xor    r10d,r10d
+     121:	48 c1 e0 05          	shl    rax,0x5
+     125:	48 89 44 24 60       	mov    QWORD PTR [rsp+0x60],rax
+     12a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+     130:	44 89 d0             	mov    eax,r10d
+     133:	8b 4c 24 48          	mov    ecx,DWORD PTR [rsp+0x48]
+     137:	49 8b 1f             	mov    rbx,QWORD PTR [r15]
+     13a:	99                   	cdq
+     13b:	41 f7 fe             	idiv   r14d
+     13e:	01 c8                	add    eax,ecx
+     140:	48 63 d0             	movsxd rdx,eax
+     143:	8d 04 00             	lea    eax,[rax+rax*1]
+     146:	8b 0c 93             	mov    ecx,DWORD PTR [rbx+rdx*4]
+     149:	48 63 d0             	movsxd rdx,eax
+     14c:	c4 e2 7d 58 6c 93 04 	vpbroadcastd ymm5,DWORD PTR [rbx+rdx*4+0x4]
+     153:	c5 55 f4 7c 24 20    	vpmuludq ymm15,ymm5,YMMWORD PTR [rsp+0x20]
+     159:	89 8c 24 a0 00 00 00 	mov    DWORD PTR [rsp+0xa0],ecx
+     160:	8b 0c 93             	mov    ecx,DWORD PTR [rbx+rdx*4]
+     163:	0f 84 e7 07 00 00    	je     950 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x950>
+     169:	8b 5c 24 50          	mov    ebx,DWORD PTR [rsp+0x50]
+     16d:	85 db                	test   ebx,ebx
+     16f:	0f 8e 35 03 00 00    	jle    4aa <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x4aa>
+     175:	c5 7d 6f 44 24 20    	vmovdqa ymm8,YMMWORD PTR [rsp+0x20]
+     17b:	c5 79 6e c9          	vmovd  xmm9,ecx
+     17f:	48 8b 54 24 60       	mov    rdx,QWORD PTR [rsp+0x60]
+     184:	4c 89 e0             	mov    rax,r12
+     187:	c4 e2 7d 58 a4 24 a0 	vpbroadcastd ymm4,DWORD PTR [rsp+0xa0]
+     18e:	00 00 00 
+     191:	c4 42 7d 58 d9       	vpbroadcastd ymm11,xmm9
+     196:	c5 7d 7f bc 24 a0 00 	vmovdqa YMMWORD PTR [rsp+0xa0],ymm15
+     19d:	00 00 
+     19f:	c4 c1 25 f4 d8       	vpmuludq ymm3,ymm11,ymm8
+     1a4:	c4 c1 5d f4 f0       	vpmuludq ymm6,ymm4,ymm8
+     1a9:	c5 fd 7f 9c 24 80 00 	vmovdqa YMMWORD PTR [rsp+0x80],ymm3
+     1b0:	00 00 
+     1b2:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+     1b8:	c5 fd 6f 3c 38       	vmovdqa ymm7,YMMWORD PTR [rax+rdi*1]
+     1bd:	c5 fd 6f 1c 10       	vmovdqa ymm3,YMMWORD PTR [rax+rdx*1]
+     1c2:	48 83 c0 20          	add    rax,0x20
+     1c6:	c5 7d fe 54 30 e0    	vpaddd ymm10,ymm0,YMMWORD PTR [rax+rsi*1-0x20]
+     1cc:	c4 e2 2d 3b 54 30 e0 	vpminud ymm2,ymm10,YMMWORD PTR [rax+rsi*1-0x20]
+     1d3:	c5 45 f4 c6          	vpmuludq ymm8,ymm7,ymm6
+     1d7:	c5 85 73 d7 20       	vpsrlq ymm15,ymm7,0x20
+     1dc:	c5 fd fe 48 e0       	vpaddd ymm1,ymm0,YMMWORD PTR [rax-0x20]
+     1e1:	c5 45 f4 f4          	vpmuludq ymm14,ymm7,ymm4
+     1e5:	c5 05 f4 d6          	vpmuludq ymm10,ymm15,ymm6
+     1e9:	c4 e2 75 3b 48 e0    	vpminud ymm1,ymm1,YMMWORD PTR [rax-0x20]
+     1ef:	c5 05 f4 cc          	vpmuludq ymm9,ymm15,ymm4
+     1f3:	c4 c1 3d f4 fd       	vpmuludq ymm7,ymm8,ymm13
+     1f8:	c5 bd 73 d3 20       	vpsrlq ymm8,ymm3,0x20
+     1fd:	c4 41 2d f4 d5       	vpmuludq ymm10,ymm10,ymm13
+     202:	c5 0d d4 f7          	vpaddq ymm14,ymm14,ymm7
+     206:	c5 bd f4 fc          	vpmuludq ymm7,ymm8,ymm4
+     20a:	c4 c1 05 73 d6 20    	vpsrlq ymm15,ymm14,0x20
+     210:	c5 65 f4 f4          	vpmuludq ymm14,ymm3,ymm4
+     214:	c4 41 35 d4 ca       	vpaddq ymm9,ymm9,ymm10
+     219:	c5 e5 f4 de          	vpmuludq ymm3,ymm3,ymm6
+     21d:	c5 3d f4 c6          	vpmuludq ymm8,ymm8,ymm6
+     221:	c4 41 35 eb ff       	vpor   ymm15,ymm9,ymm15
+     226:	c4 c1 65 f4 dd       	vpmuludq ymm3,ymm3,ymm13
+     22b:	c4 41 3d f4 c5       	vpmuludq ymm8,ymm8,ymm13
+     230:	c5 0d d4 f3          	vpaddq ymm14,ymm14,ymm3
+     234:	c4 c1 45 d4 f8       	vpaddq ymm7,ymm7,ymm8
+     239:	c4 c1 75 fe df       	vpaddd ymm3,ymm1,ymm15
+     23e:	c4 c1 0d 73 d6 20    	vpsrlq ymm14,ymm14,0x20
+     244:	c4 c1 75 fe cc       	vpaddd ymm1,ymm1,ymm12
+     249:	c4 41 45 eb c6       	vpor   ymm8,ymm7,ymm14
+     24e:	c4 41 75 fa ff       	vpsubd ymm15,ymm1,ymm15
+     253:	c5 65 fe d0          	vpaddd ymm10,ymm3,ymm0
+     257:	c5 fd 6f bc 24 80 00 	vmovdqa ymm7,YMMWORD PTR [rsp+0x80]
+     25e:	00 00 
+     260:	c4 41 6d fe f0       	vpaddd ymm14,ymm2,ymm8
+     265:	c5 05 fe c8          	vpaddd ymm9,ymm15,ymm0
+     269:	c4 c2 05 3b c9       	vpminud ymm1,ymm15,ymm9
+     26e:	c5 0d f4 cf          	vpmuludq ymm9,ymm14,ymm7
+     272:	c4 c2 65 3b da       	vpminud ymm3,ymm3,ymm10
+     277:	c4 c1 2d 73 d6 20    	vpsrlq ymm10,ymm14,0x20
+     27d:	c4 41 0d f4 fb       	vpmuludq ymm15,ymm14,ymm11
+     282:	c4 c1 6d fe d4       	vpaddd ymm2,ymm2,ymm12
+     287:	c4 c1 6d fa d0       	vpsubd ymm2,ymm2,ymm8
+     28c:	c4 41 2d f4 c3       	vpmuludq ymm8,ymm10,ymm11
+     291:	c5 2d f4 d7          	vpmuludq ymm10,ymm10,ymm7
+     295:	c4 41 35 f4 f5       	vpmuludq ymm14,ymm9,ymm13
+     29a:	c5 b5 73 d2 20       	vpsrlq ymm9,ymm2,0x20
+     29f:	c5 b5 f4 fd          	vpmuludq ymm7,ymm9,ymm5
+     2a3:	c5 35 f4 8c 24 a0 00 	vpmuludq ymm9,ymm9,YMMWORD PTR [rsp+0xa0]
+     2aa:	00 00 
+     2ac:	c4 41 35 f4 cd       	vpmuludq ymm9,ymm9,ymm13
+     2b1:	c4 41 2d f4 d5       	vpmuludq ymm10,ymm10,ymm13
+     2b6:	c4 41 05 d4 fe       	vpaddq ymm15,ymm15,ymm14
+     2bb:	c5 6d f4 f5          	vpmuludq ymm14,ymm2,ymm5
+     2bf:	c5 ed f4 94 24 a0 00 	vpmuludq ymm2,ymm2,YMMWORD PTR [rsp+0xa0]
+     2c6:	00 00 
+     2c8:	c4 c1 6d f4 d5       	vpmuludq ymm2,ymm2,ymm13
+     2cd:	c4 c1 05 73 d7 20    	vpsrlq ymm15,ymm15,0x20
+     2d3:	c4 41 3d d4 c2       	vpaddq ymm8,ymm8,ymm10
+     2d8:	c4 41 3d eb d7       	vpor   ymm10,ymm8,ymm15
+     2dd:	c4 41 45 d4 f9       	vpaddq ymm15,ymm7,ymm9
+     2e2:	c4 41 65 fe ca       	vpaddd ymm9,ymm3,ymm10
+     2e7:	c4 c1 65 fe dc       	vpaddd ymm3,ymm3,ymm12
+     2ec:	c5 0d d4 f2          	vpaddq ymm14,ymm14,ymm2
+     2f0:	c5 7d 7f 48 e0       	vmovdqa YMMWORD PTR [rax-0x20],ymm9
+     2f5:	c4 c1 6d 73 d6 20    	vpsrlq ymm2,ymm14,0x20
+     2fb:	c4 41 65 fa f2       	vpsubd ymm14,ymm3,ymm10
+     300:	c5 85 eb fa          	vpor   ymm7,ymm15,ymm2
+     304:	c5 7d 7f 74 30 e0    	vmovdqa YMMWORD PTR [rax+rsi*1-0x20],ymm14
+     30a:	c5 f5 fe d7          	vpaddd ymm2,ymm1,ymm7
+     30e:	c4 c1 75 fe cc       	vpaddd ymm1,ymm1,ymm12
+     313:	c5 75 fa c7          	vpsubd ymm8,ymm1,ymm7
+     317:	c5 fd 7f 54 38 e0    	vmovdqa YMMWORD PTR [rax+rdi*1-0x20],ymm2
+     31d:	c5 7d 7f 44 10 e0    	vmovdqa YMMWORD PTR [rax+rdx*1-0x20],ymm8
+     323:	49 39 c0             	cmp    r8,rax
+     326:	0f 85 8c fe ff ff    	jne    1b8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x1b8>
+     32c:	4c 89 e9             	mov    rcx,r13
+     32f:	90                   	nop
+     330:	c5 fd 6f 3c 39       	vmovdqa ymm7,YMMWORD PTR [rcx+rdi*1]
+     335:	c5 7d fe 3c 31       	vpaddd ymm15,ymm0,YMMWORD PTR [rcx+rsi*1]
+     33a:	48 83 c1 20          	add    rcx,0x20
+     33e:	c4 e2 05 3b 54 31 e0 	vpminud ymm2,ymm15,YMMWORD PTR [rcx+rsi*1-0x20]
+     345:	c5 fd 6f 5c 11 e0    	vmovdqa ymm3,YMMWORD PTR [rcx+rdx*1-0x20]
+     34b:	c5 bd 73 d7 20       	vpsrlq ymm8,ymm7,0x20
+     350:	c5 45 f4 f4          	vpmuludq ymm14,ymm7,ymm4
+     354:	c5 7d fe 51 e0       	vpaddd ymm10,ymm0,YMMWORD PTR [rcx-0x20]
+     359:	c5 c5 f4 fe          	vpmuludq ymm7,ymm7,ymm6
+     35d:	c5 3d f4 cc          	vpmuludq ymm9,ymm8,ymm4
+     361:	c4 e2 2d 3b 49 e0    	vpminud ymm1,ymm10,YMMWORD PTR [rcx-0x20]
+     367:	c5 3d f4 d6          	vpmuludq ymm10,ymm8,ymm6
+     36b:	c5 bd 73 d3 20       	vpsrlq ymm8,ymm3,0x20
+     370:	c4 41 45 f4 fd       	vpmuludq ymm15,ymm7,ymm13
+     375:	c5 bd f4 fc          	vpmuludq ymm7,ymm8,ymm4
+     379:	c5 3d f4 c6          	vpmuludq ymm8,ymm8,ymm6
+     37d:	c4 41 2d f4 d5       	vpmuludq ymm10,ymm10,ymm13
+     382:	c4 41 0d d4 f7       	vpaddq ymm14,ymm14,ymm15
+     387:	c4 c1 05 73 d6 20    	vpsrlq ymm15,ymm14,0x20
+     38d:	c5 65 f4 f4          	vpmuludq ymm14,ymm3,ymm4
+     391:	c4 41 35 d4 ca       	vpaddq ymm9,ymm9,ymm10
+     396:	c5 e5 f4 de          	vpmuludq ymm3,ymm3,ymm6
+     39a:	c4 41 3d f4 c5       	vpmuludq ymm8,ymm8,ymm13
+     39f:	c4 41 35 eb ff       	vpor   ymm15,ymm9,ymm15
+     3a4:	c4 c1 65 f4 dd       	vpmuludq ymm3,ymm3,ymm13
+     3a9:	c4 c1 45 d4 f8       	vpaddq ymm7,ymm7,ymm8
+     3ae:	c5 0d d4 f3          	vpaddq ymm14,ymm14,ymm3
+     3b2:	c4 c1 75 fe df       	vpaddd ymm3,ymm1,ymm15
+     3b7:	c4 c1 0d 73 d6 20    	vpsrlq ymm14,ymm14,0x20
+     3bd:	c4 c1 75 fe cc       	vpaddd ymm1,ymm1,ymm12
+     3c2:	c5 65 fe d0          	vpaddd ymm10,ymm3,ymm0
+     3c6:	c4 41 45 eb c6       	vpor   ymm8,ymm7,ymm14
+     3cb:	c4 41 75 fa ff       	vpsubd ymm15,ymm1,ymm15
+     3d0:	c4 c2 65 3b da       	vpminud ymm3,ymm3,ymm10
+     3d5:	c5 fd 6f bc 24 80 00 	vmovdqa ymm7,YMMWORD PTR [rsp+0x80]
+     3dc:	00 00 
+     3de:	c4 41 6d fe f0       	vpaddd ymm14,ymm2,ymm8
+     3e3:	c5 05 fe c8          	vpaddd ymm9,ymm15,ymm0
+     3e7:	c4 c2 05 3b c9       	vpminud ymm1,ymm15,ymm9
+     3ec:	c5 0d f4 cf          	vpmuludq ymm9,ymm14,ymm7
+     3f0:	c4 c1 6d fe d4       	vpaddd ymm2,ymm2,ymm12
+     3f5:	c4 c1 2d 73 d6 20    	vpsrlq ymm10,ymm14,0x20
+     3fb:	c4 41 0d f4 fb       	vpmuludq ymm15,ymm14,ymm11
+     400:	c4 c1 6d fa d0       	vpsubd ymm2,ymm2,ymm8
+     405:	c4 41 2d f4 c3       	vpmuludq ymm8,ymm10,ymm11
+     40a:	c5 2d f4 d7          	vpmuludq ymm10,ymm10,ymm7
+     40e:	c4 41 35 f4 f5       	vpmuludq ymm14,ymm9,ymm13
+     413:	c5 b5 73 d2 20       	vpsrlq ymm9,ymm2,0x20
+     418:	c5 b5 f4 fd          	vpmuludq ymm7,ymm9,ymm5
+     41c:	c5 35 f4 8c 24 a0 00 	vpmuludq ymm9,ymm9,YMMWORD PTR [rsp+0xa0]
+     423:	00 00 
+     425:	c4 41 35 f4 cd       	vpmuludq ymm9,ymm9,ymm13
+     42a:	c4 41 2d f4 d5       	vpmuludq ymm10,ymm10,ymm13
+     42f:	c4 41 05 d4 fe       	vpaddq ymm15,ymm15,ymm14
+     434:	c5 6d f4 f5          	vpmuludq ymm14,ymm2,ymm5
+     438:	c5 ed f4 94 24 a0 00 	vpmuludq ymm2,ymm2,YMMWORD PTR [rsp+0xa0]
+     43f:	00 00 
+     441:	c4 c1 6d f4 d5       	vpmuludq ymm2,ymm2,ymm13
+     446:	c4 c1 05 73 d7 20    	vpsrlq ymm15,ymm15,0x20
+     44c:	c4 41 3d d4 c2       	vpaddq ymm8,ymm8,ymm10
+     451:	c4 41 3d eb d7       	vpor   ymm10,ymm8,ymm15
+     456:	c4 41 45 d4 f9       	vpaddq ymm15,ymm7,ymm9
+     45b:	c4 41 65 fe ca       	vpaddd ymm9,ymm3,ymm10
+     460:	c4 c1 65 fe dc       	vpaddd ymm3,ymm3,ymm12
+     465:	c5 7d 7f 49 e0       	vmovdqa YMMWORD PTR [rcx-0x20],ymm9
+     46a:	c5 0d d4 f2          	vpaddq ymm14,ymm14,ymm2
+     46e:	c4 c1 6d 73 d6 20    	vpsrlq ymm2,ymm14,0x20
+     474:	c4 41 65 fa f2       	vpsubd ymm14,ymm3,ymm10
+     479:	c5 85 eb fa          	vpor   ymm7,ymm15,ymm2
+     47d:	c5 7d 7f 74 31 e0    	vmovdqa YMMWORD PTR [rcx+rsi*1-0x20],ymm14
+     483:	c5 f5 fe d7          	vpaddd ymm2,ymm1,ymm7
+     487:	c4 c1 75 fe cc       	vpaddd ymm1,ymm1,ymm12
+     48c:	c5 75 fa c7          	vpsubd ymm8,ymm1,ymm7
+     490:	c5 fd 7f 54 39 e0    	vmovdqa YMMWORD PTR [rcx+rdi*1-0x20],ymm2
+     496:	c5 7d 7f 44 11 e0    	vmovdqa YMMWORD PTR [rcx+rdx*1-0x20],ymm8
+     49c:	49 39 c9             	cmp    r9,rcx
+     49f:	0f 85 8b fe ff ff    	jne    330 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x330>
+     4a5:	48 89 54 24 60       	mov    QWORD PTR [rsp+0x60],rdx
+     4aa:	45 01 f2             	add    r10d,r14d
+     4ad:	4d 01 dd             	add    r13,r11
+     4b0:	4d 01 d9             	add    r9,r11
+     4b3:	4d 01 dc             	add    r12,r11
+     4b6:	4d 01 d8             	add    r8,r11
+     4b9:	44 39 54 24 58       	cmp    DWORD PTR [rsp+0x58],r10d
+     4be:	0f 8f 6c fc ff ff    	jg     130 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x130>
+     4c4:	44 8b 74 24 50       	mov    r14d,DWORD PTR [rsp+0x50]
+     4c9:	45 85 f6             	test   r14d,r14d
+     4cc:	45 8d 5e 03          	lea    r11d,[r14+0x3]
+     4d0:	45 0f 49 de          	cmovns r11d,r14d
+     4d4:	41 c1 fb 02          	sar    r11d,0x2
+     4d8:	44 89 5c 24 50       	mov    DWORD PTR [rsp+0x50],r11d
+     4dd:	0f 85 dd fb ff ff    	jne    c0 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xc0>
+     4e3:	44 8b 4c 24 58       	mov    r9d,DWORD PTR [rsp+0x58]
+     4e8:	8b 74 24 44          	mov    esi,DWORD PTR [rsp+0x44]
+     4ec:	4d 89 fd             	mov    r13,r15
+     4ef:	4c 8b 74 24 10       	mov    r14,QWORD PTR [rsp+0x10]
+     4f4:	4c 8b 7c 24 18       	mov    r15,QWORD PTR [rsp+0x18]
+     4f9:	44 0f af ce          	imul   r9d,esi
+     4fd:	c5 f8 77             	vzeroupper
+     500:	44 8b 64 24 58       	mov    r12d,DWORD PTR [rsp+0x58]
+     505:	4c 8d 94 24 c0 00 00 	lea    r10,[rsp+0xc0]
+     50c:	00 
+     50d:	4d 89 f0             	mov    r8,r14
+     510:	4c 89 bc 24 80 00 00 	mov    QWORD PTR [rsp+0x80],r15
+     517:	00 
+     518:	4c 89 94 24 a0 00 00 	mov    QWORD PTR [rsp+0xa0],r10
+     51f:	00 
+     520:	45 89 ce             	mov    r14d,r9d
+     523:	41 83 ec 01          	sub    r12d,0x1
+     527:	41 83 e4 fc          	and    r12d,0xfffffffc
+     52b:	43 8d 5c 21 04       	lea    ebx,[r9+r12*1+0x4]
+     530:	4d 89 ec             	mov    r12,r13
+     533:	4d 89 fd             	mov    r13,r15
+     536:	4d 89 c7             	mov    r15,r8
+     539:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+     540:	b8 01 00 80 3b       	mov    eax,0x3b800001
+     545:	41 8b 94 24 20 03 00 	mov    edx,DWORD PTR [r12+0x320]
+     54c:	00 
+     54d:	41 b8 01 00 80 3b    	mov    r8d,0x3b800001
+     553:	41 8d 7e 03          	lea    edi,[r14+0x3]
+     557:	48 69 ca 8a 54 34 29 	imul   rcx,rdx,0x2934548a
+     55e:	29 d0                	sub    eax,edx
+     560:	c5 f9 6e c2          	vmovd  xmm0,edx
+     564:	c4 63 79 22 e0 01    	vpinsrd xmm12,xmm0,eax,0x1
+     56a:	48 8d 05 00 00 00 00 	lea    rax,[rip+0x0]        # 571 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x571>
+     571:	c5 79 d6 a4 24 c0 00 	vmovq  QWORD PTR [rsp+0xc0],xmm12
+     578:	00 00 
+     57a:	44 69 d9 ff ff 7f 3b 	imul   r11d,ecx,0x3b7fffff
+     581:	4d 69 cb 01 00 80 3b 	imul   r9,r11,0x3b800001
+     588:	49 01 c9             	add    r9,rcx
+     58b:	49 c1 e9 20          	shr    r9,0x20
+     58f:	49 81 f9 00 00 80 3b 	cmp    r9,0x3b800000
+     596:	41 8d b1 ff ff 7f c4 	lea    esi,[r9-0x3b800001]
+     59d:	44 0f 47 ce          	cmova  r9d,esi
+     5a1:	4c 89 fe             	mov    rsi,r15
+     5a4:	45 29 c8             	sub    r8d,r9d
+     5a7:	45 85 f6             	test   r14d,r14d
+     5aa:	44 89 8c 24 c8 00 00 	mov    DWORD PTR [rsp+0xc8],r9d
+     5b1:	00 
+     5b2:	41 0f 49 fe          	cmovns edi,r14d
+     5b6:	45 31 d2             	xor    r10d,r10d
+     5b9:	44 89 84 24 cc 00 00 	mov    DWORD PTR [rsp+0xcc],r8d
+     5c0:	00 
+     5c1:	c1 ff 02             	sar    edi,0x2
+     5c4:	f7 d7                	not    edi
+     5c6:	f3 44 0f bc d7       	tzcnt  r10d,edi
+     5cb:	4c 89 ef             	mov    rdi,r13
+     5ce:	42 8b 8c 90 60 01 00 	mov    ecx,DWORD PTR [rax+r10*4+0x160]
+     5d5:	00 
+     5d6:	48 0f af d1          	imul   rdx,rcx
+     5da:	44 69 da ff ff 7f 3b 	imul   r11d,edx,0x3b7fffff
+     5e1:	4d 69 cb 01 00 80 3b 	imul   r9,r11,0x3b800001
+     5e8:	49 01 d1             	add    r9,rdx
+     5eb:	49 c1 e9 20          	shr    r9,0x20
+     5ef:	49 81 f9 00 00 80 3b 	cmp    r9,0x3b800000
+     5f6:	41 8d 91 ff ff 7f c4 	lea    edx,[r9-0x3b800001]
+     5fd:	44 0f 47 ca          	cmova  r9d,edx
+     601:	41 83 c6 04          	add    r14d,0x4
+     605:	49 83 ed 80          	sub    r13,0xffffffffffffff80
+     609:	49 83 ef 80          	sub    r15,0xffffffffffffff80
+     60d:	48 8b 94 24 a0 00 00 	mov    rdx,QWORD PTR [rsp+0xa0]
+     614:	00 
+     615:	45 89 8c 24 20 03 00 	mov    DWORD PTR [r12+0x320],r9d
+     61c:	00 
+     61d:	e8 00 00 00 00       	call   622 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x622>
+     622:	41 39 de             	cmp    r14d,ebx
+     625:	0f 85 15 ff ff ff    	jne    540 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x540>
+     62b:	83 7c 24 58 01       	cmp    DWORD PTR [rsp+0x58],0x1
+     630:	4d 89 e5             	mov    r13,r12
+     633:	4c 8b bc 24 80 00 00 	mov    r15,QWORD PTR [rsp+0x80]
+     63a:	00 
+     63b:	41 be 01 00 00 00    	mov    r14d,0x1
+     641:	0f 84 da 02 00 00    	je     921 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x921>
+     647:	bb ff ff 7f 3b       	mov    ebx,0x3b7fffff
+     64c:	41 bc fe ff ff 88    	mov    r12d,0x88fffffe
+     652:	be 02 00 00 77       	mov    esi,0x77000002
+     657:	41 b8 01 00 80 3b    	mov    r8d,0x3b800001
+     65d:	c5 79 6e eb          	vmovd  xmm13,ebx
+     661:	c4 41 79 6e fc       	vmovd  xmm15,r12d
+     666:	c5 f9 6e e6          	vmovd  xmm4,esi
+     66a:	c4 c2 7d 58 ed       	vpbroadcastd ymm5,xmm13
+     66f:	c4 41 79 6e c8       	vmovd  xmm9,r8d
+     674:	c4 42 7d 58 ef       	vpbroadcastd ymm13,xmm15
+     679:	c5 fd 7f 6c 24 20    	vmovdqa YMMWORD PTR [rsp+0x20],ymm5
+     67f:	c4 62 7d 58 f4       	vpbroadcastd ymm14,xmm4
+     684:	c4 42 7d 58 f9       	vpbroadcastd ymm15,xmm9
+     689:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+     690:	8b 44 24 58          	mov    eax,DWORD PTR [rsp+0x58]
+     694:	49 63 f6             	movsxd rsi,r14d
+     697:	41 c1 e6 02          	shl    r14d,0x2
+     69b:	8b 7c 24 44          	mov    edi,DWORD PTR [rsp+0x44]
+     69f:	49 89 f2             	mov    r10,rsi
+     6a2:	4c 89 7c 24 18       	mov    QWORD PTR [rsp+0x18],r15
+     6a7:	49 63 de             	movsxd rbx,r14d
+     6aa:	48 c1 e6 05          	shl    rsi,0x5
+     6ae:	99                   	cdq
+     6af:	43 8d 0c 12          	lea    ecx,[r10+r10*1]
+     6b3:	44 89 54 24 48       	mov    DWORD PTR [rsp+0x48],r10d
+     6b8:	48 c1 e3 05          	shl    rbx,0x5
+     6bc:	41 f7 fe             	idiv   r14d
+     6bf:	46 8d 1c 11          	lea    r11d,[rcx+r10*1]
+     6c3:	4d 8d 04 37          	lea    r8,[r15+rsi*1]
+     6c7:	45 31 c9             	xor    r9d,r9d
+     6ca:	0f af c7             	imul   eax,edi
+     6cd:	48 63 f9             	movsxd rdi,ecx
+     6d0:	49 63 cb             	movsxd rcx,r11d
+     6d3:	4d 89 fb             	mov    r11,r15
+     6d6:	48 c1 e7 05          	shl    rdi,0x5
+     6da:	48 c1 e1 05          	shl    rcx,0x5
+     6de:	89 44 24 50          	mov    DWORD PTR [rsp+0x50],eax
+     6e2:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+     6e8:	44 89 c8             	mov    eax,r9d
+     6eb:	44 8b 7c 24 50       	mov    r15d,DWORD PTR [rsp+0x50]
+     6f0:	4d 8b 55 08          	mov    r10,QWORD PTR [r13+0x8]
+     6f4:	99                   	cdq
+     6f5:	41 f7 fe             	idiv   r14d
+     6f8:	44 01 f8             	add    eax,r15d
+     6fb:	4c 63 e0             	movsxd r12,eax
+     6fe:	8d 04 00             	lea    eax,[rax+rax*1]
+     701:	48 63 d0             	movsxd rdx,eax
+     704:	47 8b 24 a2          	mov    r12d,DWORD PTR [r10+r12*4]
+     708:	c4 42 7d 58 4c 92 04 	vpbroadcastd ymm9,DWORD PTR [r10+rdx*4+0x4]
+     70f:	45 8b 3c 92          	mov    r15d,DWORD PTR [r10+rdx*4]
+     713:	c5 b5 f4 5c 24 20    	vpmuludq ymm3,ymm9,YMMWORD PTR [rsp+0x20]
+     719:	0f 84 19 04 00 00    	je     b38 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xb38>
+     71f:	44 8b 54 24 48       	mov    r10d,DWORD PTR [rsp+0x48]
+     724:	45 85 d2             	test   r10d,r10d
+     727:	0f 8e cb 01 00 00    	jle    8f8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x8f8>
+     72d:	c5 fd 6f 4c 24 20    	vmovdqa ymm1,YMMWORD PTR [rsp+0x20]
+     733:	c4 c1 79 6e ff       	vmovd  xmm7,r15d
+     738:	c4 c1 79 6e f4       	vmovd  xmm6,r12d
+     73d:	c5 fd 7f 5c 24 60    	vmovdqa YMMWORD PTR [rsp+0x60],ymm3
+     743:	c4 62 7d 58 d7       	vpbroadcastd ymm10,xmm7
+     748:	c4 62 7d 58 c6       	vpbroadcastd ymm8,xmm6
+     74d:	4d 89 dc             	mov    r12,r11
+     750:	c5 7d 7f 94 24 a0 00 	vmovdqa YMMWORD PTR [rsp+0xa0],ymm10
+     757:	00 00 
+     759:	c5 2d f4 d9          	vpmuludq ymm11,ymm10,ymm1
+     75d:	c5 3d f4 d1          	vpmuludq ymm10,ymm8,ymm1
+     761:	c5 7d 7f 9c 24 80 00 	vmovdqa YMMWORD PTR [rsp+0x80],ymm11
+     768:	00 00 
+     76a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+     770:	c4 c1 7d 6f 14 24    	vmovdqa ymm2,YMMWORD PTR [r12]
+     776:	c4 41 6d fe 24 34    	vpaddd ymm12,ymm2,YMMWORD PTR [r12+rsi*1]
+     77c:	49 83 c4 20          	add    r12,0x20
+     780:	c4 c1 7d 6f 6c 3c e0 	vmovdqa ymm5,YMMWORD PTR [r12+rdi*1-0x20]
+     787:	c4 c1 55 fe 64 0c e0 	vpaddd ymm4,ymm5,YMMWORD PTR [r12+rcx*1-0x20]
+     78e:	c4 c1 1d fe c5       	vpaddd ymm0,ymm12,ymm13
+     793:	c4 c1 0d fe 7c 24 e0 	vpaddd ymm7,ymm14,YMMWORD PTR [r12-0x20]
+     79a:	c4 e2 1d 3b c8       	vpminud ymm1,ymm12,ymm0
+     79f:	c4 c1 45 fa 54 34 e0 	vpsubd ymm2,ymm7,YMMWORD PTR [r12+rsi*1-0x20]
+     7a6:	c5 7d 6f a4 24 a0 00 	vmovdqa ymm12,YMMWORD PTR [rsp+0xa0]
+     7ad:	00 00 
+     7af:	c5 fd 6f bc 24 80 00 	vmovdqa ymm7,YMMWORD PTR [rsp+0x80]
+     7b6:	00 00 
+     7b8:	c4 c1 5d fe dd       	vpaddd ymm3,ymm4,ymm13
+     7bd:	c4 c1 0d fe 74 3c e0 	vpaddd ymm6,ymm14,YMMWORD PTR [r12+rdi*1-0x20]
+     7c4:	c4 e2 5d 3b eb       	vpminud ymm5,ymm4,ymm3
+     7c9:	c4 c1 6d f4 dc       	vpmuludq ymm3,ymm2,ymm12
+     7ce:	c4 41 4d fa 5c 0c e0 	vpsubd ymm11,ymm6,YMMWORD PTR [r12+rcx*1-0x20]
+     7d5:	c5 dd 73 d2 20       	vpsrlq ymm4,ymm2,0x20
+     7da:	c5 ed f4 d7          	vpmuludq ymm2,ymm2,ymm7
+     7de:	c4 c1 5d f4 c4       	vpmuludq ymm0,ymm4,ymm12
+     7e3:	c5 5d f4 e7          	vpmuludq ymm12,ymm4,ymm7
+     7e7:	c4 c1 6d f4 f7       	vpmuludq ymm6,ymm2,ymm15
+     7ec:	c4 c1 1d f4 e7       	vpmuludq ymm4,ymm12,ymm15
+     7f1:	c5 7d 6f 64 24 60    	vmovdqa ymm12,YMMWORD PTR [rsp+0x60]
+     7f7:	c5 e5 d4 de          	vpaddq ymm3,ymm3,ymm6
+     7fb:	c4 c1 25 f4 f1       	vpmuludq ymm6,ymm11,ymm9
+     800:	c5 c5 73 d3 20       	vpsrlq ymm7,ymm3,0x20
+     805:	c4 c1 65 73 d3 20    	vpsrlq ymm3,ymm11,0x20
+     80b:	c5 fd d4 c4          	vpaddq ymm0,ymm0,ymm4
+     80f:	c4 41 25 f4 dc       	vpmuludq ymm11,ymm11,ymm12
+     814:	c4 c1 65 f4 d1       	vpmuludq ymm2,ymm3,ymm9
+     819:	c5 fd eb e7          	vpor   ymm4,ymm0,ymm7
+     81d:	c4 c1 65 f4 dc       	vpmuludq ymm3,ymm3,ymm12
+     822:	c5 75 fe e5          	vpaddd ymm12,ymm1,ymm5
+     826:	c4 c1 75 fe ce       	vpaddd ymm1,ymm1,ymm14
+     82b:	c4 41 25 f4 df       	vpmuludq ymm11,ymm11,ymm15
+     830:	c4 c1 65 f4 df       	vpmuludq ymm3,ymm3,ymm15
+     835:	c4 c1 4d d4 f3       	vpaddq ymm6,ymm6,ymm11
+     83a:	c4 41 1d fe dd       	vpaddd ymm11,ymm12,ymm13
+     83f:	c5 ed d4 fb          	vpaddq ymm7,ymm2,ymm3
+     843:	c5 cd 73 d6 20       	vpsrlq ymm6,ymm6,0x20
+     848:	c4 42 1d 3b e3       	vpminud ymm12,ymm12,ymm11
+     84d:	c5 c5 eb d6          	vpor   ymm2,ymm7,ymm6
+     851:	c4 41 7d 7f 64 24 e0 	vmovdqa YMMWORD PTR [r12-0x20],ymm12
+     858:	c5 ed fe f4          	vpaddd ymm6,ymm2,ymm4
+     85c:	c4 c1 4d fe dd       	vpaddd ymm3,ymm6,ymm13
+     861:	c4 62 4d 3b db       	vpminud ymm11,ymm6,ymm3
+     866:	c5 f5 fa f5          	vpsubd ymm6,ymm1,ymm5
+     86a:	c5 8d fe ec          	vpaddd ymm5,ymm14,ymm4
+     86e:	c5 c5 73 d6 20       	vpsrlq ymm7,ymm6,0x20
+     873:	c4 41 7d 7f 5c 34 e0 	vmovdqa YMMWORD PTR [r12+rsi*1-0x20],ymm11
+     87a:	c4 c1 45 f4 ca       	vpmuludq ymm1,ymm7,ymm10
+     87f:	c4 c1 4d f4 e0       	vpmuludq ymm4,ymm6,ymm8
+     884:	c5 d5 fa c2          	vpsubd ymm0,ymm5,ymm2
+     888:	c4 c1 4d f4 d2       	vpmuludq ymm2,ymm6,ymm10
+     88d:	c4 c1 45 f4 e8       	vpmuludq ymm5,ymm7,ymm8
+     892:	c4 c1 75 f4 f7       	vpmuludq ymm6,ymm1,ymm15
+     897:	c5 f5 73 d0 20       	vpsrlq ymm1,ymm0,0x20
+     89c:	c4 c1 6d f4 df       	vpmuludq ymm3,ymm2,ymm15
+     8a1:	c4 c1 7d f4 d0       	vpmuludq ymm2,ymm0,ymm8
+     8a6:	c4 c1 7d f4 c2       	vpmuludq ymm0,ymm0,ymm10
+     8ab:	c5 55 d4 e6          	vpaddq ymm12,ymm5,ymm6
+     8af:	c5 dd d4 e3          	vpaddq ymm4,ymm4,ymm3
+     8b3:	c4 c1 75 f4 d8       	vpmuludq ymm3,ymm1,ymm8
+     8b8:	c4 c1 75 f4 ca       	vpmuludq ymm1,ymm1,ymm10
+     8bd:	c5 c5 73 d4 20       	vpsrlq ymm7,ymm4,0x20
+     8c2:	c4 c1 7d f4 e7       	vpmuludq ymm4,ymm0,ymm15
+     8c7:	c5 1d eb df          	vpor   ymm11,ymm12,ymm7
+     8cb:	c4 41 7d 7f 5c 3c e0 	vmovdqa YMMWORD PTR [r12+rdi*1-0x20],ymm11
+     8d2:	c4 c1 75 f4 c7       	vpmuludq ymm0,ymm1,ymm15
+     8d7:	c5 ed d4 d4          	vpaddq ymm2,ymm2,ymm4
+     8db:	c5 dd 73 d2 20       	vpsrlq ymm4,ymm2,0x20
+     8e0:	c5 e5 d4 e8          	vpaddq ymm5,ymm3,ymm0
+     8e4:	c5 d5 eb f4          	vpor   ymm6,ymm5,ymm4
+     8e8:	c4 c1 7d 7f 74 0c e0 	vmovdqa YMMWORD PTR [r12+rcx*1-0x20],ymm6
+     8ef:	4d 39 c4             	cmp    r12,r8
+     8f2:	0f 85 78 fe ff ff    	jne    770 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x770>
+     8f8:	45 01 f1             	add    r9d,r14d
+     8fb:	49 01 db             	add    r11,rbx
+     8fe:	49 01 d8             	add    r8,rbx
+     901:	44 39 4c 24 58       	cmp    DWORD PTR [rsp+0x58],r9d
+     906:	0f 8f dc fd ff ff    	jg     6e8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x6e8>
+     90c:	8b 74 24 58          	mov    esi,DWORD PTR [rsp+0x58]
+     910:	4c 8b 7c 24 18       	mov    r15,QWORD PTR [rsp+0x18]
+     915:	41 39 f6             	cmp    r14d,esi
+     918:	0f 8c 72 fd ff ff    	jl     690 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x690>
+     91e:	c5 f8 77             	vzeroupper
+     921:	48 8b 84 24 d8 00 00 	mov    rax,QWORD PTR [rsp+0xd8]
+     928:	00 
+     929:	64 48 2b 04 25 28 00 	sub    rax,QWORD PTR fs:0x28
+     930:	00 00 
+     932:	0f 85 62 0d 00 00    	jne    169a <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x169a>
+     938:	48 8d 65 d8          	lea    rsp,[rbp-0x28]
+     93c:	5b                   	pop    rbx
+     93d:	41 5c                	pop    r12
+     93f:	41 5d                	pop    r13
+     941:	41 5e                	pop    r14
+     943:	41 5f                	pop    r15
+     945:	5d                   	pop    rbp
+     946:	c3                   	ret
+     947:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+     94e:	00 00 
+     950:	8b 5c 24 50          	mov    ebx,DWORD PTR [rsp+0x50]
+     954:	85 db                	test   ebx,ebx
+     956:	0f 8e 4e fb ff ff    	jle    4aa <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x4aa>
+     95c:	48 8b 54 24 60       	mov    rdx,QWORD PTR [rsp+0x60]
+     961:	4c 89 e0             	mov    rax,r12
+     964:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+     968:	c5 7d fe 18          	vpaddd ymm11,ymm0,YMMWORD PTR [rax]
+     96c:	c4 62 25 3b 10       	vpminud ymm10,ymm11,YMMWORD PTR [rax]
+     971:	48 83 c0 20          	add    rax,0x20
+     975:	c5 fd fe 64 30 e0    	vpaddd ymm4,ymm0,YMMWORD PTR [rax+rsi*1-0x20]
+     97b:	c5 fd fe 74 38 e0    	vpaddd ymm6,ymm0,YMMWORD PTR [rax+rdi*1-0x20]
+     981:	c4 62 5d 3b 4c 30 e0 	vpminud ymm9,ymm4,YMMWORD PTR [rax+rsi*1-0x20]
+     988:	c4 e2 4d 3b 7c 38 e0 	vpminud ymm7,ymm6,YMMWORD PTR [rax+rdi*1-0x20]
+     98f:	c5 fd fe 5c 10 e0    	vpaddd ymm3,ymm0,YMMWORD PTR [rax+rdx*1-0x20]
+     995:	c4 62 65 3b 74 10 e0 	vpminud ymm14,ymm3,YMMWORD PTR [rax+rdx*1-0x20]
+     99c:	c4 41 2d fe c4       	vpaddd ymm8,ymm10,ymm12
+     9a1:	c5 ad fe d7          	vpaddd ymm2,ymm10,ymm7
+     9a5:	c5 3d fa d7          	vpsubd ymm10,ymm8,ymm7
+     9a9:	c4 c1 35 fe fe       	vpaddd ymm7,ymm9,ymm14
+     9ae:	c4 41 35 fe cc       	vpaddd ymm9,ymm9,ymm12
+     9b3:	c5 ed fe c8          	vpaddd ymm1,ymm2,ymm0
+     9b7:	c4 41 35 fa f6       	vpsubd ymm14,ymm9,ymm14
+     9bc:	c5 ad fe e0          	vpaddd ymm4,ymm10,ymm0
+     9c0:	c4 62 6d 3b d9       	vpminud ymm11,ymm2,ymm1
+     9c5:	c4 e2 2d 3b dc       	vpminud ymm3,ymm10,ymm4
+     9ca:	c4 c1 0d f4 d7       	vpmuludq ymm2,ymm14,ymm15
+     9cf:	c4 c1 2d 73 d6 20    	vpsrlq ymm10,ymm14,0x20
+     9d5:	c5 0d f4 c5          	vpmuludq ymm8,ymm14,ymm5
+     9d9:	c5 c5 fe f0          	vpaddd ymm6,ymm7,ymm0
+     9dd:	c4 e2 45 3b ce       	vpminud ymm1,ymm7,ymm6
+     9e2:	c4 c1 2d f4 ff       	vpmuludq ymm7,ymm10,ymm15
+     9e7:	c5 ad f4 e5          	vpmuludq ymm4,ymm10,ymm5
+     9eb:	c4 41 6d f4 cd       	vpmuludq ymm9,ymm2,ymm13
+     9f0:	c4 41 45 f4 f5       	vpmuludq ymm14,ymm7,ymm13
+     9f5:	c4 c1 3d d4 f1       	vpaddq ymm6,ymm8,ymm9
+     9fa:	c5 bd 73 d6 20       	vpsrlq ymm8,ymm6,0x20
+     9ff:	c4 41 5d d4 d6       	vpaddq ymm10,ymm4,ymm14
+     a04:	c5 a5 fe e1          	vpaddd ymm4,ymm11,ymm1
+     a08:	c4 c1 2d eb d0       	vpor   ymm2,ymm10,ymm8
+     a0d:	c4 41 25 fe dc       	vpaddd ymm11,ymm11,ymm12
+     a12:	c5 fd 7f 60 e0       	vmovdqa YMMWORD PTR [rax-0x20],ymm4
+     a17:	c5 65 fe ca          	vpaddd ymm9,ymm3,ymm2
+     a1b:	c4 c1 65 fe dc       	vpaddd ymm3,ymm3,ymm12
+     a20:	c5 a5 fa c9          	vpsubd ymm1,ymm11,ymm1
+     a24:	c5 e5 fa fa          	vpsubd ymm7,ymm3,ymm2
+     a28:	c5 fd 7f 4c 30 e0    	vmovdqa YMMWORD PTR [rax+rsi*1-0x20],ymm1
+     a2e:	c5 7d 7f 4c 38 e0    	vmovdqa YMMWORD PTR [rax+rdi*1-0x20],ymm9
+     a34:	c5 fd 7f 7c 10 e0    	vmovdqa YMMWORD PTR [rax+rdx*1-0x20],ymm7
+     a3a:	49 39 c0             	cmp    r8,rax
+     a3d:	0f 85 25 ff ff ff    	jne    968 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x968>
+     a43:	4c 89 e9             	mov    rcx,r13
+     a46:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+     a4d:	00 00 00 
+     a50:	c5 7d fe 31          	vpaddd ymm14,ymm0,YMMWORD PTR [rcx]
+     a54:	c4 62 0d 3b 11       	vpminud ymm10,ymm14,YMMWORD PTR [rcx]
+     a59:	48 83 c1 20          	add    rcx,0x20
+     a5d:	c5 fd fe 74 31 e0    	vpaddd ymm6,ymm0,YMMWORD PTR [rcx+rsi*1-0x20]
+     a63:	c5 7d fe 44 39 e0    	vpaddd ymm8,ymm0,YMMWORD PTR [rcx+rdi*1-0x20]
+     a69:	c4 e2 4d 3b 54 31 e0 	vpminud ymm2,ymm6,YMMWORD PTR [rcx+rsi*1-0x20]
+     a70:	c4 62 3d 3b 5c 39 e0 	vpminud ymm11,ymm8,YMMWORD PTR [rcx+rdi*1-0x20]
+     a77:	c5 fd fe 64 11 e0    	vpaddd ymm4,ymm0,YMMWORD PTR [rcx+rdx*1-0x20]
+     a7d:	c4 62 5d 3b 4c 11 e0 	vpminud ymm9,ymm4,YMMWORD PTR [rcx+rdx*1-0x20]
+     a84:	c4 c1 2d fe fc       	vpaddd ymm7,ymm10,ymm12
+     a89:	c4 c1 2d fe cb       	vpaddd ymm1,ymm10,ymm11
+     a8e:	c4 41 6d fe c1       	vpaddd ymm8,ymm2,ymm9
+     a93:	c4 41 45 fa d3       	vpsubd ymm10,ymm7,ymm11
+     a98:	c4 c1 6d fe d4       	vpaddd ymm2,ymm2,ymm12
+     a9d:	c5 ad fe f0          	vpaddd ymm6,ymm10,ymm0
+     aa1:	c4 c1 6d fa e1       	vpsubd ymm4,ymm2,ymm9
+     aa6:	c4 62 2d 3b de       	vpminud ymm11,ymm10,ymm6
+     aab:	c5 c5 73 d4 20       	vpsrlq ymm7,ymm4,0x20
+     ab0:	c4 c1 5d f4 f7       	vpmuludq ymm6,ymm4,ymm15
+     ab5:	c5 f5 fe d8          	vpaddd ymm3,ymm1,ymm0
+     ab9:	c4 c1 45 f4 d7       	vpmuludq ymm2,ymm7,ymm15
+     abe:	c5 3d fe c8          	vpaddd ymm9,ymm8,ymm0
+     ac2:	c4 62 75 3b f3       	vpminud ymm14,ymm1,ymm3
+     ac7:	c5 dd f4 dd          	vpmuludq ymm3,ymm4,ymm5
+     acb:	c5 45 f4 d5          	vpmuludq ymm10,ymm7,ymm5
+     acf:	c4 c2 3d 3b c9       	vpminud ymm1,ymm8,ymm9
+     ad4:	c4 41 4d f4 c5       	vpmuludq ymm8,ymm6,ymm13
+     ad9:	c5 8d fe f1          	vpaddd ymm6,ymm14,ymm1
+     add:	c4 41 0d fe f4       	vpaddd ymm14,ymm14,ymm12
+     ae2:	c4 c1 6d f4 e5       	vpmuludq ymm4,ymm2,ymm13
+     ae7:	c5 8d fa c9          	vpsubd ymm1,ymm14,ymm1
+     aeb:	c5 fd 7f 71 e0       	vmovdqa YMMWORD PTR [rcx-0x20],ymm6
+     af0:	c5 fd 7f 4c 31 e0    	vmovdqa YMMWORD PTR [rcx+rsi*1-0x20],ymm1
+     af6:	c4 41 65 d4 c8       	vpaddq ymm9,ymm3,ymm8
+     afb:	c4 c1 65 73 d1 20    	vpsrlq ymm3,ymm9,0x20
+     b01:	c5 ad d4 fc          	vpaddq ymm7,ymm10,ymm4
+     b05:	c5 45 eb d3          	vpor   ymm10,ymm7,ymm3
+     b09:	c4 41 25 fe c2       	vpaddd ymm8,ymm11,ymm10
+     b0e:	c4 41 25 fe dc       	vpaddd ymm11,ymm11,ymm12
+     b13:	c4 c1 25 fa d2       	vpsubd ymm2,ymm11,ymm10
+     b18:	c5 7d 7f 44 39 e0    	vmovdqa YMMWORD PTR [rcx+rdi*1-0x20],ymm8
+     b1e:	c5 fd 7f 54 11 e0    	vmovdqa YMMWORD PTR [rcx+rdx*1-0x20],ymm2
+     b24:	49 39 c9             	cmp    r9,rcx
+     b27:	0f 85 23 ff ff ff    	jne    a50 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xa50>
+     b2d:	e9 73 f9 ff ff       	jmp    4a5 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x4a5>
+     b32:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+     b38:	8b 44 24 48          	mov    eax,DWORD PTR [rsp+0x48]
+     b3c:	85 c0                	test   eax,eax
+     b3e:	0f 8e b4 fd ff ff    	jle    8f8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x8f8>
+     b44:	4c 89 da             	mov    rdx,r11
+     b47:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+     b4e:	00 00 
+     b50:	c5 7d 6f 24 3a       	vmovdqa ymm12,YMMWORD PTR [rdx+rdi*1]
+     b55:	c5 7d 6f 02          	vmovdqa ymm8,YMMWORD PTR [rdx]
+     b59:	48 83 c2 20          	add    rdx,0x20
+     b5d:	c5 3d fe 54 32 e0    	vpaddd ymm10,ymm8,YMMWORD PTR [rdx+rsi*1-0x20]
+     b63:	c5 9d fe 4c 0a e0    	vpaddd ymm1,ymm12,YMMWORD PTR [rdx+rcx*1-0x20]
+     b69:	c5 0d fe 5a e0       	vpaddd ymm11,ymm14,YMMWORD PTR [rdx-0x20]
+     b6e:	c4 c1 0d fe ec       	vpaddd ymm5,ymm14,ymm12
+     b73:	c5 a5 fa 74 32 e0    	vpsubd ymm6,ymm11,YMMWORD PTR [rdx+rsi*1-0x20]
+     b79:	c5 55 fa 44 0a e0    	vpsubd ymm8,ymm5,YMMWORD PTR [rdx+rcx*1-0x20]
+     b7f:	c4 c1 2d fe fd       	vpaddd ymm7,ymm10,ymm13
+     b84:	c4 c1 75 fe c5       	vpaddd ymm0,ymm1,ymm13
+     b89:	c4 e2 2d 3b d7       	vpminud ymm2,ymm10,ymm7
+     b8e:	c4 e2 75 3b e0       	vpminud ymm4,ymm1,ymm0
+     b93:	c4 c1 25 73 d0 20    	vpsrlq ymm11,ymm8,0x20
+     b99:	c5 bd f4 c3          	vpmuludq ymm0,ymm8,ymm3
+     b9d:	c4 c1 3d f4 c9       	vpmuludq ymm1,ymm8,ymm9
+     ba2:	c4 41 4d fe d5       	vpaddd ymm10,ymm6,ymm13
+     ba7:	c4 42 4d 3b e2       	vpminud ymm12,ymm6,ymm10
+     bac:	c5 a5 f4 f3          	vpmuludq ymm6,ymm11,ymm3
+     bb0:	c4 c1 25 f4 f9       	vpmuludq ymm7,ymm11,ymm9
+     bb5:	c5 6d fe dc          	vpaddd ymm11,ymm2,ymm4
+     bb9:	c4 c1 6d fe d6       	vpaddd ymm2,ymm2,ymm14
+     bbe:	c5 ed fa e4          	vpsubd ymm4,ymm2,ymm4
+     bc2:	c4 c1 7d f4 ef       	vpmuludq ymm5,ymm0,ymm15
+     bc7:	c4 c1 25 fe c5       	vpaddd ymm0,ymm11,ymm13
+     bcc:	c4 41 4d f4 c7       	vpmuludq ymm8,ymm6,ymm15
+     bd1:	c4 e2 25 3b f0       	vpminud ymm6,ymm11,ymm0
+     bd6:	c5 fd 7f 72 e0       	vmovdqa YMMWORD PTR [rdx-0x20],ymm6
+     bdb:	c5 75 d4 d5          	vpaddq ymm10,ymm1,ymm5
+     bdf:	c4 c1 75 73 d2 20    	vpsrlq ymm1,ymm10,0x20
+     be5:	c4 c1 45 d4 f8       	vpaddq ymm7,ymm7,ymm8
+     bea:	c5 45 eb c1          	vpor   ymm8,ymm7,ymm1
+     bee:	c4 c1 5d fe cd       	vpaddd ymm1,ymm4,ymm13
+     bf3:	c4 c1 1d fe e8       	vpaddd ymm5,ymm12,ymm8
+     bf8:	c4 41 1d fe e6       	vpaddd ymm12,ymm12,ymm14
+     bfd:	c4 c1 1d fa c0       	vpsubd ymm0,ymm12,ymm8
+     c02:	c4 41 55 fe d5       	vpaddd ymm10,ymm5,ymm13
+     c07:	c4 41 7d fe c5       	vpaddd ymm8,ymm0,ymm13
+     c0c:	c4 42 55 3b da       	vpminud ymm11,ymm5,ymm10
+     c11:	c4 e2 5d 3b f9       	vpminud ymm7,ymm4,ymm1
+     c16:	c4 c2 7d 3b e8       	vpminud ymm5,ymm0,ymm8
+     c1b:	c5 7d 7f 5c 32 e0    	vmovdqa YMMWORD PTR [rdx+rsi*1-0x20],ymm11
+     c21:	c5 fd 7f 7c 3a e0    	vmovdqa YMMWORD PTR [rdx+rdi*1-0x20],ymm7
+     c27:	c5 fd 7f 6c 0a e0    	vmovdqa YMMWORD PTR [rdx+rcx*1-0x20],ymm5
+     c2d:	4c 39 c2             	cmp    rdx,r8
+     c30:	0f 85 1a ff ff ff    	jne    b50 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xb50>
+     c36:	45 01 f1             	add    r9d,r14d
+     c39:	49 01 db             	add    r11,rbx
+     c3c:	49 01 d8             	add    r8,rbx
+     c3f:	44 39 4c 24 58       	cmp    DWORD PTR [rsp+0x58],r9d
+     c44:	0f 8f 9e fa ff ff    	jg     6e8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x6e8>
+     c4a:	e9 bd fc ff ff       	jmp    90c <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x90c>
+     c4f:	49 63 f8             	movsxd rdi,r8d
+     c52:	49 8b 55 00          	mov    rdx,QWORD PTR [r13+0x0]
+     c56:	41 b8 ff ff 7f 3b    	mov    r8d,0x3b7fffff
+     c5c:	c1 f9 02             	sar    ecx,0x2
+     c5f:	48 8d 34 bd 00 00 00 	lea    rsi,[rdi*4+0x0]
+     c66:	00 
+     c67:	c4 c1 79 6e c0       	vmovd  xmm0,r8d
+     c6c:	48 8d 04 32          	lea    rax,[rdx+rsi*1]
+     c70:	c4 e2 7d 58 c8       	vpbroadcastd ymm1,xmm0
+     c75:	44 8b 08             	mov    r9d,DWORD PTR [rax]
+     c78:	44 8b 14 b8          	mov    r10d,DWORD PTR [rax+rdi*4]
+     c7c:	8d 04 3f             	lea    eax,[rdi+rdi*1]
+     c7f:	48 98                	cdqe
+     c81:	c4 e2 7d 58 6c 82 04 	vpbroadcastd ymm5,DWORD PTR [rdx+rax*4+0x4]
+     c88:	4c 8d 58 01          	lea    r11,[rax+0x1]
+     c8c:	4c 89 5c 24 60       	mov    QWORD PTR [rsp+0x60],r11
+     c91:	c5 d5 f4 d1          	vpmuludq ymm2,ymm5,ymm1
+     c95:	85 ff                	test   edi,edi
+     c97:	0f 85 46 04 00 00    	jne    10e3 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x10e3>
+     c9d:	48 63 d1             	movsxd rdx,ecx
+     ca0:	41 b9 fe ff ff 88    	mov    r9d,0x88fffffe
+     ca6:	41 b8 02 00 00 77    	mov    r8d,0x77000002
+     cac:	4c 89 f8             	mov    rax,r15
+     caf:	c4 41 79 6e e1       	vmovd  xmm12,r9d
+     cb4:	49 89 d2             	mov    r10,rdx
+     cb7:	41 b9 01 00 80 3b    	mov    r9d,0x3b800001
+     cbd:	48 89 d3             	mov    rbx,rdx
+     cc0:	49 c1 e2 05          	shl    r10,0x5
+     cc4:	4c 8d 1c 52          	lea    r11,[rdx+rdx*2]
+     cc8:	c4 c1 79 6e f0       	vmovd  xmm6,r8d
+     ccd:	48 c1 e3 06          	shl    rbx,0x6
+     cd1:	c4 c1 79 6e e1       	vmovd  xmm4,r9d
+     cd6:	4f 8d 24 3a          	lea    r12,[r10+r15*1]
+     cda:	49 c1 e3 05          	shl    r11,0x5
+     cde:	c4 c2 7d 58 dc       	vpbroadcastd ymm3,xmm12
+     ce3:	c4 62 7d 58 f6       	vpbroadcastd ymm14,xmm6
+     ce8:	c4 62 7d 58 ec       	vpbroadcastd ymm13,xmm4
+     ced:	c5 65 fe 10          	vpaddd ymm10,ymm3,YMMWORD PTR [rax]
+     cf1:	c4 62 2d 3b 38       	vpminud ymm15,ymm10,YMMWORD PTR [rax]
+     cf6:	48 83 c0 20          	add    rax,0x20
+     cfa:	c4 21 65 fe 4c 10 e0 	vpaddd ymm9,ymm3,YMMWORD PTR [rax+r10*1-0x20]
+     d01:	c5 e5 fe 7c 18 e0    	vpaddd ymm7,ymm3,YMMWORD PTR [rax+rbx*1-0x20]
+     d07:	c4 22 35 3b 5c 10 e0 	vpminud ymm11,ymm9,YMMWORD PTR [rax+r10*1-0x20]
+     d0e:	c4 e2 45 3b 4c 18 e0 	vpminud ymm1,ymm7,YMMWORD PTR [rax+rbx*1-0x20]
+     d15:	c4 a1 65 fe 44 18 e0 	vpaddd ymm0,ymm3,YMMWORD PTR [rax+r11*1-0x20]
+     d1c:	c4 22 7d 3b 44 18 e0 	vpminud ymm8,ymm0,YMMWORD PTR [rax+r11*1-0x20]
+     d23:	c4 41 05 fe d6       	vpaddd ymm10,ymm15,ymm14
+     d28:	c5 05 fe e1          	vpaddd ymm12,ymm15,ymm1
+     d2c:	c4 c1 25 fe f8       	vpaddd ymm7,ymm11,ymm8
+     d31:	c5 2d fa f9          	vpsubd ymm15,ymm10,ymm1
+     d35:	c4 41 25 fe de       	vpaddd ymm11,ymm11,ymm14
+     d3a:	c5 05 fe cb          	vpaddd ymm9,ymm15,ymm3
+     d3e:	c4 c1 25 fa c8       	vpsubd ymm1,ymm11,ymm8
+     d43:	c4 c2 05 3b c1       	vpminud ymm0,ymm15,ymm9
+     d48:	c5 ad 73 d1 20       	vpsrlq ymm10,ymm1,0x20
+     d4d:	c5 75 f4 ca          	vpmuludq ymm9,ymm1,ymm2
+     d51:	c5 9d fe f3          	vpaddd ymm6,ymm12,ymm3
+     d55:	c5 2d f4 da          	vpmuludq ymm11,ymm10,ymm2
+     d59:	c5 45 fe c3          	vpaddd ymm8,ymm7,ymm3
+     d5d:	c4 e2 1d 3b e6       	vpminud ymm4,ymm12,ymm6
+     d62:	c5 f5 f4 f5          	vpmuludq ymm6,ymm1,ymm5
+     d66:	c5 2d f4 fd          	vpmuludq ymm15,ymm10,ymm5
+     d6a:	c4 42 45 3b e0       	vpminud ymm12,ymm7,ymm8
+     d6f:	c4 c1 35 f4 fd       	vpmuludq ymm7,ymm9,ymm13
+     d74:	c4 41 5d fe cc       	vpaddd ymm9,ymm4,ymm12
+     d79:	c4 c1 5d fe e6       	vpaddd ymm4,ymm4,ymm14
+     d7e:	c4 c1 25 f4 cd       	vpmuludq ymm1,ymm11,ymm13
+     d83:	c4 41 5d fa e4       	vpsubd ymm12,ymm4,ymm12
+     d88:	c5 7d 7f 48 e0       	vmovdqa YMMWORD PTR [rax-0x20],ymm9
+     d8d:	c4 21 7d 7f 64 10 e0 	vmovdqa YMMWORD PTR [rax+r10*1-0x20],ymm12
+     d94:	c5 4d d4 c7          	vpaddq ymm8,ymm6,ymm7
+     d98:	c4 c1 4d 73 d0 20    	vpsrlq ymm6,ymm8,0x20
+     d9e:	c5 05 d4 d1          	vpaddq ymm10,ymm15,ymm1
+     da2:	c5 2d eb fe          	vpor   ymm15,ymm10,ymm6
+     da6:	c4 c1 7d fe ff       	vpaddd ymm7,ymm0,ymm15
+     dab:	c4 c1 7d fe c6       	vpaddd ymm0,ymm0,ymm14
+     db0:	c4 41 7d fa df       	vpsubd ymm11,ymm0,ymm15
+     db5:	c5 fd 7f 7c 18 e0    	vmovdqa YMMWORD PTR [rax+rbx*1-0x20],ymm7
+     dbb:	c4 21 7d 7f 5c 18 e0 	vmovdqa YMMWORD PTR [rax+r11*1-0x20],ymm11
+     dc2:	49 39 c4             	cmp    r12,rax
+     dc5:	0f 85 22 ff ff ff    	jne    ced <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xced>
+     dcb:	41 b8 fe ff ff 88    	mov    r8d,0x88fffffe
+     dd1:	41 b9 02 00 00 77    	mov    r9d,0x77000002
+     dd7:	4f 8d 24 32          	lea    r12,[r10+r14*1]
+     ddb:	4c 89 f0             	mov    rax,r14
+     dde:	c4 c1 79 6e d8       	vmovd  xmm3,r8d
+     de3:	41 b8 01 00 80 3b    	mov    r8d,0x3b800001
+     de9:	c4 41 79 6e e9       	vmovd  xmm13,r9d
+     dee:	c4 c1 79 6e c8       	vmovd  xmm1,r8d
+     df3:	c4 62 7d 58 f3       	vpbroadcastd ymm14,xmm3
+     df8:	c4 42 7d 58 fd       	vpbroadcastd ymm15,xmm13
+     dfd:	c4 e2 7d 58 f1       	vpbroadcastd ymm6,xmm1
+     e02:	c5 0d fe 00          	vpaddd ymm8,ymm14,YMMWORD PTR [rax]
+     e06:	c4 e2 3d 3b 20       	vpminud ymm4,ymm8,YMMWORD PTR [rax]
+     e0b:	48 83 c0 20          	add    rax,0x20
+     e0f:	c4 21 0d fe 54 10 e0 	vpaddd ymm10,ymm14,YMMWORD PTR [rax+r10*1-0x20]
+     e16:	c5 0d fe 4c 18 e0    	vpaddd ymm9,ymm14,YMMWORD PTR [rax+rbx*1-0x20]
+     e1c:	c4 22 2d 3b 64 10 e0 	vpminud ymm12,ymm10,YMMWORD PTR [rax+r10*1-0x20]
+     e23:	c4 62 35 3b 5c 18 e0 	vpminud ymm11,ymm9,YMMWORD PTR [rax+rbx*1-0x20]
+     e2a:	c4 a1 0d fe 7c 18 e0 	vpaddd ymm7,ymm14,YMMWORD PTR [rax+r11*1-0x20]
+     e31:	c4 a2 45 3b 5c 18 e0 	vpminud ymm3,ymm7,YMMWORD PTR [rax+r11*1-0x20]
+     e38:	c4 c1 5d fe cf       	vpaddd ymm1,ymm4,ymm15
+     e3d:	c4 c1 5d fe c3       	vpaddd ymm0,ymm4,ymm11
+     e42:	c4 41 75 fa c3       	vpsubd ymm8,ymm1,ymm11
+     e47:	c5 1d fe d3          	vpaddd ymm10,ymm12,ymm3
+     e4b:	c4 41 1d fe e7       	vpaddd ymm12,ymm12,ymm15
+     e50:	c4 41 7d fe ee       	vpaddd ymm13,ymm0,ymm14
+     e55:	c5 9d fa db          	vpsubd ymm3,ymm12,ymm3
+     e59:	c4 c1 3d fe e6       	vpaddd ymm4,ymm8,ymm14
+     e5e:	c4 c2 7d 3b fd       	vpminud ymm7,ymm0,ymm13
+     e63:	c5 e5 f4 ca          	vpmuludq ymm1,ymm3,ymm2
+     e67:	c4 e2 3d 3b c4       	vpminud ymm0,ymm8,ymm4
+     e6c:	c5 dd 73 d3 20       	vpsrlq ymm4,ymm3,0x20
+     e71:	c5 65 f4 dd          	vpmuludq ymm11,ymm3,ymm5
+     e75:	c4 41 2d fe ce       	vpaddd ymm9,ymm10,ymm14
+     e7a:	c5 5d f4 e2          	vpmuludq ymm12,ymm4,ymm2
+     e7e:	c5 5d f4 c5          	vpmuludq ymm8,ymm4,ymm5
+     e82:	c4 42 2d 3b e9       	vpminud ymm13,ymm10,ymm9
+     e87:	c5 75 f4 d6          	vpmuludq ymm10,ymm1,ymm6
+     e8b:	c5 9d f4 de          	vpmuludq ymm3,ymm12,ymm6
+     e8f:	c4 41 25 d4 ca       	vpaddq ymm9,ymm11,ymm10
+     e94:	c4 c1 25 73 d1 20    	vpsrlq ymm11,ymm9,0x20
+     e9a:	c5 bd d4 e3          	vpaddq ymm4,ymm8,ymm3
+     e9e:	c4 41 45 fe c5       	vpaddd ymm8,ymm7,ymm13
+     ea3:	c4 c1 5d eb cb       	vpor   ymm1,ymm4,ymm11
+     ea8:	c4 c1 45 fe ff       	vpaddd ymm7,ymm7,ymm15
+     ead:	c5 7d 7f 40 e0       	vmovdqa YMMWORD PTR [rax-0x20],ymm8
+     eb2:	c5 7d fe d1          	vpaddd ymm10,ymm0,ymm1
+     eb6:	c4 c1 7d fe c7       	vpaddd ymm0,ymm0,ymm15
+     ebb:	c4 41 45 fa ed       	vpsubd ymm13,ymm7,ymm13
+     ec0:	c5 7d fa e1          	vpsubd ymm12,ymm0,ymm1
+     ec4:	c4 21 7d 7f 6c 10 e0 	vmovdqa YMMWORD PTR [rax+r10*1-0x20],ymm13
+     ecb:	c5 7d 7f 54 18 e0    	vmovdqa YMMWORD PTR [rax+rbx*1-0x20],ymm10
+     ed1:	c4 21 7d 7f 64 18 e0 	vmovdqa YMMWORD PTR [rax+r11*1-0x20],ymm12
+     ed8:	49 39 c4             	cmp    r12,rax
+     edb:	0f 85 21 ff ff ff    	jne    e02 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xe02>
+     ee1:	4d 89 f3             	mov    r11,r14
+     ee4:	44 8b 74 24 44       	mov    r14d,DWORD PTR [rsp+0x44]
+     ee9:	4c 89 7c 24 20       	mov    QWORD PTR [rsp+0x20],r15
+     eee:	49 89 d4             	mov    r12,rdx
+     ef1:	4c 89 7c 24 50       	mov    QWORD PTR [rsp+0x50],r15
+     ef6:	49 c1 e4 05          	shl    r12,0x5
+     efa:	4c 89 fb             	mov    rbx,r15
+     efd:	4d 89 df             	mov    r15,r11
+     f00:	46 8d 34 b5 00 00 00 	lea    r14d,[r14*4+0x0]
+     f07:	00 
+     f08:	89 8c 24 80 00 00 00 	mov    DWORD PTR [rsp+0x80],ecx
+     f0f:	45 8d 56 04          	lea    r10d,[r14+0x4]
+     f13:	48 89 74 24 58       	mov    QWORD PTR [rsp+0x58],rsi
+     f18:	44 89 94 24 a0 00 00 	mov    DWORD PTR [rsp+0xa0],r10d
+     f1f:	00 
+     f20:	48 89 7c 24 48       	mov    QWORD PTR [rsp+0x48],rdi
+     f25:	48 89 54 24 18       	mov    QWORD PTR [rsp+0x18],rdx
+     f2a:	c5 f8 77             	vzeroupper
+     f2d:	8b 8c 24 80 00 00 00 	mov    ecx,DWORD PTR [rsp+0x80]
+     f34:	45 89 f0             	mov    r8d,r14d
+     f37:	4c 89 fa             	mov    rdx,r15
+     f3a:	48 89 de             	mov    rsi,rbx
+     f3d:	4c 89 ef             	mov    rdi,r13
+     f40:	4c 01 e3             	add    rbx,r12
+     f43:	4d 01 e7             	add    r15,r12
+     f46:	41 83 c6 01          	add    r14d,0x1
+     f4a:	e8 00 00 00 00       	call   f4f <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xf4f>
+     f4f:	44 39 b4 24 a0 00 00 	cmp    DWORD PTR [rsp+0xa0],r14d
+     f56:	00 
+     f57:	75 d4                	jne    f2d <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xf2d>
+     f59:	4d 8b 6d 08          	mov    r13,QWORD PTR [r13+0x8]
+     f5d:	48 8b 44 24 60       	mov    rax,QWORD PTR [rsp+0x60]
+     f62:	41 bb ff ff 7f 3b    	mov    r11d,0x3b7fffff
+     f68:	48 8b 74 24 58       	mov    rsi,QWORD PTR [rsp+0x58]
+     f6d:	48 8b 7c 24 48       	mov    rdi,QWORD PTR [rsp+0x48]
+     f72:	c4 c1 79 6e eb       	vmovd  xmm5,r11d
+     f77:	44 8b 54 24 44       	mov    r10d,DWORD PTR [rsp+0x44]
+     f7c:	c4 e2 7d 58 d5       	vpbroadcastd ymm2,xmm5
+     f81:	4c 8b 4c 24 20       	mov    r9,QWORD PTR [rsp+0x20]
+     f86:	c4 42 7d 58 6c 85 00 	vpbroadcastd ymm13,DWORD PTR [r13+rax*4+0x0]
+     f8d:	4c 01 ee             	add    rsi,r13
+     f90:	4c 8b 44 24 50       	mov    r8,QWORD PTR [rsp+0x50]
+     f95:	48 8b 54 24 18       	mov    rdx,QWORD PTR [rsp+0x18]
+     f9a:	8b 0e                	mov    ecx,DWORD PTR [rsi]
+     f9c:	c5 15 f4 f2          	vpmuludq ymm14,ymm13,ymm2
+     fa0:	8b 1c be             	mov    ebx,DWORD PTR [rsi+rdi*4]
+     fa3:	45 85 d2             	test   r10d,r10d
+     fa6:	0f 85 e5 04 00 00    	jne    1491 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x1491>
+     fac:	b8 fe ff ff 88       	mov    eax,0x88fffffe
+     fb1:	48 8d 1c 52          	lea    rbx,[rdx+rdx*2]
+     fb5:	4f 8d 2c 20          	lea    r13,[r8+r12*1]
+     fb9:	48 89 d1             	mov    rcx,rdx
+     fbc:	41 bb 02 00 00 77    	mov    r11d,0x77000002
+     fc2:	41 ba 01 00 80 3b    	mov    r10d,0x3b800001
+     fc8:	c5 79 6e d0          	vmovd  xmm10,eax
+     fcc:	48 c1 e1 06          	shl    rcx,0x6
+     fd0:	c4 41 79 6e cb       	vmovd  xmm9,r11d
+     fd5:	c4 41 79 6e da       	vmovd  xmm11,r10d
+     fda:	48 c1 e3 05          	shl    rbx,0x5
+     fde:	c4 42 7d 58 e2       	vpbroadcastd ymm12,xmm10
+     fe3:	c4 c2 7d 58 e1       	vpbroadcastd ymm4,xmm9
+     fe8:	c4 c2 7d 58 eb       	vpbroadcastd ymm5,xmm11
+     fed:	c4 c1 7d 6f 11       	vmovdqa ymm2,YMMWORD PTR [r9]
+     ff2:	c4 c1 7d 6f 04 09    	vmovdqa ymm0,YMMWORD PTR [r9+rcx*1]
+     ff8:	49 83 c1 20          	add    r9,0x20
+     ffc:	c4 01 6d fe 44 21 e0 	vpaddd ymm8,ymm2,YMMWORD PTR [r9+r12*1-0x20]
+    1003:	c4 41 7d fe 7c 19 e0 	vpaddd ymm15,ymm0,YMMWORD PTR [r9+rbx*1-0x20]
+    100a:	c4 41 5d fe 51 e0    	vpaddd ymm10,ymm4,YMMWORD PTR [r9-0x20]
+    1010:	c4 41 5d fe 5c 09 e0 	vpaddd ymm11,ymm4,YMMWORD PTR [r9+rcx*1-0x20]
+    1017:	c4 01 2d fa 4c 21 e0 	vpsubd ymm9,ymm10,YMMWORD PTR [r9+r12*1-0x20]
+    101e:	c4 c1 25 fa 54 19 e0 	vpsubd ymm2,ymm11,YMMWORD PTR [r9+rbx*1-0x20]
+    1025:	c4 c1 3d fe cc       	vpaddd ymm1,ymm8,ymm12
+    102a:	c4 c1 05 fe fc       	vpaddd ymm7,ymm15,ymm12
+    102f:	c4 e2 3d 3b d9       	vpminud ymm3,ymm8,ymm1
+    1034:	c4 e2 05 3b f7       	vpminud ymm6,ymm15,ymm7
+    1039:	c4 c1 6d f4 c6       	vpmuludq ymm0,ymm2,ymm14
+    103e:	c5 c5 73 d2 20       	vpsrlq ymm7,ymm2,0x20
+    1043:	c4 41 6d f4 fd       	vpmuludq ymm15,ymm2,ymm13
+    1048:	c4 41 35 fe c4       	vpaddd ymm8,ymm9,ymm12
+    104d:	c4 c2 35 3b c8       	vpminud ymm1,ymm9,ymm8
+    1052:	c4 41 45 f4 ce       	vpmuludq ymm9,ymm7,ymm14
+    1057:	c4 41 45 f4 d5       	vpmuludq ymm10,ymm7,ymm13
+    105c:	c5 e5 fe fe          	vpaddd ymm7,ymm3,ymm6
+    1060:	c5 e5 fe dc          	vpaddd ymm3,ymm3,ymm4
+    1064:	c5 e5 fa f6          	vpsubd ymm6,ymm3,ymm6
+    1068:	c5 fd f4 d5          	vpmuludq ymm2,ymm0,ymm5
+    106c:	c4 c1 45 fe c4       	vpaddd ymm0,ymm7,ymm12
+    1071:	c5 35 f4 dd          	vpmuludq ymm11,ymm9,ymm5
+    1075:	c4 62 45 3b c8       	vpminud ymm9,ymm7,ymm0
+    107a:	c4 c1 4d fe c4       	vpaddd ymm0,ymm6,ymm12
+    107f:	c4 41 7d 7f 49 e0    	vmovdqa YMMWORD PTR [r9-0x20],ymm9
+    1085:	c5 05 d4 c2          	vpaddq ymm8,ymm15,ymm2
+    1089:	c4 c1 05 73 d0 20    	vpsrlq ymm15,ymm8,0x20
+    108f:	c4 41 2d d4 d3       	vpaddq ymm10,ymm10,ymm11
+    1094:	c4 41 2d eb df       	vpor   ymm11,ymm10,ymm15
+    1099:	c4 62 4d 3b d0       	vpminud ymm10,ymm6,ymm0
+    109e:	c4 c1 75 fe d3       	vpaddd ymm2,ymm1,ymm11
+    10a3:	c5 f5 fe cc          	vpaddd ymm1,ymm1,ymm4
+    10a7:	c4 c1 75 fa fb       	vpsubd ymm7,ymm1,ymm11
+    10ac:	c4 41 6d fe c4       	vpaddd ymm8,ymm2,ymm12
+    10b1:	c4 41 45 fe dc       	vpaddd ymm11,ymm7,ymm12
+    10b6:	c4 42 6d 3b f8       	vpminud ymm15,ymm2,ymm8
+    10bb:	c4 c2 45 3b d3       	vpminud ymm2,ymm7,ymm11
+    10c0:	c4 01 7d 7f 7c 21 e0 	vmovdqa YMMWORD PTR [r9+r12*1-0x20],ymm15
+    10c7:	c4 41 7d 7f 54 09 e0 	vmovdqa YMMWORD PTR [r9+rcx*1-0x20],ymm10
+    10ce:	c4 c1 7d 7f 54 19 e0 	vmovdqa YMMWORD PTR [r9+rbx*1-0x20],ymm2
+    10d5:	4d 39 cd             	cmp    r13,r9
+    10d8:	0f 85 0f ff ff ff    	jne    fed <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xfed>
+    10de:	e9 3b f8 ff ff       	jmp    91e <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x91e>
+    10e3:	c4 41 79 6e e2       	vmovd  xmm12,r10d
+    10e8:	c4 c1 79 6e d9       	vmovd  xmm3,r9d
+    10ed:	48 63 d1             	movsxd rdx,ecx
+    10f0:	4c 89 f8             	mov    rax,r15
+    10f3:	c4 42 7d 58 e4       	vpbroadcastd ymm12,xmm12
+    10f8:	c4 e2 7d 58 db       	vpbroadcastd ymm3,xmm3
+    10fd:	49 89 d1             	mov    r9,rdx
+    1100:	49 89 d3             	mov    r11,rdx
+    1103:	c5 9d f4 e1          	vpmuludq ymm4,ymm12,ymm1
+    1107:	c5 e5 f4 f1          	vpmuludq ymm6,ymm3,ymm1
+    110b:	49 c1 e1 05          	shl    r9,0x5
+    110f:	4c 8d 14 52          	lea    r10,[rdx+rdx*2]
+    1113:	41 bc fe ff ff 88    	mov    r12d,0x88fffffe
+    1119:	41 b8 01 00 80 3b    	mov    r8d,0x3b800001
+    111f:	4b 8d 1c 39          	lea    rbx,[r9+r15*1]
+    1123:	49 c1 e3 06          	shl    r11,0x6
+    1127:	c4 41 79 6e f4       	vmovd  xmm14,r12d
+    112c:	41 bc 02 00 00 77    	mov    r12d,0x77000002
+    1132:	c4 c1 79 6e f8       	vmovd  xmm7,r8d
+    1137:	49 c1 e2 05          	shl    r10,0x5
+    113b:	c4 41 79 6e ec       	vmovd  xmm13,r12d
+    1140:	c4 42 7d 58 f6       	vpbroadcastd ymm14,xmm14
+    1145:	c5 fd 7f 94 24 a0 00 	vmovdqa YMMWORD PTR [rsp+0xa0],ymm2
+    114c:	00 00 
+    114e:	c4 42 7d 58 ed       	vpbroadcastd ymm13,xmm13
+    1153:	c5 fd 7f a4 24 80 00 	vmovdqa YMMWORD PTR [rsp+0x80],ymm4
+    115a:	00 00 
+    115c:	c4 e2 7d 58 e7       	vpbroadcastd ymm4,xmm7
+    1161:	c4 21 7d 6f 1c 18    	vmovdqa ymm11,YMMWORD PTR [rax+r11*1]
+    1167:	c5 0d fe 00          	vpaddd ymm8,ymm14,YMMWORD PTR [rax]
+    116b:	48 83 c0 20          	add    rax,0x20
+    116f:	c4 e2 3d 3b 40 e0    	vpminud ymm0,ymm8,YMMWORD PTR [rax-0x20]
+    1175:	c4 a1 7d 6f 54 10 e0 	vmovdqa ymm2,YMMWORD PTR [rax+r10*1-0x20]
+    117c:	c5 a5 f4 fe          	vpmuludq ymm7,ymm11,ymm6
+    1180:	c4 c1 2d 73 d3 20    	vpsrlq ymm10,ymm11,0x20
+    1186:	c4 21 0d fe 4c 08 e0 	vpaddd ymm9,ymm14,YMMWORD PTR [rax+r9*1-0x20]
+    118d:	c5 25 f4 fb          	vpmuludq ymm15,ymm11,ymm3
+    1191:	c5 2d f4 c6          	vpmuludq ymm8,ymm10,ymm6
+    1195:	c4 a2 35 3b 4c 08 e0 	vpminud ymm1,ymm9,YMMWORD PTR [rax+r9*1-0x20]
+    119c:	c5 2d f4 cb          	vpmuludq ymm9,ymm10,ymm3
+    11a0:	c5 45 f4 dc          	vpmuludq ymm11,ymm7,ymm4
+    11a4:	c5 3d f4 d4          	vpmuludq ymm10,ymm8,ymm4
+    11a8:	c5 bd 73 d2 20       	vpsrlq ymm8,ymm2,0x20
+    11ad:	c5 bd f4 fb          	vpmuludq ymm7,ymm8,ymm3
+    11b1:	c5 3d f4 c6          	vpmuludq ymm8,ymm8,ymm6
+    11b5:	c4 41 05 d4 fb       	vpaddq ymm15,ymm15,ymm11
+    11ba:	c5 6d f4 db          	vpmuludq ymm11,ymm2,ymm3
+    11be:	c5 ed f4 d6          	vpmuludq ymm2,ymm2,ymm6
+    11c2:	c4 c1 05 73 d7 20    	vpsrlq ymm15,ymm15,0x20
+    11c8:	c4 41 35 d4 ca       	vpaddq ymm9,ymm9,ymm10
+    11cd:	c5 3d f4 c4          	vpmuludq ymm8,ymm8,ymm4
+    11d1:	c4 41 35 eb ff       	vpor   ymm15,ymm9,ymm15
+    11d6:	c5 ed f4 d4          	vpmuludq ymm2,ymm2,ymm4
+    11da:	c4 c1 45 d4 f8       	vpaddq ymm7,ymm7,ymm8
+    11df:	c5 25 d4 da          	vpaddq ymm11,ymm11,ymm2
+    11e3:	c4 c1 7d fe d7       	vpaddd ymm2,ymm0,ymm15
+    11e8:	c4 c1 7d fe c5       	vpaddd ymm0,ymm0,ymm13
+    11ed:	c4 c1 25 73 d3 20    	vpsrlq ymm11,ymm11,0x20
+    11f3:	c4 41 6d fe d6       	vpaddd ymm10,ymm2,ymm14
+    11f8:	c4 41 7d fa ff       	vpsubd ymm15,ymm0,ymm15
+    11fd:	c4 41 45 eb c3       	vpor   ymm8,ymm7,ymm11
+    1202:	c4 c2 6d 3b d2       	vpminud ymm2,ymm2,ymm10
+    1207:	c5 7d 6f 9c 24 80 00 	vmovdqa ymm11,YMMWORD PTR [rsp+0x80]
+    120e:	00 00 
+    1210:	c4 41 05 fe ce       	vpaddd ymm9,ymm15,ymm14
+    1215:	c4 c2 05 3b c1       	vpminud ymm0,ymm15,ymm9
+    121a:	c4 41 75 fe f8       	vpaddd ymm15,ymm1,ymm8
+    121f:	c4 c1 05 f4 fb       	vpmuludq ymm7,ymm15,ymm11
+    1224:	c4 c1 2d 73 d7 20    	vpsrlq ymm10,ymm15,0x20
+    122a:	c4 c1 75 fe cd       	vpaddd ymm1,ymm1,ymm13
+    122f:	c4 41 05 f4 cc       	vpmuludq ymm9,ymm15,ymm12
+    1234:	c4 c1 75 fa c8       	vpsubd ymm1,ymm1,ymm8
+    1239:	c4 41 2d f4 c4       	vpmuludq ymm8,ymm10,ymm12
+    123e:	c4 41 2d f4 d3       	vpmuludq ymm10,ymm10,ymm11
+    1243:	c5 75 f4 dd          	vpmuludq ymm11,ymm1,ymm5
+    1247:	c5 45 f4 fc          	vpmuludq ymm15,ymm7,ymm4
+    124b:	c5 2d f4 d4          	vpmuludq ymm10,ymm10,ymm4
+    124f:	c4 41 35 d4 cf       	vpaddq ymm9,ymm9,ymm15
+    1254:	c4 c1 05 73 d1 20    	vpsrlq ymm15,ymm9,0x20
+    125a:	c5 b5 73 d1 20       	vpsrlq ymm9,ymm1,0x20
+    125f:	c5 f5 f4 8c 24 a0 00 	vpmuludq ymm1,ymm1,YMMWORD PTR [rsp+0xa0]
+    1266:	00 00 
+    1268:	c5 f5 f4 cc          	vpmuludq ymm1,ymm1,ymm4
+    126c:	c5 b5 f4 fd          	vpmuludq ymm7,ymm9,ymm5
+    1270:	c4 41 3d d4 c2       	vpaddq ymm8,ymm8,ymm10
+    1275:	c5 35 f4 8c 24 a0 00 	vpmuludq ymm9,ymm9,YMMWORD PTR [rsp+0xa0]
+    127c:	00 00 
+    127e:	c5 35 f4 cc          	vpmuludq ymm9,ymm9,ymm4
+    1282:	c4 41 3d eb d7       	vpor   ymm10,ymm8,ymm15
+    1287:	c5 25 d4 d9          	vpaddq ymm11,ymm11,ymm1
+    128b:	c4 c1 75 73 d3 20    	vpsrlq ymm1,ymm11,0x20
+    1291:	c4 41 45 d4 f9       	vpaddq ymm15,ymm7,ymm9
+    1296:	c4 c1 6d fe fa       	vpaddd ymm7,ymm2,ymm10
+    129b:	c5 05 eb c9          	vpor   ymm9,ymm15,ymm1
+    129f:	c4 c1 6d fe d5       	vpaddd ymm2,ymm2,ymm13
+    12a4:	c5 fd 7f 78 e0       	vmovdqa YMMWORD PTR [rax-0x20],ymm7
+    12a9:	c4 c1 7d fe c9       	vpaddd ymm1,ymm0,ymm9
+    12ae:	c4 c1 7d fe c5       	vpaddd ymm0,ymm0,ymm13
+    12b3:	c4 41 6d fa da       	vpsubd ymm11,ymm2,ymm10
+    12b8:	c4 41 7d fa c1       	vpsubd ymm8,ymm0,ymm9
+    12bd:	c4 21 7d 7f 5c 08 e0 	vmovdqa YMMWORD PTR [rax+r9*1-0x20],ymm11
+    12c4:	c4 a1 7d 7f 4c 18 e0 	vmovdqa YMMWORD PTR [rax+r11*1-0x20],ymm1
+    12cb:	c4 21 7d 7f 44 10 e0 	vmovdqa YMMWORD PTR [rax+r10*1-0x20],ymm8
+    12d2:	48 39 c3             	cmp    rbx,rax
+    12d5:	0f 85 86 fe ff ff    	jne    1161 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x1161>
+    12db:	41 b8 fe ff ff 88    	mov    r8d,0x88fffffe
+    12e1:	41 bc 01 00 80 3b    	mov    r12d,0x3b800001
+    12e7:	4b 8d 1c 31          	lea    rbx,[r9+r14*1]
+    12eb:	4c 89 f0             	mov    rax,r14
+    12ee:	c4 41 79 6e f0       	vmovd  xmm14,r8d
+    12f3:	41 b8 02 00 00 77    	mov    r8d,0x77000002
+    12f9:	c4 c1 79 6e e4       	vmovd  xmm4,r12d
+    12fe:	c4 41 79 6e e8       	vmovd  xmm13,r8d
+    1303:	c4 42 7d 58 f6       	vpbroadcastd ymm14,xmm14
+    1308:	c4 e2 7d 58 e4       	vpbroadcastd ymm4,xmm4
+    130d:	c4 42 7d 58 ed       	vpbroadcastd ymm13,xmm13
+    1312:	c4 21 7d 6f 3c 18    	vmovdqa ymm15,YMMWORD PTR [rax+r11*1]
+    1318:	c4 a1 7d 6f 14 10    	vmovdqa ymm2,YMMWORD PTR [rax+r10*1]
+    131e:	48 83 c0 20          	add    rax,0x20
+    1322:	c5 0d fe 50 e0       	vpaddd ymm10,ymm14,YMMWORD PTR [rax-0x20]
+    1327:	c4 e2 2d 3b 40 e0    	vpminud ymm0,ymm10,YMMWORD PTR [rax-0x20]
+    132d:	c5 85 f4 fe          	vpmuludq ymm7,ymm15,ymm6
+    1331:	c4 c1 3d 73 d7 20    	vpsrlq ymm8,ymm15,0x20
+    1337:	c4 21 0d fe 4c 08 e0 	vpaddd ymm9,ymm14,YMMWORD PTR [rax+r9*1-0x20]
+    133e:	c5 05 f4 db          	vpmuludq ymm11,ymm15,ymm3
+    1342:	c5 3d f4 d6          	vpmuludq ymm10,ymm8,ymm6
+    1346:	c4 a2 35 3b 4c 08 e0 	vpminud ymm1,ymm9,YMMWORD PTR [rax+r9*1-0x20]
+    134d:	c5 3d f4 cb          	vpmuludq ymm9,ymm8,ymm3
+    1351:	c5 bd 73 d2 20       	vpsrlq ymm8,ymm2,0x20
+    1356:	c5 45 f4 fc          	vpmuludq ymm15,ymm7,ymm4
+    135a:	c5 bd f4 fb          	vpmuludq ymm7,ymm8,ymm3
+    135e:	c5 3d f4 c6          	vpmuludq ymm8,ymm8,ymm6
+    1362:	c5 2d f4 d4          	vpmuludq ymm10,ymm10,ymm4
+    1366:	c4 41 25 d4 df       	vpaddq ymm11,ymm11,ymm15
+    136b:	c4 c1 05 73 d3 20    	vpsrlq ymm15,ymm11,0x20
+    1371:	c5 6d f4 db          	vpmuludq ymm11,ymm2,ymm3
+    1375:	c4 41 35 d4 ca       	vpaddq ymm9,ymm9,ymm10
+    137a:	c5 ed f4 d6          	vpmuludq ymm2,ymm2,ymm6
+    137e:	c5 3d f4 c4          	vpmuludq ymm8,ymm8,ymm4
+    1382:	c4 41 35 eb ff       	vpor   ymm15,ymm9,ymm15
+    1387:	c5 ed f4 d4          	vpmuludq ymm2,ymm2,ymm4
+    138b:	c4 c1 45 d4 f8       	vpaddq ymm7,ymm7,ymm8
+    1390:	c5 25 d4 da          	vpaddq ymm11,ymm11,ymm2
+    1394:	c4 c1 7d fe d7       	vpaddd ymm2,ymm0,ymm15
+    1399:	c4 c1 7d fe c5       	vpaddd ymm0,ymm0,ymm13
+    139e:	c4 c1 25 73 d3 20    	vpsrlq ymm11,ymm11,0x20
+    13a4:	c4 41 6d fe d6       	vpaddd ymm10,ymm2,ymm14
+    13a9:	c4 41 7d fa ff       	vpsubd ymm15,ymm0,ymm15
+    13ae:	c4 41 45 eb c3       	vpor   ymm8,ymm7,ymm11
+    13b3:	c4 c2 6d 3b d2       	vpminud ymm2,ymm2,ymm10
+    13b8:	c5 7d 6f 9c 24 80 00 	vmovdqa ymm11,YMMWORD PTR [rsp+0x80]
+    13bf:	00 00 
+    13c1:	c4 41 05 fe ce       	vpaddd ymm9,ymm15,ymm14
+    13c6:	c4 c2 05 3b c1       	vpminud ymm0,ymm15,ymm9
+    13cb:	c4 41 75 fe f8       	vpaddd ymm15,ymm1,ymm8
+    13d0:	c4 c1 05 f4 fb       	vpmuludq ymm7,ymm15,ymm11
+    13d5:	c4 c1 2d 73 d7 20    	vpsrlq ymm10,ymm15,0x20
+    13db:	c4 c1 75 fe cd       	vpaddd ymm1,ymm1,ymm13
+    13e0:	c4 41 05 f4 cc       	vpmuludq ymm9,ymm15,ymm12
+    13e5:	c4 c1 75 fa c8       	vpsubd ymm1,ymm1,ymm8
+    13ea:	c4 41 2d f4 c4       	vpmuludq ymm8,ymm10,ymm12
+    13ef:	c4 41 2d f4 d3       	vpmuludq ymm10,ymm10,ymm11
+    13f4:	c5 75 f4 dd          	vpmuludq ymm11,ymm1,ymm5
+    13f8:	c5 45 f4 fc          	vpmuludq ymm15,ymm7,ymm4
+    13fc:	c5 2d f4 d4          	vpmuludq ymm10,ymm10,ymm4
+    1400:	c4 41 35 d4 cf       	vpaddq ymm9,ymm9,ymm15
+    1405:	c4 c1 05 73 d1 20    	vpsrlq ymm15,ymm9,0x20
+    140b:	c5 b5 73 d1 20       	vpsrlq ymm9,ymm1,0x20
+    1410:	c5 f5 f4 8c 24 a0 00 	vpmuludq ymm1,ymm1,YMMWORD PTR [rsp+0xa0]
+    1417:	00 00 
+    1419:	c5 f5 f4 cc          	vpmuludq ymm1,ymm1,ymm4
+    141d:	c5 b5 f4 fd          	vpmuludq ymm7,ymm9,ymm5
+    1421:	c4 41 3d d4 c2       	vpaddq ymm8,ymm8,ymm10
+    1426:	c5 35 f4 8c 24 a0 00 	vpmuludq ymm9,ymm9,YMMWORD PTR [rsp+0xa0]
+    142d:	00 00 
+    142f:	c5 35 f4 cc          	vpmuludq ymm9,ymm9,ymm4
+    1433:	c4 41 3d eb d7       	vpor   ymm10,ymm8,ymm15
+    1438:	c5 25 d4 d9          	vpaddq ymm11,ymm11,ymm1
+    143c:	c4 c1 75 73 d3 20    	vpsrlq ymm1,ymm11,0x20
+    1442:	c4 41 45 d4 f9       	vpaddq ymm15,ymm7,ymm9
+    1447:	c4 c1 6d fe fa       	vpaddd ymm7,ymm2,ymm10
+    144c:	c5 05 eb c9          	vpor   ymm9,ymm15,ymm1
+    1450:	c4 c1 6d fe d5       	vpaddd ymm2,ymm2,ymm13
+    1455:	c5 fd 7f 78 e0       	vmovdqa YMMWORD PTR [rax-0x20],ymm7
+    145a:	c4 c1 7d fe c9       	vpaddd ymm1,ymm0,ymm9
+    145f:	c4 c1 7d fe c5       	vpaddd ymm0,ymm0,ymm13
+    1464:	c4 41 6d fa da       	vpsubd ymm11,ymm2,ymm10
+    1469:	c4 41 7d fa c1       	vpsubd ymm8,ymm0,ymm9
+    146e:	c4 21 7d 7f 5c 08 e0 	vmovdqa YMMWORD PTR [rax+r9*1-0x20],ymm11
+    1475:	c4 a1 7d 7f 4c 18 e0 	vmovdqa YMMWORD PTR [rax+r11*1-0x20],ymm1
+    147c:	c4 21 7d 7f 44 10 e0 	vmovdqa YMMWORD PTR [rax+r10*1-0x20],ymm8
+    1483:	48 39 c3             	cmp    rbx,rax
+    1486:	0f 85 86 fe ff ff    	jne    1312 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x1312>
+    148c:	e9 50 fa ff ff       	jmp    ee1 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0xee1>
+    1491:	c5 79 6e fb          	vmovd  xmm15,ebx
+    1495:	49 89 d7             	mov    r15,rdx
+    1498:	48 8d 34 52          	lea    rsi,[rdx+rdx*2]
+    149c:	bf 02 00 00 77       	mov    edi,0x77000002
+    14a1:	c5 f9 6e d9          	vmovd  xmm3,ecx
+    14a5:	4f 8d 34 20          	lea    r14,[r8+r12*1]
+    14a9:	c5 f9 6e e7          	vmovd  xmm4,edi
+    14ad:	49 c1 e7 06          	shl    r15,0x6
+    14b1:	c4 c2 7d 58 f7       	vpbroadcastd ymm6,xmm15
+    14b6:	41 b8 fe ff ff 88    	mov    r8d,0x88fffffe
+    14bc:	ba 01 00 80 3b       	mov    edx,0x3b800001
+    14c1:	c5 7d 7f 74 24 60    	vmovdqa YMMWORD PTR [rsp+0x60],ymm14
+    14c7:	c5 6d f4 ce          	vpmuludq ymm9,ymm2,ymm6
+    14cb:	c4 41 79 6e d8       	vmovd  xmm11,r8d
+    14d0:	c5 f9 6e ca          	vmovd  xmm1,edx
+    14d4:	48 c1 e6 05          	shl    rsi,0x5
+    14d8:	c4 62 7d 58 d3       	vpbroadcastd ymm10,xmm3
+    14dd:	c4 42 7d 58 e3       	vpbroadcastd ymm12,xmm11
+    14e2:	c5 fd 7f b4 24 a0 00 	vmovdqa YMMWORD PTR [rsp+0xa0],ymm6
+    14e9:	00 00 
+    14eb:	c4 62 7d 58 dc       	vpbroadcastd ymm11,xmm4
+    14f0:	c5 7d 7f 8c 24 80 00 	vmovdqa YMMWORD PTR [rsp+0x80],ymm9
+    14f7:	00 00 
+    14f9:	c5 2d f4 ca          	vpmuludq ymm9,ymm10,ymm2
+    14fd:	c4 e2 7d 58 d1       	vpbroadcastd ymm2,xmm1
+    1502:	c4 81 7d 6f 2c 39    	vmovdqa ymm5,YMMWORD PTR [r9+r15*1]
+    1508:	c4 41 55 fe 34 31    	vpaddd ymm14,ymm5,YMMWORD PTR [r9+rsi*1]
+    150e:	49 83 c1 20          	add    r9,0x20
+    1512:	c4 41 7d 6f 41 e0    	vmovdqa ymm8,YMMWORD PTR [r9-0x20]
+    1518:	c4 c1 25 fe 59 e0    	vpaddd ymm3,ymm11,YMMWORD PTR [r9-0x20]
+    151e:	c4 41 0d fe fc       	vpaddd ymm15,ymm14,ymm12
+    1523:	c4 81 3d fe 7c 21 e0 	vpaddd ymm7,ymm8,YMMWORD PTR [r9+r12*1-0x20]
+    152a:	c4 c2 0d 3b f7       	vpminud ymm6,ymm14,ymm15
+    152f:	c4 01 65 fa 44 21 e0 	vpsubd ymm8,ymm3,YMMWORD PTR [r9+r12*1-0x20]
+    1536:	c5 7d 6f b4 24 80 00 	vmovdqa ymm14,YMMWORD PTR [rsp+0x80]
+    153d:	00 00 
+    153f:	c4 c1 45 fe c4       	vpaddd ymm0,ymm7,ymm12
+    1544:	c5 a5 fe e5          	vpaddd ymm4,ymm11,ymm5
+    1548:	c4 c1 3d f4 de       	vpmuludq ymm3,ymm8,ymm14
+    154d:	c4 c1 55 73 d0 20    	vpsrlq ymm5,ymm8,0x20
+    1553:	c4 e2 45 3b c8       	vpminud ymm1,ymm7,ymm0
+    1558:	c5 fd 6f 84 24 a0 00 	vmovdqa ymm0,YMMWORD PTR [rsp+0xa0]
+    155f:	00 00 
+    1561:	c4 c1 5d fa 7c 31 e0 	vpsubd ymm7,ymm4,YMMWORD PTR [r9+rsi*1-0x20]
+    1568:	c4 c1 55 f4 e6       	vpmuludq ymm4,ymm5,ymm14
+    156d:	c5 3d f4 f8          	vpmuludq ymm15,ymm8,ymm0
+    1571:	c5 d5 f4 c0          	vpmuludq ymm0,ymm5,ymm0
+    1575:	c4 41 45 f4 f5       	vpmuludq ymm14,ymm7,ymm13
+    157a:	c5 65 f4 c2          	vpmuludq ymm8,ymm3,ymm2
+    157e:	c5 dd f4 ea          	vpmuludq ymm5,ymm4,ymm2
+    1582:	c5 dd 73 d7 20       	vpsrlq ymm4,ymm7,0x20
+    1587:	c4 c1 5d f4 dd       	vpmuludq ymm3,ymm4,ymm13
+    158c:	c4 41 05 d4 f8       	vpaddq ymm15,ymm15,ymm8
+    1591:	c4 c1 3d 73 d7 20    	vpsrlq ymm8,ymm15,0x20
+    1597:	c5 7d 6f 7c 24 60    	vmovdqa ymm15,YMMWORD PTR [rsp+0x60]
+    159d:	c5 fd d4 c5          	vpaddq ymm0,ymm0,ymm5
+    15a1:	c4 c1 7d eb e8       	vpor   ymm5,ymm0,ymm8
+    15a6:	c4 c1 45 f4 ff       	vpmuludq ymm7,ymm7,ymm15
+    15ab:	c4 c1 5d f4 e7       	vpmuludq ymm4,ymm4,ymm15
+    15b0:	c5 75 fe fe          	vpaddd ymm15,ymm1,ymm6
+    15b4:	c4 c1 75 fe cb       	vpaddd ymm1,ymm1,ymm11
+    15b9:	c5 c5 f4 fa          	vpmuludq ymm7,ymm7,ymm2
+    15bd:	c5 dd f4 e2          	vpmuludq ymm4,ymm4,ymm2
+    15c1:	c5 0d d4 f7          	vpaddq ymm14,ymm14,ymm7
+    15c5:	c5 65 d4 c4          	vpaddq ymm8,ymm3,ymm4
+    15c9:	c4 c1 45 73 d6 20    	vpsrlq ymm7,ymm14,0x20
+    15cf:	c4 41 05 fe f4       	vpaddd ymm14,ymm15,ymm12
+    15d4:	c5 bd eb df          	vpor   ymm3,ymm8,ymm7
+    15d8:	c5 75 fa c6          	vpsubd ymm8,ymm1,ymm6
+    15dc:	c4 42 05 3b fe       	vpminud ymm15,ymm15,ymm14
+    15e1:	c5 e5 fe fd          	vpaddd ymm7,ymm3,ymm5
+    15e5:	c5 a5 fe f5          	vpaddd ymm6,ymm11,ymm5
+    15e9:	c4 c1 3d f4 ea       	vpmuludq ymm5,ymm8,ymm10
+    15ee:	c4 41 7d 7f 79 e0    	vmovdqa YMMWORD PTR [r9-0x20],ymm15
+    15f4:	c4 c1 45 fe e4       	vpaddd ymm4,ymm7,ymm12
+    15f9:	c5 cd fa c3          	vpsubd ymm0,ymm6,ymm3
+    15fd:	c4 c1 65 73 d0 20    	vpsrlq ymm3,ymm8,0x20
+    1603:	c4 62 45 3b f4       	vpminud ymm14,ymm7,ymm4
+    1608:	c4 c1 3d f4 e1       	vpmuludq ymm4,ymm8,ymm9
+    160d:	c4 c1 65 f4 fa       	vpmuludq ymm7,ymm3,ymm10
+    1612:	c4 41 65 f4 c1       	vpmuludq ymm8,ymm3,ymm9
+    1617:	c4 01 7d 7f 74 21 e0 	vmovdqa YMMWORD PTR [r9+r12*1-0x20],ymm14
+    161e:	c4 c1 7d f4 da       	vpmuludq ymm3,ymm0,ymm10
+    1623:	c5 dd f4 ca          	vpmuludq ymm1,ymm4,ymm2
+    1627:	c5 bd f4 f2          	vpmuludq ymm6,ymm8,ymm2
+    162b:	c5 d5 d4 e9          	vpaddq ymm5,ymm5,ymm1
+    162f:	c5 f5 73 d0 20       	vpsrlq ymm1,ymm0,0x20
+    1634:	c4 c1 7d f4 c1       	vpmuludq ymm0,ymm0,ymm9
+    1639:	c4 c1 75 f4 e2       	vpmuludq ymm4,ymm1,ymm10
+    163e:	c5 45 d4 fe          	vpaddq ymm15,ymm7,ymm6
+    1642:	c4 c1 75 f4 c9       	vpmuludq ymm1,ymm1,ymm9
+    1647:	c5 bd 73 d5 20       	vpsrlq ymm8,ymm5,0x20
+    164c:	c4 41 05 eb f0       	vpor   ymm14,ymm15,ymm8
+    1651:	c4 01 7d 7f 74 39 e0 	vmovdqa YMMWORD PTR [r9+r15*1-0x20],ymm14
+    1658:	c5 fd f4 ea          	vpmuludq ymm5,ymm0,ymm2
+    165c:	c5 f5 f4 ca          	vpmuludq ymm1,ymm1,ymm2
+    1660:	c5 e5 d4 dd          	vpaddq ymm3,ymm3,ymm5
+    1664:	c5 fd 73 d3 20       	vpsrlq ymm0,ymm3,0x20
+    1669:	c5 dd d4 f9          	vpaddq ymm7,ymm4,ymm1
+    166d:	c5 c5 eb f0          	vpor   ymm6,ymm7,ymm0
+    1671:	c4 c1 7d 7f 74 31 e0 	vmovdqa YMMWORD PTR [r9+rsi*1-0x20],ymm6
+    1678:	4d 39 ce             	cmp    r14,r9
+    167b:	0f 85 81 fe ff ff    	jne    1502 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x1502>
+    1681:	e9 98 f2 ff ff       	jmp    91e <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x91e>
+    1686:	41 89 c9             	mov    r9d,ecx
+    1689:	45 0f af c8          	imul   r9d,r8d
+    168d:	85 c9                	test   ecx,ecx
+    168f:	0f 8f 6b ee ff ff    	jg     500 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x500>
+    1695:	e9 87 f2 ff ff       	jmp    921 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE5visitEPDv4_xS3_ii+0x921>
+    169a:	e8 00 00 00 00       	call   169f <.LC7+0x1517>
+
+Disassembly of section .text._ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib:
+
+0000000000000000 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib>:
+       0:	f3 0f 1e fa          	endbr64
+       4:	55                   	push   rbp
+       5:	48 89 e5             	mov    rbp,rsp
+       8:	41 57                	push   r15
+       a:	41 56                	push   r14
+       c:	41 55                	push   r13
+       e:	41 54                	push   r12
+      10:	53                   	push   rbx
+      11:	48 83 e4 e0          	and    rsp,0xffffffffffffffe0
+      15:	48 81 ec 80 03 00 00 	sub    rsp,0x380
+      1c:	8b 45 10             	mov    eax,DWORD PTR [rbp+0x10]
+      1f:	48 89 54 24 18       	mov    QWORD PTR [rsp+0x18],rdx
+      24:	48 89 ca             	mov    rdx,rcx
+      27:	64 48 8b 0c 25 28 00 	mov    rcx,QWORD PTR fs:0x28
+      2e:	00 00 
+      30:	48 89 8c 24 78 03 00 	mov    QWORD PTR [rsp+0x378],rcx
+      37:	00 
+      38:	31 c9                	xor    ecx,ecx
+      3a:	8d 4f c0             	lea    ecx,[rdi-0x40]
+      3d:	81 f9 c0 ff 3f 00    	cmp    ecx,0x3fffc0
+      43:	0f 87 73 12 00 00    	ja     12bc <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x12bc>
+      49:	41 89 fa             	mov    r10d,edi
+      4c:	c4 e2 70 f3 cf       	blsr   ecx,edi
+      51:	0f 85 65 12 00 00    	jne    12bc <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x12bc>
+      57:	41 89 fc             	mov    r12d,edi
+      5a:	48 89 f3             	mov    rbx,rsi
+      5d:	41 c1 fc 04          	sar    r12d,0x4
+      61:	84 c0                	test   al,al
+      63:	0f 84 c7 0d 00 00    	je     e30 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xe30>
+      69:	41 c7 00 fc ff ff 11 	mov    DWORD PTR [r8],0x11fffffc
+      70:	b8 01 00 00 00       	mov    eax,0x1
+      75:	c7 02 fc ff ff 11    	mov    DWORD PTR [rdx],0x11fffffc
+      7b:	41 c7 01 01 00 00 00 	mov    DWORD PTR [r9],0x1
+      82:	be 01 00 80 3b       	mov    esi,0x3b800001
+      87:	bf ff ff 7f c4       	mov    edi,0xc47fffff
+      8c:	4c 8d 2d 00 00 00 00 	lea    r13,[rip+0x0]        # 93 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x93>
+      93:	c5 f9 6e c6          	vmovd  xmm0,esi
+      97:	c5 f9 6e f7          	vmovd  xmm6,edi
+      9b:	c4 e2 7d 58 c0       	vpbroadcastd ymm0,xmm0
+      a0:	c4 e2 7d 58 f6       	vpbroadcastd ymm6,xmm6
+      a5:	0f 1f 00             	nop    DWORD PTR [rax]
+      a8:	45 31 db             	xor    r11d,r11d
+      ab:	f3 44 0f bc d8       	tzcnt  r11d,eax
+      b0:	47 8b 7c 9d 00       	mov    r15d,DWORD PTR [r13+r11*4+0x0]
+      b5:	43 8b 4c 9d 58       	mov    ecx,DWORD PTR [r13+r11*4+0x58]
+      ba:	83 f8 07             	cmp    eax,0x7
+      bd:	0f 8e 2d 0a 00 00    	jle    af0 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xaf0>
+      c3:	41 69 f7 ff ff 7f 3b 	imul   esi,r15d,0x3b7fffff
+      ca:	c5 fd 6f 3a          	vmovdqa ymm7,YMMWORD PTR [rdx]
+      ce:	c4 c1 79 6e ef       	vmovd  xmm5,r15d
+      d3:	c5 f9 6e e1          	vmovd  xmm4,ecx
+      d7:	c4 62 7d 58 d5       	vpbroadcastd ymm10,xmm5
+      dc:	44 69 d9 ff ff 7f 3b 	imul   r11d,ecx,0x3b7fffff
+      e3:	c4 62 7d 58 e4       	vpbroadcastd ymm12,xmm4
+      e8:	4c 63 f8             	movsxd r15,eax
+      eb:	c5 bd 73 d7 20       	vpsrlq ymm8,ymm7,0x20
+      f0:	c4 41 45 f4 ca       	vpmuludq ymm9,ymm7,ymm10
+      f5:	49 c1 e7 02          	shl    r15,0x2
+      f9:	b9 08 00 00 00       	mov    ecx,0x8
+      fe:	c5 f9 6e de          	vmovd  xmm3,esi
+     102:	c4 c1 3d f4 ca       	vpmuludq ymm1,ymm8,ymm10
+     107:	4e 8d 34 3a          	lea    r14,[rdx+r15*1]
+     10b:	4d 01 c7             	add    r15,r8
+     10e:	c4 62 7d 58 db       	vpbroadcastd ymm11,xmm3
+     113:	c4 c1 79 6e d3       	vmovd  xmm2,r11d
+     118:	8d 70 ff             	lea    esi,[rax-0x1]
+     11b:	c4 41 45 f4 f3       	vpmuludq ymm14,ymm7,ymm11
+     120:	c4 c1 3d f4 eb       	vpmuludq ymm5,ymm8,ymm11
+     125:	c4 62 7d 58 ea       	vpbroadcastd ymm13,xmm2
+     12a:	c1 ee 03             	shr    esi,0x3
+     12d:	83 e6 01             	and    esi,0x1
+     130:	c5 0d f4 f8          	vpmuludq ymm15,ymm14,ymm0
+     134:	c5 d5 f4 d8          	vpmuludq ymm3,ymm5,ymm0
+     138:	c4 c1 35 d4 e7       	vpaddq ymm4,ymm9,ymm15
+     13d:	c5 f5 d4 fb          	vpaddq ymm7,ymm1,ymm3
+     141:	c5 ed 73 d4 20       	vpsrlq ymm2,ymm4,0x20
+     146:	c5 45 eb ca          	vpor   ymm9,ymm7,ymm2
+     14a:	c5 35 fe c6          	vpaddd ymm8,ymm9,ymm6
+     14e:	c4 c2 35 3b c8       	vpminud ymm1,ymm9,ymm8
+     153:	c4 c1 7d 7f 0e       	vmovdqa YMMWORD PTR [r14],ymm1
+     158:	c4 41 7d 6f 30       	vmovdqa ymm14,YMMWORD PTR [r8]
+     15d:	c4 c1 55 73 d6 20    	vpsrlq ymm5,ymm14,0x20
+     163:	c4 c1 0d f4 e5       	vpmuludq ymm4,ymm14,ymm13
+     168:	c4 c1 55 f4 fd       	vpmuludq ymm7,ymm5,ymm13
+     16d:	c4 41 0d f4 fc       	vpmuludq ymm15,ymm14,ymm12
+     172:	c4 c1 55 f4 dc       	vpmuludq ymm3,ymm5,ymm12
+     177:	c5 dd f4 d0          	vpmuludq ymm2,ymm4,ymm0
+     17b:	c5 45 f4 c8          	vpmuludq ymm9,ymm7,ymm0
+     17f:	c5 05 d4 c2          	vpaddq ymm8,ymm15,ymm2
+     183:	c4 c1 65 d4 c9       	vpaddq ymm1,ymm3,ymm9
+     188:	c4 c1 0d 73 d0 20    	vpsrlq ymm14,ymm8,0x20
+     18e:	c4 41 75 eb fe       	vpor   ymm15,ymm1,ymm14
+     193:	c5 85 fe ee          	vpaddd ymm5,ymm15,ymm6
+     197:	c4 e2 05 3b dd       	vpminud ymm3,ymm15,ymm5
+     19c:	c4 c1 7d 7f 1f       	vmovdqa YMMWORD PTR [r15],ymm3
+     1a1:	83 f8 08             	cmp    eax,0x8
+     1a4:	0f 8e d7 01 00 00    	jle    381 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x381>
+     1aa:	85 f6                	test   esi,esi
+     1ac:	0f 84 9e 00 00 00    	je     250 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x250>
+     1b2:	c5 fd 6f 62 20       	vmovdqa ymm4,YMMWORD PTR [rdx+0x20]
+     1b7:	b9 10 00 00 00       	mov    ecx,0x10
+     1bc:	c5 b5 73 d4 20       	vpsrlq ymm9,ymm4,0x20
+     1c1:	c4 c1 5d f4 fb       	vpmuludq ymm7,ymm4,ymm11
+     1c6:	c4 41 35 f4 c3       	vpmuludq ymm8,ymm9,ymm11
+     1cb:	c4 c1 5d f4 d2       	vpmuludq ymm2,ymm4,ymm10
+     1d0:	c4 41 35 f4 f2       	vpmuludq ymm14,ymm9,ymm10
+     1d5:	c5 c5 f4 c8          	vpmuludq ymm1,ymm7,ymm0
+     1d9:	c5 3d f4 f8          	vpmuludq ymm15,ymm8,ymm0
+     1dd:	c5 ed d4 e9          	vpaddq ymm5,ymm2,ymm1
+     1e1:	c4 c1 0d d4 e7       	vpaddq ymm4,ymm14,ymm15
+     1e6:	c5 e5 73 d5 20       	vpsrlq ymm3,ymm5,0x20
+     1eb:	c5 dd eb d3          	vpor   ymm2,ymm4,ymm3
+     1ef:	c5 6d fe ce          	vpaddd ymm9,ymm2,ymm6
+     1f3:	c4 42 6d 3b f1       	vpminud ymm14,ymm2,ymm9
+     1f8:	c4 41 7d 7f 76 20    	vmovdqa YMMWORD PTR [r14+0x20],ymm14
+     1fe:	c4 c1 7d 6f 78 20    	vmovdqa ymm7,YMMWORD PTR [r8+0x20]
+     204:	c5 bd 73 d7 20       	vpsrlq ymm8,ymm7,0x20
+     209:	c4 c1 45 f4 ed       	vpmuludq ymm5,ymm7,ymm13
+     20e:	c4 c1 3d f4 e5       	vpmuludq ymm4,ymm8,ymm13
+     213:	c4 41 45 f4 fc       	vpmuludq ymm15,ymm7,ymm12
+     218:	c4 c1 3d f4 cc       	vpmuludq ymm1,ymm8,ymm12
+     21d:	c5 d5 f4 d8          	vpmuludq ymm3,ymm5,ymm0
+     221:	c5 dd f4 d0          	vpmuludq ymm2,ymm4,ymm0
+     225:	c5 05 d4 cb          	vpaddq ymm9,ymm15,ymm3
+     229:	c5 f5 d4 fa          	vpaddq ymm7,ymm1,ymm2
+     22d:	c4 c1 0d 73 d1 20    	vpsrlq ymm14,ymm9,0x20
+     233:	c4 41 45 eb fe       	vpor   ymm15,ymm7,ymm14
+     238:	c5 05 fe c6          	vpaddd ymm8,ymm15,ymm6
+     23c:	c4 c2 05 3b c8       	vpminud ymm1,ymm15,ymm8
+     241:	c4 c1 7d 7f 4f 20    	vmovdqa YMMWORD PTR [r15+0x20],ymm1
+     247:	83 f8 10             	cmp    eax,0x10
+     24a:	0f 8e 31 01 00 00    	jle    381 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x381>
+     250:	c5 fd 6f 2c 8a       	vmovdqa ymm5,YMMWORD PTR [rdx+rcx*4]
+     255:	48 8d 79 08          	lea    rdi,[rcx+0x8]
+     259:	c5 dd 73 d5 20       	vpsrlq ymm4,ymm5,0x20
+     25e:	c4 41 55 f4 cb       	vpmuludq ymm9,ymm5,ymm11
+     263:	c4 c1 5d f4 fb       	vpmuludq ymm7,ymm4,ymm11
+     268:	c4 c1 55 f4 da       	vpmuludq ymm3,ymm5,ymm10
+     26d:	c4 c1 5d f4 d2       	vpmuludq ymm2,ymm4,ymm10
+     272:	c5 35 f4 f0          	vpmuludq ymm14,ymm9,ymm0
+     276:	c5 45 f4 f8          	vpmuludq ymm15,ymm7,ymm0
+     27a:	c4 41 65 d4 c6       	vpaddq ymm8,ymm3,ymm14
+     27f:	c4 c1 6d d4 cf       	vpaddq ymm1,ymm2,ymm15
+     284:	c4 c1 55 73 d0 20    	vpsrlq ymm5,ymm8,0x20
+     28a:	c5 f5 eb dd          	vpor   ymm3,ymm1,ymm5
+     28e:	c5 e5 fe e6          	vpaddd ymm4,ymm3,ymm6
+     292:	c4 e2 65 3b d4       	vpminud ymm2,ymm3,ymm4
+     297:	c4 c1 7d 7f 14 8e    	vmovdqa YMMWORD PTR [r14+rcx*4],ymm2
+     29d:	c4 41 7d 6f 34 88    	vmovdqa ymm14,YMMWORD PTR [r8+rcx*4]
+     2a3:	c4 c1 05 73 d6 20    	vpsrlq ymm15,ymm14,0x20
+     2a9:	c4 c1 0d f4 fd       	vpmuludq ymm7,ymm14,ymm13
+     2ae:	c4 41 05 f4 c5       	vpmuludq ymm8,ymm15,ymm13
+     2b3:	c4 41 0d f4 cc       	vpmuludq ymm9,ymm14,ymm12
+     2b8:	c4 c1 05 f4 ec       	vpmuludq ymm5,ymm15,ymm12
+     2bd:	c5 c5 f4 c8          	vpmuludq ymm1,ymm7,ymm0
+     2c1:	c5 bd f4 d8          	vpmuludq ymm3,ymm8,ymm0
+     2c5:	c5 b5 d4 e1          	vpaddq ymm4,ymm9,ymm1
+     2c9:	c5 55 d4 f3          	vpaddq ymm14,ymm5,ymm3
+     2cd:	c5 ed 73 d4 20       	vpsrlq ymm2,ymm4,0x20
+     2d2:	c5 0d eb ca          	vpor   ymm9,ymm14,ymm2
+     2d6:	c5 35 fe fe          	vpaddd ymm15,ymm9,ymm6
+     2da:	c4 c2 35 3b ef       	vpminud ymm5,ymm9,ymm15
+     2df:	c4 c1 7d 7f 2c 8f    	vmovdqa YMMWORD PTR [r15+rcx*4],ymm5
+     2e5:	c5 fd 6f 3c ba       	vmovdqa ymm7,YMMWORD PTR [rdx+rdi*4]
+     2ea:	48 83 c1 10          	add    rcx,0x10
+     2ee:	c5 bd 73 d7 20       	vpsrlq ymm8,ymm7,0x20
+     2f3:	c4 c1 45 f4 e3       	vpmuludq ymm4,ymm7,ymm11
+     2f8:	c4 41 3d f4 f3       	vpmuludq ymm14,ymm8,ymm11
+     2fd:	c4 c1 45 f4 da       	vpmuludq ymm3,ymm7,ymm10
+     302:	c4 c1 3d f4 ca       	vpmuludq ymm1,ymm8,ymm10
+     307:	c5 dd f4 d0          	vpmuludq ymm2,ymm4,ymm0
+     30b:	c5 0d f4 c8          	vpmuludq ymm9,ymm14,ymm0
+     30f:	c5 65 d4 fa          	vpaddq ymm15,ymm3,ymm2
+     313:	c4 c1 75 d4 f9       	vpaddq ymm7,ymm1,ymm9
+     318:	c4 c1 55 73 d7 20    	vpsrlq ymm5,ymm15,0x20
+     31e:	c5 c5 eb dd          	vpor   ymm3,ymm7,ymm5
+     322:	c5 65 fe c6          	vpaddd ymm8,ymm3,ymm6
+     326:	c4 c2 65 3b c8       	vpminud ymm1,ymm3,ymm8
+     32b:	c4 c1 7d 7f 0c be    	vmovdqa YMMWORD PTR [r14+rdi*4],ymm1
+     331:	c4 c1 7d 6f 24 b8    	vmovdqa ymm4,YMMWORD PTR [r8+rdi*4]
+     337:	c5 8d 73 d4 20       	vpsrlq ymm14,ymm4,0x20
+     33c:	c4 41 5d f4 fd       	vpmuludq ymm15,ymm4,ymm13
+     341:	c4 c1 0d f4 fd       	vpmuludq ymm7,ymm14,ymm13
+     346:	c4 c1 5d f4 d4       	vpmuludq ymm2,ymm4,ymm12
+     34b:	c4 41 0d f4 cc       	vpmuludq ymm9,ymm14,ymm12
+     350:	c5 85 f4 e8          	vpmuludq ymm5,ymm15,ymm0
+     354:	c5 c5 f4 d8          	vpmuludq ymm3,ymm7,ymm0
+     358:	c5 6d d4 c5          	vpaddq ymm8,ymm2,ymm5
+     35c:	c5 b5 d4 cb          	vpaddq ymm1,ymm9,ymm3
+     360:	c4 c1 5d 73 d0 20    	vpsrlq ymm4,ymm8,0x20
+     366:	c5 f5 eb d4          	vpor   ymm2,ymm1,ymm4
+     36a:	c5 6d fe f6          	vpaddd ymm14,ymm2,ymm6
+     36e:	c4 42 6d 3b ce       	vpminud ymm9,ymm2,ymm14
+     373:	c4 41 7d 7f 0c bf    	vmovdqa YMMWORD PTR [r15+rdi*4],ymm9
+     379:	39 c8                	cmp    eax,ecx
+     37b:	0f 8f cf fe ff ff    	jg     250 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x250>
+     381:	01 c0                	add    eax,eax
+     383:	41 39 c4             	cmp    r12d,eax
+     386:	0f 8f 1c fd ff ff    	jg     a8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xa8>
+     38c:	41 8b 01             	mov    eax,DWORD PTR [r9]
+     38f:	41 39 c4             	cmp    r12d,eax
+     392:	41 0f 4d c4          	cmovge eax,r12d
+     396:	41 c1 fa 03          	sar    r10d,0x3
+     39a:	c5 7d 6f 15 00 00 00 	vmovdqa ymm10,YMMWORD PTR [rip+0x0]        # 3a2 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x3a2>
+     3a1:	00 
+     3a2:	c5 7d 6f 1d 00 00 00 	vmovdqa ymm11,YMMWORD PTR [rip+0x0]        # 3aa <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x3aa>
+     3a9:	00 
+     3aa:	41 89 01             	mov    DWORD PTR [r9],eax
+     3ad:	4c 89 44 24 28       	mov    QWORD PTR [rsp+0x28],r8
+     3b2:	45 89 d5             	mov    r13d,r10d
+     3b5:	45 31 c0             	xor    r8d,r8d
+     3b8:	45 89 d7             	mov    r15d,r10d
+     3bb:	f3 45 0f bc c5       	tzcnt  r8d,r13d
+     3c0:	48 89 54 24 20       	mov    QWORD PTR [rsp+0x20],rdx
+     3c5:	c7 84 24 40 03 00 00 	mov    DWORD PTR [rsp+0x340],0x11fffffc
+     3cc:	fc ff ff 11 
+     3d0:	c5 7d 7f 54 24 40    	vmovdqa YMMWORD PTR [rsp+0x40],ymm10
+     3d6:	c5 7d 7f 9c 24 c0 01 	vmovdqa YMMWORD PTR [rsp+0x1c0],ymm11
+     3dd:	00 00 
+     3df:	c5 7d 7f 54 24 60    	vmovdqa YMMWORD PTR [rsp+0x60],ymm10
+     3e5:	c5 7d 7f 9c 24 e0 01 	vmovdqa YMMWORD PTR [rsp+0x1e0],ymm11
+     3ec:	00 00 
+     3ee:	c5 7d 7f 94 24 80 00 	vmovdqa YMMWORD PTR [rsp+0x80],ymm10
+     3f5:	00 00 
+     3f7:	c5 7d 7f 9c 24 00 02 	vmovdqa YMMWORD PTR [rsp+0x200],ymm11
+     3fe:	00 00 
+     400:	c5 7d 7f 94 24 a0 00 	vmovdqa YMMWORD PTR [rsp+0xa0],ymm10
+     407:	00 00 
+     409:	c5 7d 7f 9c 24 20 02 	vmovdqa YMMWORD PTR [rsp+0x220],ymm11
+     410:	00 00 
+     412:	c5 7d 7f 94 24 c0 00 	vmovdqa YMMWORD PTR [rsp+0xc0],ymm10
+     419:	00 00 
+     41b:	c5 7d 7f 9c 24 40 02 	vmovdqa YMMWORD PTR [rsp+0x240],ymm11
+     422:	00 00 
+     424:	c5 7d 7f 94 24 e0 00 	vmovdqa YMMWORD PTR [rsp+0xe0],ymm10
+     42b:	00 00 
+     42d:	c5 7d 7f 9c 24 60 02 	vmovdqa YMMWORD PTR [rsp+0x260],ymm11
+     434:	00 00 
+     436:	c5 7d 7f 94 24 00 01 	vmovdqa YMMWORD PTR [rsp+0x100],ymm10
+     43d:	00 00 
+     43f:	c5 7d 7f 9c 24 80 02 	vmovdqa YMMWORD PTR [rsp+0x280],ymm11
+     446:	00 00 
+     448:	c5 7d 7f 94 24 20 01 	vmovdqa YMMWORD PTR [rsp+0x120],ymm10
+     44f:	00 00 
+     451:	c5 7d 7f 9c 24 a0 02 	vmovdqa YMMWORD PTR [rsp+0x2a0],ymm11
+     458:	00 00 
+     45a:	c5 7d 7f 94 24 40 01 	vmovdqa YMMWORD PTR [rsp+0x140],ymm10
+     461:	00 00 
+     463:	c5 7d 7f 9c 24 c0 02 	vmovdqa YMMWORD PTR [rsp+0x2c0],ymm11
+     46a:	00 00 
+     46c:	c5 7d 7f 94 24 60 01 	vmovdqa YMMWORD PTR [rsp+0x160],ymm10
+     473:	00 00 
+     475:	c5 7d 7f 9c 24 e0 02 	vmovdqa YMMWORD PTR [rsp+0x2e0],ymm11
+     47c:	00 00 
+     47e:	c5 7d 7f 94 24 80 01 	vmovdqa YMMWORD PTR [rsp+0x180],ymm10
+     485:	00 00 
+     487:	c5 7d 7f 9c 24 00 03 	vmovdqa YMMWORD PTR [rsp+0x300],ymm11
+     48e:	00 00 
+     490:	c5 7d 7f 94 24 a0 01 	vmovdqa YMMWORD PTR [rsp+0x1a0],ymm10
+     497:	00 00 
+     499:	c5 7d 7f 9c 24 20 03 	vmovdqa YMMWORD PTR [rsp+0x320],ymm11
+     4a0:	00 00 
+     4a2:	41 f6 c0 01          	test   r8b,0x1
+     4a6:	0f 84 a4 09 00 00    	je     e50 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xe50>
+     4ac:	4d 63 f4             	movsxd r14,r12d
+     4af:	41 ba fe ff ff 88    	mov    r10d,0x88fffffe
+     4b5:	49 89 df             	mov    r15,rbx
+     4b8:	49 89 d9             	mov    r9,rbx
+     4bb:	bf 02 00 00 77       	mov    edi,0x77000002
+     4c0:	49 c1 e6 05          	shl    r14,0x5
+     4c4:	c4 41 79 6e ea       	vmovd  xmm13,r10d
+     4c9:	48 8b 74 24 18       	mov    rsi,QWORD PTR [rsp+0x18]
+     4ce:	c5 79 6e c7          	vmovd  xmm8,edi
+     4d2:	4d 8d 1c 1e          	lea    r11,[r14+rbx*1]
+     4d6:	c4 42 7d 58 fd       	vpbroadcastd ymm15,xmm13
+     4db:	c4 c2 7d 58 f0       	vpbroadcastd ymm6,xmm8
+     4e0:	41 f6 c6 20          	test   r14b,0x20
+     4e4:	0f 84 86 00 00 00    	je     570 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x570>
+     4ea:	c5 7d 6f 0b          	vmovdqa ymm9,YMMWORD PTR [rbx]
+     4ee:	c4 a1 7d 6f 24 33    	vmovdqa ymm4,YMMWORD PTR [rbx+r14*1]
+     4f4:	4c 8d 4b 20          	lea    r9,[rbx+0x20]
+     4f8:	48 8d 76 20          	lea    rsi,[rsi+0x20]
+     4fc:	c5 35 fe e6          	vpaddd ymm12,ymm9,ymm6
+     500:	c4 c1 5d fe d9       	vpaddd ymm3,ymm4,ymm9
+     505:	c5 9d fa c4          	vpsubd ymm0,ymm12,ymm4
+     509:	c4 41 65 fe d7       	vpaddd ymm10,ymm3,ymm15
+     50e:	c4 c1 7d fe cf       	vpaddd ymm1,ymm0,ymm15
+     513:	c4 42 65 3b da       	vpminud ymm11,ymm3,ymm10
+     518:	c4 e2 7d 3b e9       	vpminud ymm5,ymm0,ymm1
+     51d:	c5 7d 7f 1b          	vmovdqa YMMWORD PTR [rbx],ymm11
+     521:	c4 a1 7d 7f 2c 33    	vmovdqa YMMWORD PTR [rbx+r14*1],ymm5
+     527:	c5 fd 6f 7e e0       	vmovdqa ymm7,YMMWORD PTR [rsi-0x20]
+     52c:	c4 a1 7d 6f 54 36 e0 	vmovdqa ymm2,YMMWORD PTR [rsi+r14*1-0x20]
+     533:	c5 45 fe ce          	vpaddd ymm9,ymm7,ymm6
+     537:	c5 45 fe f2          	vpaddd ymm14,ymm7,ymm2
+     53b:	c5 b5 fa e2          	vpsubd ymm4,ymm9,ymm2
+     53f:	c4 41 0d fe ef       	vpaddd ymm13,ymm14,ymm15
+     544:	c4 c1 5d fe df       	vpaddd ymm3,ymm4,ymm15
+     549:	c4 42 0d 3b c5       	vpminud ymm8,ymm14,ymm13
+     54e:	c4 62 5d 3b d3       	vpminud ymm10,ymm4,ymm3
+     553:	c5 7d 7f 46 e0       	vmovdqa YMMWORD PTR [rsi-0x20],ymm8
+     558:	c4 21 7d 7f 54 36 e0 	vmovdqa YMMWORD PTR [rsi+r14*1-0x20],ymm10
+     55f:	4d 39 cb             	cmp    r11,r9
+     562:	0f 84 fb 00 00 00    	je     663 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x663>
+     568:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+     56f:	00 
+     570:	c4 41 7d 6f 19       	vmovdqa ymm11,YMMWORD PTR [r9]
+     575:	c4 01 7d 6f 24 31    	vmovdqa ymm12,YMMWORD PTR [r9+r14*1]
+     57b:	c5 a5 fe fe          	vpaddd ymm7,ymm11,ymm6
+     57f:	c4 c1 1d fe c3       	vpaddd ymm0,ymm12,ymm11
+     584:	c4 c1 45 fa d4       	vpsubd ymm2,ymm7,ymm12
+     589:	c4 c1 7d fe cf       	vpaddd ymm1,ymm0,ymm15
+     58e:	c4 41 6d fe f7       	vpaddd ymm14,ymm2,ymm15
+     593:	c4 e2 7d 3b e9       	vpminud ymm5,ymm0,ymm1
+     598:	c4 42 6d 3b ee       	vpminud ymm13,ymm2,ymm14
+     59d:	c4 c1 7d 7f 29       	vmovdqa YMMWORD PTR [r9],ymm5
+     5a2:	c4 01 7d 7f 2c 31    	vmovdqa YMMWORD PTR [r9+r14*1],ymm13
+     5a8:	c5 7d 6f 06          	vmovdqa ymm8,YMMWORD PTR [rsi]
+     5ac:	c4 21 7d 6f 0c 36    	vmovdqa ymm9,YMMWORD PTR [rsi+r14*1]
+     5b2:	c5 3d fe de          	vpaddd ymm11,ymm8,ymm6
+     5b6:	c4 c1 3d fe e1       	vpaddd ymm4,ymm8,ymm9
+     5bb:	c4 41 25 fa e1       	vpsubd ymm12,ymm11,ymm9
+     5c0:	c4 c1 5d fe df       	vpaddd ymm3,ymm4,ymm15
+     5c5:	c4 c1 1d fe c7       	vpaddd ymm0,ymm12,ymm15
+     5ca:	c4 62 5d 3b d3       	vpminud ymm10,ymm4,ymm3
+     5cf:	c4 e2 1d 3b c8       	vpminud ymm1,ymm12,ymm0
+     5d4:	c5 7d 7f 16          	vmovdqa YMMWORD PTR [rsi],ymm10
+     5d8:	c4 a1 7d 7f 0c 36    	vmovdqa YMMWORD PTR [rsi+r14*1],ymm1
+     5de:	c4 c1 7d 6f 79 20    	vmovdqa ymm7,YMMWORD PTR [r9+0x20]
+     5e4:	c4 81 7d 6f 54 0e 20 	vmovdqa ymm2,YMMWORD PTR [r14+r9*1+0x20]
+     5eb:	c5 45 fe c6          	vpaddd ymm8,ymm7,ymm6
+     5ef:	c5 6d fe f7          	vpaddd ymm14,ymm2,ymm7
+     5f3:	c5 3d fa ca          	vpsubd ymm9,ymm8,ymm2
+     5f7:	c4 c1 0d fe ef       	vpaddd ymm5,ymm14,ymm15
+     5fc:	c4 c1 35 fe e7       	vpaddd ymm4,ymm9,ymm15
+     601:	c4 62 0d 3b ed       	vpminud ymm13,ymm14,ymm5
+     606:	c4 e2 35 3b dc       	vpminud ymm3,ymm9,ymm4
+     60b:	c4 41 7d 7f 69 20    	vmovdqa YMMWORD PTR [r9+0x20],ymm13
+     611:	c4 81 7d 7f 5c 0e 20 	vmovdqa YMMWORD PTR [r14+r9*1+0x20],ymm3
+     618:	c5 7d 6f 56 20       	vmovdqa ymm10,YMMWORD PTR [rsi+0x20]
+     61d:	49 83 c1 40          	add    r9,0x40
+     621:	c4 41 7d 6f 5c 36 20 	vmovdqa ymm11,YMMWORD PTR [r14+rsi*1+0x20]
+     628:	c5 ad fe fe          	vpaddd ymm7,ymm10,ymm6
+     62c:	c4 41 2d fe e3       	vpaddd ymm12,ymm10,ymm11
+     631:	c4 c1 45 fa d3       	vpsubd ymm2,ymm7,ymm11
+     636:	c4 c1 1d fe c7       	vpaddd ymm0,ymm12,ymm15
+     63b:	c4 41 6d fe f7       	vpaddd ymm14,ymm2,ymm15
+     640:	c4 e2 1d 3b c8       	vpminud ymm1,ymm12,ymm0
+     645:	c4 c2 6d 3b ee       	vpminud ymm5,ymm2,ymm14
+     64a:	c5 fd 7f 4e 20       	vmovdqa YMMWORD PTR [rsi+0x20],ymm1
+     64f:	c4 c1 7d 7f 6c 36 20 	vmovdqa YMMWORD PTR [r14+rsi*1+0x20],ymm5
+     656:	48 83 c6 40          	add    rsi,0x40
+     65a:	4d 39 cb             	cmp    r11,r9
+     65d:	0f 85 0d ff ff ff    	jne    570 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x570>
+     663:	48 8d 7c 24 20       	lea    rdi,[rsp+0x20]
+     668:	4c 89 5c 24 08       	mov    QWORD PTR [rsp+0x8],r11
+     66d:	45 31 c0             	xor    r8d,r8d
+     670:	44 89 e1             	mov    ecx,r12d
+     673:	48 89 7c 24 10       	mov    QWORD PTR [rsp+0x10],rdi
+     678:	48 8b 54 24 18       	mov    rdx,QWORD PTR [rsp+0x18]
+     67d:	48 89 de             	mov    rsi,rbx
+     680:	c5 f8 77             	vzeroupper
+     683:	e8 00 00 00 00       	call   688 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x688>
+     688:	48 8b 54 24 18       	mov    rdx,QWORD PTR [rsp+0x18]
+     68d:	44 89 e1             	mov    ecx,r12d
+     690:	4c 8b 64 24 08       	mov    r12,QWORD PTR [rsp+0x8]
+     695:	48 8b 7c 24 10       	mov    rdi,QWORD PTR [rsp+0x10]
+     69a:	41 b8 01 00 00 00    	mov    r8d,0x1
+     6a0:	4c 01 f2             	add    rdx,r14
+     6a3:	4c 89 e6             	mov    rsi,r12
+     6a6:	4c 89 64 24 18       	mov    QWORD PTR [rsp+0x18],r12
+     6ab:	e8 00 00 00 00       	call   6b0 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x6b0>
+     6b0:	4c 8b 4c 24 18       	mov    r9,QWORD PTR [rsp+0x18]
+     6b5:	bf 01 00 00 00       	mov    edi,0x1
+     6ba:	41 b8 1e 00 00 00    	mov    r8d,0x1e
+     6c0:	48 be 3f cc e0 5d 87 	movabs rsi,0x89ae40875de0cc3f
+     6c7:	40 ae 89 
+     6ca:	41 ba ff ff 7f 3b    	mov    r10d,0x3b7fffff
+     6d0:	89 f9                	mov    ecx,edi
+     6d2:	45 89 ed             	mov    r13d,r13d
+     6d5:	41 f6 c2 01          	test   r10b,0x1
+     6d9:	74 1a                	je     6f5 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x6f5>
+     6db:	49 0f af cd          	imul   rcx,r13
+     6df:	48 89 c8             	mov    rax,rcx
+     6e2:	89 cf                	mov    edi,ecx
+     6e4:	48 f7 e6             	mul    rsi
+     6e7:	48 c1 ea 1d          	shr    rdx,0x1d
+     6eb:	4c 69 da 01 00 80 3b 	imul   r11,rdx,0x3b800001
+     6f2:	44 29 df             	sub    edi,r11d
+     6f5:	4d 0f af ed          	imul   r13,r13
+     6f9:	45 89 d4             	mov    r12d,r10d
+     6fc:	41 83 e8 01          	sub    r8d,0x1
+     700:	41 d1 ec             	shr    r12d,1
+     703:	4c 89 e8             	mov    rax,r13
+     706:	48 f7 e6             	mul    rsi
+     709:	89 f8                	mov    eax,edi
+     70b:	48 c1 ea 1d          	shr    rdx,0x1d
+     70f:	4c 69 da 01 00 80 3b 	imul   r11,rdx,0x3b800001
+     716:	45 29 dd             	sub    r13d,r11d
+     719:	41 83 e2 02          	and    r10d,0x2
+     71d:	74 18                	je     737 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x737>
+     71f:	49 0f af c5          	imul   rax,r13
+     723:	48 89 c7             	mov    rdi,rax
+     726:	48 f7 e6             	mul    rsi
+     729:	48 c1 ea 1d          	shr    rdx,0x1d
+     72d:	4c 69 d2 01 00 80 3b 	imul   r10,rdx,0x3b800001
+     734:	44 29 d7             	sub    edi,r10d
+     737:	4d 0f af ed          	imul   r13,r13
+     73b:	44 89 e1             	mov    ecx,r12d
+     73e:	d1 e9                	shr    ecx,1
+     740:	4c 89 e8             	mov    rax,r13
+     743:	48 f7 e6             	mul    rsi
+     746:	89 f8                	mov    eax,edi
+     748:	48 c1 ea 1d          	shr    rdx,0x1d
+     74c:	4c 69 da 01 00 80 3b 	imul   r11,rdx,0x3b800001
+     753:	45 29 dd             	sub    r13d,r11d
+     756:	41 83 e4 02          	and    r12d,0x2
+     75a:	74 18                	je     774 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x774>
+     75c:	49 0f af c5          	imul   rax,r13
+     760:	48 89 c7             	mov    rdi,rax
+     763:	48 f7 e6             	mul    rsi
+     766:	48 c1 ea 1d          	shr    rdx,0x1d
+     76a:	4c 69 e2 01 00 80 3b 	imul   r12,rdx,0x3b800001
+     771:	44 29 e7             	sub    edi,r12d
+     774:	4d 0f af ed          	imul   r13,r13
+     778:	41 89 cc             	mov    r12d,ecx
+     77b:	41 d1 ec             	shr    r12d,1
+     77e:	4c 89 e8             	mov    rax,r13
+     781:	48 f7 e6             	mul    rsi
+     784:	89 f8                	mov    eax,edi
+     786:	48 c1 ea 1d          	shr    rdx,0x1d
+     78a:	4c 69 d2 01 00 80 3b 	imul   r10,rdx,0x3b800001
+     791:	45 29 d5             	sub    r13d,r10d
+     794:	83 e1 02             	and    ecx,0x2
+     797:	74 17                	je     7b0 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x7b0>
+     799:	49 0f af c5          	imul   rax,r13
+     79d:	48 89 c7             	mov    rdi,rax
+     7a0:	48 f7 e6             	mul    rsi
+     7a3:	48 c1 ea 1d          	shr    rdx,0x1d
+     7a7:	48 69 ca 01 00 80 3b 	imul   rcx,rdx,0x3b800001
+     7ae:	29 cf                	sub    edi,ecx
+     7b0:	4d 0f af ed          	imul   r13,r13
+     7b4:	45 89 e2             	mov    r10d,r12d
+     7b7:	41 89 fb             	mov    r11d,edi
+     7ba:	41 d1 ea             	shr    r10d,1
+     7bd:	4c 89 e8             	mov    rax,r13
+     7c0:	48 f7 e6             	mul    rsi
+     7c3:	48 c1 ea 1d          	shr    rdx,0x1d
+     7c7:	48 69 ca 01 00 80 3b 	imul   rcx,rdx,0x3b800001
+     7ce:	41 29 cd             	sub    r13d,ecx
+     7d1:	41 83 e4 02          	and    r12d,0x2
+     7d5:	74 1b                	je     7f2 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x7f2>
+     7d7:	4d 0f af dd          	imul   r11,r13
+     7db:	4c 89 d8             	mov    rax,r11
+     7de:	48 f7 e6             	mul    rsi
+     7e1:	48 c1 ea 1d          	shr    rdx,0x1d
+     7e5:	4c 69 e2 01 00 80 3b 	imul   r12,rdx,0x3b800001
+     7ec:	4d 29 e3             	sub    r11,r12
+     7ef:	44 89 df             	mov    edi,r11d
+     7f2:	4d 0f af ed          	imul   r13,r13
+     7f6:	41 d1 ea             	shr    r10d,1
+     7f9:	4c 89 e8             	mov    rax,r13
+     7fc:	48 f7 e6             	mul    rsi
+     7ff:	48 c1 ea 1d          	shr    rdx,0x1d
+     803:	48 69 ca 01 00 80 3b 	imul   rcx,rdx,0x3b800001
+     80a:	41 29 cd             	sub    r13d,ecx
+     80d:	41 83 e8 04          	sub    r8d,0x4
+     811:	0f 85 b9 fe ff ff    	jne    6d0 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x6d0>
+     817:	4d 69 c3 c6 fb 8d 37 	imul   r8,r11,0x378dfbc6
+     81e:	41 69 f0 ff ff 7f 3b 	imul   esi,r8d,0x3b7fffff
+     825:	4c 69 ee 01 00 80 3b 	imul   r13,rsi,0x3b800001
+     82c:	4d 01 c5             	add    r13,r8
+     82f:	49 c1 ed 20          	shr    r13,0x20
+     833:	49 81 fd 00 00 80 3b 	cmp    r13,0x3b800000
+     83a:	45 8d 95 ff ff 7f c4 	lea    r10d,[r13-0x3b800001]
+     841:	4d 0f 46 d5          	cmovbe r10,r13
+     845:	4d 69 da c6 fb 8d 37 	imul   r11,r10,0x378dfbc6
+     84c:	45 69 e3 ff ff 7f 3b 	imul   r12d,r11d,0x3b7fffff
+     853:	49 69 fc 01 00 80 3b 	imul   rdi,r12,0x3b800001
+     85a:	4c 01 df             	add    rdi,r11
+     85d:	48 c1 ef 20          	shr    rdi,0x20
+     861:	48 81 ff 00 00 80 3b 	cmp    rdi,0x3b800000
+     868:	76 06                	jbe    870 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x870>
+     86a:	81 ef 01 00 80 3b    	sub    edi,0x3b800001
+     870:	69 c7 ff ff 7f 3b    	imul   eax,edi,0x3b7fffff
+     876:	ba 01 00 80 3b       	mov    edx,0x3b800001
+     87b:	c5 79 6e ff          	vmovd  xmm15,edi
+     87f:	4c 89 ce             	mov    rsi,r9
+     882:	b9 ff ff 7f c4       	mov    ecx,0xc47fffff
+     887:	41 b8 02 00 00 77    	mov    r8d,0x77000002
+     88d:	c5 79 6e c2          	vmovd  xmm8,edx
+     891:	48 29 de             	sub    rsi,rbx
+     894:	c5 79 6e c9          	vmovd  xmm9,ecx
+     898:	c4 41 79 6e d0       	vmovd  xmm10,r8d
+     89d:	c4 42 7d 58 ef       	vpbroadcastd ymm13,xmm15
+     8a2:	c5 f9 6e f0          	vmovd  xmm6,eax
+     8a6:	c4 42 7d 58 d8       	vpbroadcastd ymm11,xmm8
+     8ab:	c4 c2 7d 58 e1       	vpbroadcastd ymm4,xmm9
+     8b0:	c4 e2 7d 58 de       	vpbroadcastd ymm3,xmm6
+     8b5:	c4 42 7d 58 e2       	vpbroadcastd ymm12,xmm10
+     8ba:	40 f6 c6 20          	test   sil,0x20
+     8be:	0f 84 ac 00 00 00    	je     970 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x970>
+     8c4:	c5 fd 6f 03          	vmovdqa ymm0,YMMWORD PTR [rbx]
+     8c8:	c4 a1 7d 6f 0c 33    	vmovdqa ymm1,YMMWORD PTR [rbx+r14*1]
+     8ce:	4c 8d 7b 20          	lea    r15,[rbx+0x20]
+     8d2:	c5 fd fe f9          	vpaddd ymm7,ymm0,ymm1
+     8d6:	c4 c1 7d fe c4       	vpaddd ymm0,ymm0,ymm12
+     8db:	c5 8d 73 d7 20       	vpsrlq ymm14,ymm7,0x20
+     8e0:	c5 45 f4 fb          	vpmuludq ymm15,ymm7,ymm3
+     8e4:	c5 fd fa c9          	vpsubd ymm1,ymm0,ymm1
+     8e8:	c5 0d f4 c3          	vpmuludq ymm8,ymm14,ymm3
+     8ec:	c4 c1 45 f4 d5       	vpmuludq ymm2,ymm7,ymm13
+     8f1:	c4 c1 0d f4 ed       	vpmuludq ymm5,ymm14,ymm13
+     8f6:	c4 c1 05 f4 f3       	vpmuludq ymm6,ymm15,ymm11
+     8fb:	c4 41 3d f4 cb       	vpmuludq ymm9,ymm8,ymm11
+     900:	c4 41 75 f4 c5       	vpmuludq ymm8,ymm1,ymm13
+     905:	c5 6d d4 d6          	vpaddq ymm10,ymm2,ymm6
+     909:	c4 c1 45 73 d2 20    	vpsrlq ymm7,ymm10,0x20
+     90f:	c5 75 f4 d3          	vpmuludq ymm10,ymm1,ymm3
+     913:	c4 c1 55 d4 d1       	vpaddq ymm2,ymm5,ymm9
+     918:	c5 b5 73 d1 20       	vpsrlq ymm9,ymm1,0x20
+     91d:	c5 6d eb f7          	vpor   ymm14,ymm2,ymm7
+     921:	c5 b5 f4 fb          	vpmuludq ymm7,ymm9,ymm3
+     925:	c4 c1 35 f4 f5       	vpmuludq ymm6,ymm9,ymm13
+     92a:	c5 8d fe ec          	vpaddd ymm5,ymm14,ymm4
+     92e:	c4 62 0d 3b fd       	vpminud ymm15,ymm14,ymm5
+     933:	c5 7d 7f 3b          	vmovdqa YMMWORD PTR [rbx],ymm15
+     937:	c4 c1 2d f4 d3       	vpmuludq ymm2,ymm10,ymm11
+     93c:	c4 41 45 f4 f3       	vpmuludq ymm14,ymm7,ymm11
+     941:	c5 bd d4 ea          	vpaddq ymm5,ymm8,ymm2
+     945:	c5 85 73 d5 20       	vpsrlq ymm15,ymm5,0x20
+     94a:	c4 c1 4d d4 c6       	vpaddq ymm0,ymm6,ymm14
+     94f:	c4 c1 7d eb cf       	vpor   ymm1,ymm0,ymm15
+     954:	c5 75 fe c4          	vpaddd ymm8,ymm1,ymm4
+     958:	c4 42 75 3b c8       	vpminud ymm9,ymm1,ymm8
+     95d:	c4 21 7d 7f 0c 33    	vmovdqa YMMWORD PTR [rbx+r14*1],ymm9
+     963:	4d 39 f9             	cmp    r9,r15
+     966:	0f 84 54 01 00 00    	je     ac0 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xac0>
+     96c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+     970:	c4 c1 7d 6f 17       	vmovdqa ymm2,YMMWORD PTR [r15]
+     975:	c4 01 7d 6f 34 37    	vmovdqa ymm14,YMMWORD PTR [r15+r14*1]
+     97b:	c4 c1 6d fe fe       	vpaddd ymm7,ymm2,ymm14
+     980:	c4 c1 6d fe d4       	vpaddd ymm2,ymm2,ymm12
+     985:	c5 d5 73 d7 20       	vpsrlq ymm5,ymm7,0x20
+     98a:	c5 45 f4 fb          	vpmuludq ymm15,ymm7,ymm3
+     98e:	c4 41 6d fa f6       	vpsubd ymm14,ymm2,ymm14
+     993:	c5 d5 f4 cb          	vpmuludq ymm1,ymm5,ymm3
+     997:	c4 41 45 f4 d5       	vpmuludq ymm10,ymm7,ymm13
+     99c:	c4 c1 55 f4 f5       	vpmuludq ymm6,ymm5,ymm13
+     9a1:	c4 c1 05 f4 c3       	vpmuludq ymm0,ymm15,ymm11
+     9a6:	c4 41 75 f4 c3       	vpmuludq ymm8,ymm1,ymm11
+     9ab:	c4 c1 0d f4 cd       	vpmuludq ymm1,ymm14,ymm13
+     9b0:	c5 2d d4 c8          	vpaddq ymm9,ymm10,ymm0
+     9b4:	c5 8d f4 c3          	vpmuludq ymm0,ymm14,ymm3
+     9b8:	c4 41 4d d4 d0       	vpaddq ymm10,ymm6,ymm8
+     9bd:	c4 c1 45 73 d1 20    	vpsrlq ymm7,ymm9,0x20
+     9c3:	c4 c1 3d 73 d6 20    	vpsrlq ymm8,ymm14,0x20
+     9c9:	c5 ad eb ef          	vpor   ymm5,ymm10,ymm7
+     9cd:	c5 bd f4 fb          	vpmuludq ymm7,ymm8,ymm3
+     9d1:	c4 41 3d f4 cd       	vpmuludq ymm9,ymm8,ymm13
+     9d6:	c5 d5 fe f4          	vpaddd ymm6,ymm5,ymm4
+     9da:	c4 62 55 3b fe       	vpminud ymm15,ymm5,ymm6
+     9df:	c4 41 7d f4 d3       	vpmuludq ymm10,ymm0,ymm11
+     9e4:	c4 41 7d 7f 3f       	vmovdqa YMMWORD PTR [r15],ymm15
+     9e9:	c4 c1 45 f4 eb       	vpmuludq ymm5,ymm7,ymm11
+     9ee:	c4 c1 75 d4 f2       	vpaddq ymm6,ymm1,ymm10
+     9f3:	c5 85 73 d6 20       	vpsrlq ymm15,ymm6,0x20
+     9f8:	c5 b5 d4 d5          	vpaddq ymm2,ymm9,ymm5
+     9fc:	c4 01 7d 6f 4c 3e 20 	vmovdqa ymm9,YMMWORD PTR [r14+r15*1+0x20]
+     a03:	c4 41 6d eb f7       	vpor   ymm14,ymm2,ymm15
+     a08:	c5 8d fe cc          	vpaddd ymm1,ymm14,ymm4
+     a0c:	c4 62 0d 3b c1       	vpminud ymm8,ymm14,ymm1
+     a11:	c4 01 7d 7f 04 37    	vmovdqa YMMWORD PTR [r15+r14*1],ymm8
+     a17:	c4 c1 7d 6f 47 20    	vmovdqa ymm0,YMMWORD PTR [r15+0x20]
+     a1d:	c4 c1 7d fe f9       	vpaddd ymm7,ymm0,ymm9
+     a22:	c4 c1 7d fe c4       	vpaddd ymm0,ymm0,ymm12
+     a27:	c5 d5 73 d7 20       	vpsrlq ymm5,ymm7,0x20
+     a2c:	c5 45 f4 fb          	vpmuludq ymm15,ymm7,ymm3
+     a30:	c4 41 7d fa c9       	vpsubd ymm9,ymm0,ymm9
+     a35:	c5 55 f4 f3          	vpmuludq ymm14,ymm5,ymm3
+     a39:	c4 41 45 f4 d5       	vpmuludq ymm10,ymm7,ymm13
+     a3e:	c4 c1 55 f4 f5       	vpmuludq ymm6,ymm5,ymm13
+     a43:	c4 c1 05 f4 d3       	vpmuludq ymm2,ymm15,ymm11
+     a48:	c4 c1 0d f4 cb       	vpmuludq ymm1,ymm14,ymm11
+     a4d:	c4 c1 0d 73 d1 20    	vpsrlq ymm14,ymm9,0x20
+     a53:	c5 2d d4 c2          	vpaddq ymm8,ymm10,ymm2
+     a57:	c4 c1 35 f4 d5       	vpmuludq ymm2,ymm9,ymm13
+     a5c:	c5 4d d4 d1          	vpaddq ymm10,ymm6,ymm1
+     a60:	c4 c1 45 73 d0 20    	vpsrlq ymm7,ymm8,0x20
+     a66:	c5 35 f4 c3          	vpmuludq ymm8,ymm9,ymm3
+     a6a:	c4 c1 0d f4 cd       	vpmuludq ymm1,ymm14,ymm13
+     a6f:	c5 ad eb ef          	vpor   ymm5,ymm10,ymm7
+     a73:	c5 8d f4 fb          	vpmuludq ymm7,ymm14,ymm3
+     a77:	c5 d5 fe f4          	vpaddd ymm6,ymm5,ymm4
+     a7b:	c4 62 55 3b fe       	vpminud ymm15,ymm5,ymm6
+     a80:	c4 41 7d 7f 7f 20    	vmovdqa YMMWORD PTR [r15+0x20],ymm15
+     a86:	c4 41 3d f4 d3       	vpmuludq ymm10,ymm8,ymm11
+     a8b:	c4 c1 45 f4 eb       	vpmuludq ymm5,ymm7,ymm11
+     a90:	c4 c1 6d d4 f2       	vpaddq ymm6,ymm2,ymm10
+     a95:	c5 85 73 d6 20       	vpsrlq ymm15,ymm6,0x20
+     a9a:	c5 f5 d4 c5          	vpaddq ymm0,ymm1,ymm5
+     a9e:	c4 41 7d eb cf       	vpor   ymm9,ymm0,ymm15
+     aa3:	c5 b5 fe d4          	vpaddd ymm2,ymm9,ymm4
+     aa7:	c4 62 35 3b f2       	vpminud ymm14,ymm9,ymm2
+     aac:	c4 01 7d 7f 74 3e 20 	vmovdqa YMMWORD PTR [r14+r15*1+0x20],ymm14
+     ab3:	49 83 c7 40          	add    r15,0x40
+     ab7:	4d 39 f9             	cmp    r9,r15
+     aba:	0f 85 b0 fe ff ff    	jne    970 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x970>
+     ac0:	48 8b 84 24 78 03 00 	mov    rax,QWORD PTR [rsp+0x378]
+     ac7:	00 
+     ac8:	64 48 2b 04 25 28 00 	sub    rax,QWORD PTR fs:0x28
+     acf:	00 00 
+     ad1:	0f 85 dd 07 00 00    	jne    12b4 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x12b4>
+     ad7:	c5 f8 77             	vzeroupper
+     ada:	48 8d 65 d8          	lea    rsp,[rbp-0x28]
+     ade:	5b                   	pop    rbx
+     adf:	41 5c                	pop    r12
+     ae1:	41 5d                	pop    r13
+     ae3:	41 5e                	pop    r14
+     ae5:	41 5f                	pop    r15
+     ae7:	5d                   	pop    rbp
+     ae8:	c3                   	ret
+     ae9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+     af0:	85 c0                	test   eax,eax
+     af2:	0f 8e 30 03 00 00    	jle    e28 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xe28>
+     af8:	44 8b 32             	mov    r14d,DWORD PTR [rdx]
+     afb:	45 89 fb             	mov    r11d,r15d
+     afe:	89 cf                	mov    edi,ecx
+     b00:	48 63 f0             	movsxd rsi,eax
+     b03:	48 c1 e6 02          	shl    rsi,0x2
+     b07:	4d 0f af f3          	imul   r14,r11
+     b0b:	45 69 fe ff ff 7f 3b 	imul   r15d,r14d,0x3b7fffff
+     b12:	49 69 cf 01 00 80 3b 	imul   rcx,r15,0x3b800001
+     b19:	4c 01 f1             	add    rcx,r14
+     b1c:	48 c1 e9 20          	shr    rcx,0x20
+     b20:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     b27:	44 8d b1 ff ff 7f c4 	lea    r14d,[rcx-0x3b800001]
+     b2e:	41 0f 47 ce          	cmova  ecx,r14d
+     b32:	89 0c 32             	mov    DWORD PTR [rdx+rsi*1],ecx
+     b35:	45 8b 38             	mov    r15d,DWORD PTR [r8]
+     b38:	4c 0f af ff          	imul   r15,rdi
+     b3c:	41 69 cf ff ff 7f 3b 	imul   ecx,r15d,0x3b7fffff
+     b43:	48 69 c9 01 00 80 3b 	imul   rcx,rcx,0x3b800001
+     b4a:	4c 01 f9             	add    rcx,r15
+     b4d:	41 bf 5f 03 f7 34    	mov    r15d,0x34f7035f
+     b53:	48 c1 e9 20          	shr    rcx,0x20
+     b57:	44 8d b1 ff ff 7f c4 	lea    r14d,[rcx-0x3b800001]
+     b5e:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     b65:	41 0f 47 ce          	cmova  ecx,r14d
+     b69:	41 89 0c 30          	mov    DWORD PTR [r8+rsi*1],ecx
+     b6d:	b9 a6 58 55 12       	mov    ecx,0x125558a6
+     b72:	83 f8 01             	cmp    eax,0x1
+     b75:	0f 84 dd 06 00 00    	je     1258 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x1258>
+     b7b:	44 8b 72 04          	mov    r14d,DWORD PTR [rdx+0x4]
+     b7f:	4d 0f af f3          	imul   r14,r11
+     b83:	45 69 fe ff ff 7f 3b 	imul   r15d,r14d,0x3b7fffff
+     b8a:	49 69 cf 01 00 80 3b 	imul   rcx,r15,0x3b800001
+     b91:	4c 01 f1             	add    rcx,r14
+     b94:	48 c1 e9 20          	shr    rcx,0x20
+     b98:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     b9f:	44 8d b1 ff ff 7f c4 	lea    r14d,[rcx-0x3b800001]
+     ba6:	41 0f 47 ce          	cmova  ecx,r14d
+     baa:	89 4c 32 04          	mov    DWORD PTR [rdx+rsi*1+0x4],ecx
+     bae:	45 8b 78 04          	mov    r15d,DWORD PTR [r8+0x4]
+     bb2:	4c 0f af ff          	imul   r15,rdi
+     bb6:	41 69 cf ff ff 7f 3b 	imul   ecx,r15d,0x3b7fffff
+     bbd:	4c 69 f1 01 00 80 3b 	imul   r14,rcx,0x3b800001
+     bc4:	4d 01 fe             	add    r14,r15
+     bc7:	49 c1 ee 20          	shr    r14,0x20
+     bcb:	45 8d be ff ff 7f c4 	lea    r15d,[r14-0x3b800001]
+     bd2:	49 81 fe 00 00 80 3b 	cmp    r14,0x3b800000
+     bd9:	45 0f 47 f7          	cmova  r14d,r15d
+     bdd:	45 89 74 30 04       	mov    DWORD PTR [r8+rsi*1+0x4],r14d
+     be2:	83 f8 02             	cmp    eax,0x2
+     be5:	0f 84 96 f7 ff ff    	je     381 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x381>
+     beb:	44 8b 72 08          	mov    r14d,DWORD PTR [rdx+0x8]
+     bef:	4d 0f af f3          	imul   r14,r11
+     bf3:	41 69 ce ff ff 7f 3b 	imul   ecx,r14d,0x3b7fffff
+     bfa:	48 69 c9 01 00 80 3b 	imul   rcx,rcx,0x3b800001
+     c01:	4c 01 f1             	add    rcx,r14
+     c04:	48 c1 e9 20          	shr    rcx,0x20
+     c08:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     c0f:	44 8d b9 ff ff 7f c4 	lea    r15d,[rcx-0x3b800001]
+     c16:	41 0f 47 cf          	cmova  ecx,r15d
+     c1a:	89 4c 32 08          	mov    DWORD PTR [rdx+rsi*1+0x8],ecx
+     c1e:	45 8b 70 08          	mov    r14d,DWORD PTR [r8+0x8]
+     c22:	4c 0f af f7          	imul   r14,rdi
+     c26:	41 69 ce ff ff 7f 3b 	imul   ecx,r14d,0x3b7fffff
+     c2d:	48 69 c9 01 00 80 3b 	imul   rcx,rcx,0x3b800001
+     c34:	4c 01 f1             	add    rcx,r14
+     c37:	48 c1 e9 20          	shr    rcx,0x20
+     c3b:	44 8d b9 ff ff 7f c4 	lea    r15d,[rcx-0x3b800001]
+     c42:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     c49:	41 0f 47 cf          	cmova  ecx,r15d
+     c4d:	41 89 4c 30 08       	mov    DWORD PTR [r8+rsi*1+0x8],ecx
+     c52:	83 f8 03             	cmp    eax,0x3
+     c55:	0f 84 26 f7 ff ff    	je     381 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x381>
+     c5b:	44 8b 72 0c          	mov    r14d,DWORD PTR [rdx+0xc]
+     c5f:	4d 0f af f3          	imul   r14,r11
+     c63:	41 69 ce ff ff 7f 3b 	imul   ecx,r14d,0x3b7fffff
+     c6a:	48 69 c9 01 00 80 3b 	imul   rcx,rcx,0x3b800001
+     c71:	4c 01 f1             	add    rcx,r14
+     c74:	48 c1 e9 20          	shr    rcx,0x20
+     c78:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     c7f:	44 8d b9 ff ff 7f c4 	lea    r15d,[rcx-0x3b800001]
+     c86:	41 0f 47 cf          	cmova  ecx,r15d
+     c8a:	89 4c 32 0c          	mov    DWORD PTR [rdx+rsi*1+0xc],ecx
+     c8e:	45 8b 70 0c          	mov    r14d,DWORD PTR [r8+0xc]
+     c92:	4c 0f af f7          	imul   r14,rdi
+     c96:	41 69 ce ff ff 7f 3b 	imul   ecx,r14d,0x3b7fffff
+     c9d:	48 69 c9 01 00 80 3b 	imul   rcx,rcx,0x3b800001
+     ca4:	4c 01 f1             	add    rcx,r14
+     ca7:	48 c1 e9 20          	shr    rcx,0x20
+     cab:	44 8d b9 ff ff 7f c4 	lea    r15d,[rcx-0x3b800001]
+     cb2:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     cb9:	41 0f 47 cf          	cmova  ecx,r15d
+     cbd:	41 89 4c 30 0c       	mov    DWORD PTR [r8+rsi*1+0xc],ecx
+     cc2:	83 f8 04             	cmp    eax,0x4
+     cc5:	0f 84 b6 f6 ff ff    	je     381 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x381>
+     ccb:	44 8b 72 10          	mov    r14d,DWORD PTR [rdx+0x10]
+     ccf:	4d 0f af f3          	imul   r14,r11
+     cd3:	41 69 ce ff ff 7f 3b 	imul   ecx,r14d,0x3b7fffff
+     cda:	48 69 c9 01 00 80 3b 	imul   rcx,rcx,0x3b800001
+     ce1:	4c 01 f1             	add    rcx,r14
+     ce4:	48 c1 e9 20          	shr    rcx,0x20
+     ce8:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     cef:	44 8d b9 ff ff 7f c4 	lea    r15d,[rcx-0x3b800001]
+     cf6:	41 0f 47 cf          	cmova  ecx,r15d
+     cfa:	89 4c 32 10          	mov    DWORD PTR [rdx+rsi*1+0x10],ecx
+     cfe:	45 8b 70 10          	mov    r14d,DWORD PTR [r8+0x10]
+     d02:	4c 0f af f7          	imul   r14,rdi
+     d06:	41 69 ce ff ff 7f 3b 	imul   ecx,r14d,0x3b7fffff
+     d0d:	48 69 c9 01 00 80 3b 	imul   rcx,rcx,0x3b800001
+     d14:	4c 01 f1             	add    rcx,r14
+     d17:	48 c1 e9 20          	shr    rcx,0x20
+     d1b:	44 8d b9 ff ff 7f c4 	lea    r15d,[rcx-0x3b800001]
+     d22:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     d29:	41 0f 47 cf          	cmova  ecx,r15d
+     d2d:	41 89 4c 30 10       	mov    DWORD PTR [r8+rsi*1+0x10],ecx
+     d32:	83 f8 05             	cmp    eax,0x5
+     d35:	0f 84 46 f6 ff ff    	je     381 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x381>
+     d3b:	44 8b 72 14          	mov    r14d,DWORD PTR [rdx+0x14]
+     d3f:	4d 0f af f3          	imul   r14,r11
+     d43:	41 69 ce ff ff 7f 3b 	imul   ecx,r14d,0x3b7fffff
+     d4a:	4c 69 f9 01 00 80 3b 	imul   r15,rcx,0x3b800001
+     d51:	4d 01 f7             	add    r15,r14
+     d54:	49 c1 ef 20          	shr    r15,0x20
+     d58:	49 81 ff 00 00 80 3b 	cmp    r15,0x3b800000
+     d5f:	45 8d b7 ff ff 7f c4 	lea    r14d,[r15-0x3b800001]
+     d66:	45 0f 47 fe          	cmova  r15d,r14d
+     d6a:	44 89 7c 32 14       	mov    DWORD PTR [rdx+rsi*1+0x14],r15d
+     d6f:	45 8b 78 14          	mov    r15d,DWORD PTR [r8+0x14]
+     d73:	4c 0f af ff          	imul   r15,rdi
+     d77:	41 69 cf ff ff 7f 3b 	imul   ecx,r15d,0x3b7fffff
+     d7e:	48 69 c9 01 00 80 3b 	imul   rcx,rcx,0x3b800001
+     d85:	4c 01 f9             	add    rcx,r15
+     d88:	48 c1 e9 20          	shr    rcx,0x20
+     d8c:	44 8d b1 ff ff 7f c4 	lea    r14d,[rcx-0x3b800001]
+     d93:	48 81 f9 00 00 80 3b 	cmp    rcx,0x3b800000
+     d9a:	41 0f 47 ce          	cmova  ecx,r14d
+     d9e:	41 89 4c 30 14       	mov    DWORD PTR [r8+rsi*1+0x14],ecx
+     da3:	83 f8 07             	cmp    eax,0x7
+     da6:	0f 85 d5 f5 ff ff    	jne    381 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x381>
+     dac:	44 8b 7a 18          	mov    r15d,DWORD PTR [rdx+0x18]
+     db0:	48 83 c6 18          	add    rsi,0x18
+     db4:	4d 0f af df          	imul   r11,r15
+     db8:	41 69 cb ff ff 7f 3b 	imul   ecx,r11d,0x3b7fffff
+     dbf:	4c 69 f1 01 00 80 3b 	imul   r14,rcx,0x3b800001
+     dc6:	4d 01 de             	add    r14,r11
+     dc9:	49 c1 ee 20          	shr    r14,0x20
+     dcd:	49 81 fe 00 00 80 3b 	cmp    r14,0x3b800000
+     dd4:	45 8d 9e ff ff 7f c4 	lea    r11d,[r14-0x3b800001]
+     ddb:	45 0f 47 f3          	cmova  r14d,r11d
+     ddf:	44 89 34 32          	mov    DWORD PTR [rdx+rsi*1],r14d
+     de3:	45 8b 78 18          	mov    r15d,DWORD PTR [r8+0x18]
+     de7:	49 0f af ff          	imul   rdi,r15
+     deb:	69 cf ff ff 7f 3b    	imul   ecx,edi,0x3b7fffff
+     df1:	4c 69 f1 01 00 80 3b 	imul   r14,rcx,0x3b800001
+     df8:	49 01 fe             	add    r14,rdi
+     dfb:	49 c1 ee 20          	shr    r14,0x20
+     dff:	49 81 fe 00 00 80 3b 	cmp    r14,0x3b800000
+     e06:	41 8d be ff ff 7f c4 	lea    edi,[r14-0x3b800001]
+     e0d:	44 0f 47 f7          	cmova  r14d,edi
+     e11:	01 c0                	add    eax,eax
+     e13:	45 89 34 30          	mov    DWORD PTR [r8+rsi*1],r14d
+     e17:	41 39 c4             	cmp    r12d,eax
+     e1a:	0f 8f 88 f2 ff ff    	jg     a8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xa8>
+     e20:	e9 67 f5 ff ff       	jmp    38c <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x38c>
+     e25:	0f 1f 00             	nop    DWORD PTR [rax]
+     e28:	01 c0                	add    eax,eax
+     e2a:	e9 79 f2 ff ff       	jmp    a8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xa8>
+     e2f:	90                   	nop
+     e30:	41 8b 01             	mov    eax,DWORD PTR [r9]
+     e33:	85 c0                	test   eax,eax
+     e35:	0f 84 2e f2 ff ff    	je     69 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x69>
+     e3b:	41 39 c4             	cmp    r12d,eax
+     e3e:	0f 8f 3e f2 ff ff    	jg     82 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x82>
+     e44:	e9 4d f5 ff ff       	jmp    396 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x396>
+     e49:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+     e50:	48 8b 54 24 18       	mov    rdx,QWORD PTR [rsp+0x18]
+     e55:	48 8d 7c 24 20       	lea    rdi,[rsp+0x20]
+     e5a:	45 31 c0             	xor    r8d,r8d
+     e5d:	48 89 de             	mov    rsi,rbx
+     e60:	49 be 3f cc e0 5d 87 	movabs r14,0x89ae40875de0cc3f
+     e67:	40 ae 89 
+     e6a:	44 89 d1             	mov    ecx,r10d
+     e6d:	c5 f8 77             	vzeroupper
+     e70:	e8 00 00 00 00       	call   e75 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xe75>
+     e75:	41 bb 1e 00 00 00    	mov    r11d,0x1e
+     e7b:	be 01 00 00 00       	mov    esi,0x1
+     e80:	bf ff ff 7f 3b       	mov    edi,0x3b7fffff
+     e85:	89 f0                	mov    eax,esi
+     e87:	40 f6 c7 01          	test   dil,0x1
+     e8b:	74 18                	je     ea5 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xea5>
+     e8d:	49 0f af c5          	imul   rax,r13
+     e91:	48 89 c6             	mov    rsi,rax
+     e94:	49 f7 e6             	mul    r14
+     e97:	48 c1 ea 1d          	shr    rdx,0x1d
+     e9b:	4c 69 ca 01 00 80 3b 	imul   r9,rdx,0x3b800001
+     ea2:	44 29 ce             	sub    esi,r9d
+     ea5:	4d 0f af ed          	imul   r13,r13
+     ea9:	89 f9                	mov    ecx,edi
+     eab:	41 83 eb 01          	sub    r11d,0x1
+     eaf:	d1 e9                	shr    ecx,1
+     eb1:	4c 89 e8             	mov    rax,r13
+     eb4:	49 f7 e6             	mul    r14
+     eb7:	89 f0                	mov    eax,esi
+     eb9:	48 c1 ea 1d          	shr    rdx,0x1d
+     ebd:	4c 69 d2 01 00 80 3b 	imul   r10,rdx,0x3b800001
+     ec4:	45 29 d5             	sub    r13d,r10d
+     ec7:	83 e7 02             	and    edi,0x2
+     eca:	74 18                	je     ee4 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xee4>
+     ecc:	49 0f af c5          	imul   rax,r13
+     ed0:	48 89 c6             	mov    rsi,rax
+     ed3:	49 f7 e6             	mul    r14
+     ed6:	48 c1 ea 1d          	shr    rdx,0x1d
+     eda:	4c 69 e2 01 00 80 3b 	imul   r12,rdx,0x3b800001
+     ee1:	44 29 e6             	sub    esi,r12d
+     ee4:	4d 0f af ed          	imul   r13,r13
+     ee8:	89 cf                	mov    edi,ecx
+     eea:	d1 ef                	shr    edi,1
+     eec:	4c 89 e8             	mov    rax,r13
+     eef:	49 f7 e6             	mul    r14
+     ef2:	89 f0                	mov    eax,esi
+     ef4:	48 c1 ea 1d          	shr    rdx,0x1d
+     ef8:	4c 69 c2 01 00 80 3b 	imul   r8,rdx,0x3b800001
+     eff:	45 29 c5             	sub    r13d,r8d
+     f02:	83 e1 02             	and    ecx,0x2
+     f05:	74 18                	je     f1f <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xf1f>
+     f07:	49 0f af c5          	imul   rax,r13
+     f0b:	48 89 c6             	mov    rsi,rax
+     f0e:	49 f7 e6             	mul    r14
+     f11:	48 c1 ea 1d          	shr    rdx,0x1d
+     f15:	4c 69 ca 01 00 80 3b 	imul   r9,rdx,0x3b800001
+     f1c:	44 29 ce             	sub    esi,r9d
+     f1f:	4d 0f af ed          	imul   r13,r13
+     f23:	89 f9                	mov    ecx,edi
+     f25:	d1 e9                	shr    ecx,1
+     f27:	4c 89 e8             	mov    rax,r13
+     f2a:	49 f7 e6             	mul    r14
+     f2d:	89 f0                	mov    eax,esi
+     f2f:	48 c1 ea 1d          	shr    rdx,0x1d
+     f33:	4c 69 d2 01 00 80 3b 	imul   r10,rdx,0x3b800001
+     f3a:	45 29 d5             	sub    r13d,r10d
+     f3d:	83 e7 02             	and    edi,0x2
+     f40:	74 18                	je     f5a <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xf5a>
+     f42:	49 0f af c5          	imul   rax,r13
+     f46:	48 89 c6             	mov    rsi,rax
+     f49:	49 f7 e6             	mul    r14
+     f4c:	48 c1 ea 1d          	shr    rdx,0x1d
+     f50:	4c 69 e2 01 00 80 3b 	imul   r12,rdx,0x3b800001
+     f57:	44 29 e6             	sub    esi,r12d
+     f5a:	4d 0f af ed          	imul   r13,r13
+     f5e:	89 cf                	mov    edi,ecx
+     f60:	41 89 f1             	mov    r9d,esi
+     f63:	d1 ef                	shr    edi,1
+     f65:	4c 89 e8             	mov    rax,r13
+     f68:	49 f7 e6             	mul    r14
+     f6b:	48 c1 ea 1d          	shr    rdx,0x1d
+     f6f:	4c 69 c2 01 00 80 3b 	imul   r8,rdx,0x3b800001
+     f76:	45 29 c5             	sub    r13d,r8d
+     f79:	83 e1 02             	and    ecx,0x2
+     f7c:	74 1b                	je     f99 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xf99>
+     f7e:	4d 0f af cd          	imul   r9,r13
+     f82:	4c 89 c8             	mov    rax,r9
+     f85:	49 f7 e6             	mul    r14
+     f88:	48 c1 ea 1d          	shr    rdx,0x1d
+     f8c:	48 69 f2 01 00 80 3b 	imul   rsi,rdx,0x3b800001
+     f93:	49 29 f1             	sub    r9,rsi
+     f96:	44 89 ce             	mov    esi,r9d
+     f99:	4d 0f af ed          	imul   r13,r13
+     f9d:	d1 ef                	shr    edi,1
+     f9f:	4c 89 e8             	mov    rax,r13
+     fa2:	49 f7 e6             	mul    r14
+     fa5:	48 c1 ea 1d          	shr    rdx,0x1d
+     fa9:	48 69 ca 01 00 80 3b 	imul   rcx,rdx,0x3b800001
+     fb0:	41 29 cd             	sub    r13d,ecx
+     fb3:	41 83 eb 04          	sub    r11d,0x4
+     fb7:	0f 85 c8 fe ff ff    	jne    e85 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xe85>
+     fbd:	4d 69 e9 c6 fb 8d 37 	imul   r13,r9,0x378dfbc6
+     fc4:	45 69 dd ff ff 7f 3b 	imul   r11d,r13d,0x3b7fffff
+     fcb:	4d 69 f3 01 00 80 3b 	imul   r14,r11,0x3b800001
+     fd2:	4d 01 ee             	add    r14,r13
+     fd5:	49 c1 ee 20          	shr    r14,0x20
+     fd9:	49 81 fe 00 00 80 3b 	cmp    r14,0x3b800000
+     fe0:	45 8d 96 ff ff 7f c4 	lea    r10d,[r14-0x3b800001]
+     fe7:	4d 0f 46 d6          	cmovbe r10,r14
+     feb:	4d 69 e2 c6 fb 8d 37 	imul   r12,r10,0x378dfbc6
+     ff2:	41 69 fc ff ff 7f 3b 	imul   edi,r12d,0x3b7fffff
+     ff9:	4c 69 c7 01 00 80 3b 	imul   r8,rdi,0x3b800001
+    1000:	4d 01 e0             	add    r8,r12
+    1003:	49 c1 e8 20          	shr    r8,0x20
+    1007:	49 81 f8 00 00 80 3b 	cmp    r8,0x3b800000
+    100e:	76 07                	jbe    1017 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x1017>
+    1010:	41 81 e8 01 00 80 3b 	sub    r8d,0x3b800001
+    1017:	4d 63 ff             	movsxd r15,r15d
+    101a:	45 69 c8 ff ff 7f 3b 	imul   r9d,r8d,0x3b7fffff
+    1021:	b8 01 00 80 3b       	mov    eax,0x3b800001
+    1026:	ba ff ff 7f c4       	mov    edx,0xc47fffff
+    102b:	c4 41 79 6e e0       	vmovd  xmm12,r8d
+    1030:	49 c1 e7 05          	shl    r15,0x5
+    1034:	c5 f9 6e f0          	vmovd  xmm6,eax
+    1038:	c5 f9 6e ea          	vmovd  xmm5,edx
+    103c:	4a 8d 34 3b          	lea    rsi,[rbx+r15*1]
+    1040:	49 83 ef 20          	sub    r15,0x20
+    1044:	c4 42 7d 58 ec       	vpbroadcastd ymm13,xmm12
+    1049:	49 c1 ef 05          	shr    r15,0x5
+    104d:	c4 c1 79 6e c1       	vmovd  xmm0,r9d
+    1052:	c4 62 7d 58 c6       	vpbroadcastd ymm8,xmm6
+    1057:	49 8d 4f 01          	lea    rcx,[r15+0x1]
+    105b:	c4 62 7d 58 f8       	vpbroadcastd ymm15,xmm0
+    1060:	c4 e2 7d 58 e5       	vpbroadcastd ymm4,xmm5
+    1065:	83 e1 03             	and    ecx,0x3
+    1068:	0f 84 af 00 00 00    	je     111d <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x111d>
+    106e:	48 83 f9 01          	cmp    rcx,0x1
+    1072:	74 55                	je     10c9 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x10c9>
+    1074:	48 83 f9 02          	cmp    rcx,0x2
+    1078:	0f 85 e4 01 00 00    	jne    1262 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x1262>
+    107e:	c5 fd 6f 13          	vmovdqa ymm2,YMMWORD PTR [rbx]
+    1082:	48 83 c3 20          	add    rbx,0x20
+    1086:	c5 b5 73 d2 20       	vpsrlq ymm9,ymm2,0x20
+    108b:	c4 41 6d f4 d7       	vpmuludq ymm10,ymm2,ymm15
+    1090:	c4 41 35 f4 e7       	vpmuludq ymm12,ymm9,ymm15
+    1095:	c4 41 6d f4 f5       	vpmuludq ymm14,ymm2,ymm13
+    109a:	c4 c1 35 f4 dd       	vpmuludq ymm3,ymm9,ymm13
+    109f:	c4 41 2d f4 d8       	vpmuludq ymm11,ymm10,ymm8
+    10a4:	c4 c1 1d f4 c0       	vpmuludq ymm0,ymm12,ymm8
+    10a9:	c4 c1 0d d4 f3       	vpaddq ymm6,ymm14,ymm11
+    10ae:	c5 f5 73 d6 20       	vpsrlq ymm1,ymm6,0x20
+    10b3:	c5 e5 d4 e8          	vpaddq ymm5,ymm3,ymm0
+    10b7:	c5 d5 eb f9          	vpor   ymm7,ymm5,ymm1
+    10bb:	c5 c5 fe d4          	vpaddd ymm2,ymm7,ymm4
+    10bf:	c4 62 45 3b f2       	vpminud ymm14,ymm7,ymm2
+    10c4:	c5 7d 7f 73 e0       	vmovdqa YMMWORD PTR [rbx-0x20],ymm14
+    10c9:	c5 7d 6f 0b          	vmovdqa ymm9,YMMWORD PTR [rbx]
+    10cd:	48 83 c3 20          	add    rbx,0x20
+    10d1:	c4 c1 25 73 d1 20    	vpsrlq ymm11,ymm9,0x20
+    10d7:	c4 41 35 f4 e7       	vpmuludq ymm12,ymm9,ymm15
+    10dc:	c4 c1 25 f4 f7       	vpmuludq ymm6,ymm11,ymm15
+    10e1:	c4 41 35 f4 d5       	vpmuludq ymm10,ymm9,ymm13
+    10e6:	c4 c1 25 f4 dd       	vpmuludq ymm3,ymm11,ymm13
+    10eb:	c4 c1 1d f4 c0       	vpmuludq ymm0,ymm12,ymm8
+    10f0:	c4 c1 4d f4 c8       	vpmuludq ymm1,ymm6,ymm8
+    10f5:	c5 ad d4 e8          	vpaddq ymm5,ymm10,ymm0
+    10f9:	c5 c5 73 d5 20       	vpsrlq ymm7,ymm5,0x20
+    10fe:	c5 e5 d4 d1          	vpaddq ymm2,ymm3,ymm1
+    1102:	c5 6d eb f7          	vpor   ymm14,ymm2,ymm7
+    1106:	c5 0d fe cc          	vpaddd ymm9,ymm14,ymm4
+    110a:	c4 42 0d 3b d1       	vpminud ymm10,ymm14,ymm9
+    110f:	c5 7d 7f 53 e0       	vmovdqa YMMWORD PTR [rbx-0x20],ymm10
+    1114:	48 39 de             	cmp    rsi,rbx
+    1117:	0f 84 a3 f9 ff ff    	je     ac0 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xac0>
+    111d:	c5 7d 6f 1b          	vmovdqa ymm11,YMMWORD PTR [rbx]
+    1121:	48 83 eb 80          	sub    rbx,0xffffffffffffff80
+    1125:	c4 c1 25 f4 f7       	vpmuludq ymm6,ymm11,ymm15
+    112a:	c4 c1 7d 73 d3 20    	vpsrlq ymm0,ymm11,0x20
+    1130:	c4 c1 7d f4 ef       	vpmuludq ymm5,ymm0,ymm15
+    1135:	c4 41 25 f4 e5       	vpmuludq ymm12,ymm11,ymm13
+    113a:	c4 c1 7d f4 dd       	vpmuludq ymm3,ymm0,ymm13
+    113f:	c5 fd 6f 43 a0       	vmovdqa ymm0,YMMWORD PTR [rbx-0x60]
+    1144:	c4 c1 4d f4 c8       	vpmuludq ymm1,ymm6,ymm8
+    1149:	c5 cd 73 d0 20       	vpsrlq ymm6,ymm0,0x20
+    114e:	c4 c1 55 f4 f8       	vpmuludq ymm7,ymm5,ymm8
+    1153:	c4 c1 7d f4 ef       	vpmuludq ymm5,ymm0,ymm15
+    1158:	c5 9d d4 d1          	vpaddq ymm2,ymm12,ymm1
+    115c:	c4 c1 7d f4 cd       	vpmuludq ymm1,ymm0,ymm13
+    1161:	c5 8d 73 d2 20       	vpsrlq ymm14,ymm2,0x20
+    1166:	c4 c1 4d f4 d7       	vpmuludq ymm2,ymm6,ymm15
+    116b:	c5 65 d4 cf          	vpaddq ymm9,ymm3,ymm7
+    116f:	c4 c1 55 f4 f8       	vpmuludq ymm7,ymm5,ymm8
+    1174:	c5 fd 6f 6b c0       	vmovdqa ymm5,YMMWORD PTR [rbx-0x40]
+    1179:	c4 c1 4d f4 dd       	vpmuludq ymm3,ymm6,ymm13
+    117e:	c4 41 35 eb d6       	vpor   ymm10,ymm9,ymm14
+    1183:	c5 2d fe dc          	vpaddd ymm11,ymm10,ymm4
+    1187:	c5 cd 73 d5 20       	vpsrlq ymm6,ymm5,0x20
+    118c:	c4 42 2d 3b e3       	vpminud ymm12,ymm10,ymm11
+    1191:	c5 7d 7f 63 80       	vmovdqa YMMWORD PTR [rbx-0x80],ymm12
+    1196:	c4 41 6d f4 f0       	vpmuludq ymm14,ymm2,ymm8
+    119b:	c4 c1 55 f4 d7       	vpmuludq ymm2,ymm5,ymm15
+    11a0:	c5 75 d4 cf          	vpaddq ymm9,ymm1,ymm7
+    11a4:	c4 c1 55 f4 fd       	vpmuludq ymm7,ymm5,ymm13
+    11a9:	c4 c1 2d 73 d1 20    	vpsrlq ymm10,ymm9,0x20
+    11af:	c4 41 4d f4 cf       	vpmuludq ymm9,ymm6,ymm15
+    11b4:	c4 41 65 d4 de       	vpaddq ymm11,ymm3,ymm14
+    11b9:	c4 41 6d f4 f0       	vpmuludq ymm14,ymm2,ymm8
+    11be:	c5 fd 6f 53 e0       	vmovdqa ymm2,YMMWORD PTR [rbx-0x20]
+    11c3:	c4 41 25 eb e2       	vpor   ymm12,ymm11,ymm10
+    11c8:	c4 c1 4d f4 dd       	vpmuludq ymm3,ymm6,ymm13
+    11cd:	c4 41 35 f4 d0       	vpmuludq ymm10,ymm9,ymm8
+    11d2:	c5 cd 73 d2 20       	vpsrlq ymm6,ymm2,0x20
+    11d7:	c5 9d fe c4          	vpaddd ymm0,ymm12,ymm4
+    11db:	c4 41 6d f4 cf       	vpmuludq ymm9,ymm2,ymm15
+    11e0:	c4 e2 1d 3b c8       	vpminud ymm1,ymm12,ymm0
+    11e5:	c5 fd 7f 4b a0       	vmovdqa YMMWORD PTR [rbx-0x60],ymm1
+    11ea:	c4 41 45 d4 de       	vpaddq ymm11,ymm7,ymm14
+    11ef:	c4 41 6d f4 f5       	vpmuludq ymm14,ymm2,ymm13
+    11f4:	c4 c1 1d 73 d3 20    	vpsrlq ymm12,ymm11,0x20
+    11fa:	c4 41 4d f4 df       	vpmuludq ymm11,ymm6,ymm15
+    11ff:	c4 c1 65 d4 c2       	vpaddq ymm0,ymm3,ymm10
+    1204:	c4 c1 4d f4 dd       	vpmuludq ymm3,ymm6,ymm13
+    1209:	c4 41 35 f4 d0       	vpmuludq ymm10,ymm9,ymm8
+    120e:	c4 c1 7d eb cc       	vpor   ymm1,ymm0,ymm12
+    1213:	c5 f5 fe ec          	vpaddd ymm5,ymm1,ymm4
+    1217:	c4 e2 75 3b fd       	vpminud ymm7,ymm1,ymm5
+    121c:	c4 41 25 f4 e0       	vpmuludq ymm12,ymm11,ymm8
+    1221:	c5 fd 7f 7b c0       	vmovdqa YMMWORD PTR [rbx-0x40],ymm7
+    1226:	c4 c1 0d d4 c2       	vpaddq ymm0,ymm14,ymm10
+    122b:	c5 f5 73 d0 20       	vpsrlq ymm1,ymm0,0x20
+    1230:	c4 c1 65 d4 ec       	vpaddq ymm5,ymm3,ymm12
+    1235:	c5 d5 eb f9          	vpor   ymm7,ymm5,ymm1
+    1239:	c5 c5 fe d4          	vpaddd ymm2,ymm7,ymm4
+    123d:	c4 62 45 3b f2       	vpminud ymm14,ymm7,ymm2
+    1242:	c5 7d 7f 73 e0       	vmovdqa YMMWORD PTR [rbx-0x20],ymm14
+    1247:	48 39 de             	cmp    rsi,rbx
+    124a:	0f 85 cd fe ff ff    	jne    111d <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x111d>
+    1250:	e9 6b f8 ff ff       	jmp    ac0 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xac0>
+    1255:	0f 1f 00             	nop    DWORD PTR [rax]
+    1258:	b8 02 00 00 00       	mov    eax,0x2
+    125d:	e9 96 f8 ff ff       	jmp    af8 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0xaf8>
+    1262:	c5 fd 6f 0b          	vmovdqa ymm1,YMMWORD PTR [rbx]
+    1266:	48 83 c3 20          	add    rbx,0x20
+    126a:	c5 ed 73 d1 20       	vpsrlq ymm2,ymm1,0x20
+    126f:	c4 41 75 f4 f7       	vpmuludq ymm14,ymm1,ymm15
+    1274:	c4 41 6d f4 d7       	vpmuludq ymm10,ymm2,ymm15
+    1279:	c4 c1 75 f4 fd       	vpmuludq ymm7,ymm1,ymm13
+    127e:	c4 c1 6d f4 dd       	vpmuludq ymm3,ymm2,ymm13
+    1283:	c4 41 0d f4 c8       	vpmuludq ymm9,ymm14,ymm8
+    1288:	c4 41 2d f4 d8       	vpmuludq ymm11,ymm10,ymm8
+    128d:	c4 41 45 d4 e1       	vpaddq ymm12,ymm7,ymm9
+    1292:	c4 c1 7d 73 d4 20    	vpsrlq ymm0,ymm12,0x20
+    1298:	c4 c1 65 d4 f3       	vpaddq ymm6,ymm3,ymm11
+    129d:	c5 cd eb c8          	vpor   ymm1,ymm6,ymm0
+    12a1:	c5 f5 fe ec          	vpaddd ymm5,ymm1,ymm4
+    12a5:	c4 e2 75 3b fd       	vpminud ymm7,ymm1,ymm5
+    12aa:	c5 fd 7f 7b e0       	vmovdqa YMMWORD PTR [rbx-0x20],ymm7
+    12af:	e9 ca fd ff ff       	jmp    107e <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x107e>
+    12b4:	c5 f8 77             	vzeroupper
+    12b7:	e8 00 00 00 00       	call   12bc <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x12bc>
+    12bc:	48 8d 0d 00 00 00 00 	lea    rcx,[rip+0x0]        # 12c3 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x12c3>
+    12c3:	ba fd 00 00 00       	mov    edx,0xfd
+    12c8:	48 8d 35 00 00 00 00 	lea    rsi,[rip+0x0]        # 12cf <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x12cf>
+    12cf:	48 8d 3d 00 00 00 00 	lea    rdi,[rip+0x0]        # 12d6 <_ZN10qpoly_lazy6KernelILb1ELb0ELi2ELi256ELi4ELi2ELb1EE3runEiPjS2_S2_S2_Rib+0x12d6>
+    12d6:	e8 00 00 00 00       	call   12db <.LC7+0x1153>

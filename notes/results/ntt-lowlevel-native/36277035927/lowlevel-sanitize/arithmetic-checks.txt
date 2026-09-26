@@ -1,0 +1,3 @@
+PASS full lazy range montgomery-mullo 786432 lanes
+PASS full lazy range shoup 786432 lanes
+PASS full lazy range shoup-wide 786432 lanes
