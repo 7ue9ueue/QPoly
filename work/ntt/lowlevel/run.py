@@ -26,6 +26,8 @@ subprocess.run(cmd,check=True)
 with (dest/'generated-hashes.txt').open('w') as f:
     for p in [*sorted(out.glob('*.cpp')),out/'bench']:
         f.write(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+str(p.relative_to(root))+'\n')
+subprocess.run([compiler,*flags,str(out/'arithmetic_check.cc'),'-o',str(out/'arithmetic_check')],check=True)
+with (dest/'arithmetic-checks.txt').open('w') as f:subprocess.run([str(out/'arithmetic_check')],stdout=f,check=True)
 check=sanitize or os.getenv('CHECK_ONLY')=='1'
 with (dest/('correctness.txt' if check else 'timings.csv')).open('w') as f:
     subprocess.run([str(out/'bench')]+(['--check'] if check else []),stdout=f,check=True)

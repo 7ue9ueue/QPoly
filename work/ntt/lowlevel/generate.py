@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Focused source transformations of our frozen 329dd66 kernel. No reference copying."""
 from pathlib import Path
-import subprocess,sys,hashlib,json
-from extra_transforms import specialize_small,prepack,asm_pair,prepack_shoup,shoup_regular_cursor
+import subprocess,sys,hashlib,json,os
+from extra_transforms import specialize_small,prepack,asm_pair,prepack_shoup,shoup_regular_cursor,shoup_wide
 root=Path(__file__).resolve().parents[3];here=Path(__file__).resolve().parent
 out=root/'build/lowlevel';out.mkdir(parents=True,exist_ok=True)
 subprocess.run([sys.executable,str(root/'work/ntt/lazy_twiddle/generate.py')],check=True,stdout=subprocess.DEVNULL)
@@ -100,6 +100,7 @@ def transform(name,changes):
     if 'prepack' in changes:s=prepack(s)
     if 'prepack_shoup' in changes:s=prepack_shoup(s)
     if 'regular_cursor' in changes:s=shoup_regular_cursor(s)
+    if 'wide' in changes:s=shoup_wide(s)
     if 'mont_leaf' in changes:
         original_fixed=base[fixed_start:fixed_end].replace('Fixed','MontFixed')
         s=s.replace('// r[k]',original_fixed+'// r[k]',1)
@@ -136,14 +137,24 @@ configs={
  'll_asm_pair':(2,2,['asm','asm_pair'],[]),
  'll_asm_pair_inline':(2,2,['asm','asm_pair','inline'],[]),
  'll_asm_shoup':(2,2,['asm','asm_pair','shoup','inline'],[]),
+ 'll_shoup_wide':(2,2,['shoup','wide','inline'],[]),
+ 'll_shoup_wide_prepack':(2,2,['shoup','wide','prepack_shoup','inline'],[]),
+ 'll_shoup_wide_cursor':(1,1,['shoup','wide','inline','regular_cursor'],[]),
 }
 names=controls[:]
 flags={}
+selected=set(os.environ.get("SELECT_VARIANTS", "").split(","))-{ "" }
 for name,(mode,schedule,changes,options) in configs.items():
+    if selected and name not in selected:continue
     s=transform('kernel_'+name,changes)
     s='#include "common.hpp"\n'+s.replace('#pragma once\n','')
     s+=f'\nnamespace {name} {{void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh){{kernel_{name}::Kernel<true,false,{mode},256,4,{schedule},true>::run(n,a,b,r,ir,s,fresh);}}}}\n'
     (out/(name+'.cpp')).write_text(s);names.append(name);flags[name]=options
+arithmetic='#include "common.hpp"\n'
+for ns,changes in [('arith_mullo',['mullo']),('arith_shoup',['shoup']),('arith_wide',['shoup','wide'])]:
+    arithmetic+=transform(ns,changes).replace('#pragma once\n','')+'\n'
+arithmetic+=(here/'arithmetic_driver.inc').read_text()
+(out/'arithmetic_check.cc').write_text(arithmetic)
 (out/'flags.json').write_text(json.dumps(flags,indent=2))
 (out/'registry.hpp').write_text('\n'.join(f'namespace {n} {{ void invoke(int,uint32_t*,uint32_t*,uint32_t*,uint32_t*,int&,bool); }}' for n in names)+'\ninline const Entry entries[] = {\n'+''.join(f'{{"{n}",{n}::invoke}},\n' for n in names)+'};\n')
 for p in sorted(here.glob('*')):

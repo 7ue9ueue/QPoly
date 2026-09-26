@@ -83,3 +83,15 @@ def shoup_regular_cursor(s):
     s=s.replace('_mm256_setr_epi64x(ONE,ONE,Twist?ONE:constants.iq[0],ONE)',
                 '_mm256_setr_epi64x(1,1,Twist?1:muls(constants.iq[0],1),1)')
     return s
+
+def shoup_wide(s):
+    old='''        V qe=odd(_mm256_mul_epu32(x,wp));
+        V qo=_mm256_mul_epu32(odd(x),wp);
+        V q=_mm256_blend_epi32(qe,qo,0xaa);
+        return minus(_mm256_mullo_epi32(x,w),_mm256_mullo_epi32(q,splat(P)));'''
+    new='''        V xo=odd(x);
+        V qe=odd(_mm256_mul_epu32(x,wp)),qo=odd(_mm256_mul_epu32(xo,wp));
+        V e=_mm256_sub_epi64(_mm256_mul_epu32(x,w),_mm256_mul_epu32(qe,splat(P)));
+        V o=_mm256_sub_epi64(_mm256_mul_epu32(xo,w),_mm256_mul_epu32(qo,splat(P)));
+        return _mm256_or_si256(e,_mm256_slli_epi64(o,32));'''
+    assert old in s;return s.replace(old,new)

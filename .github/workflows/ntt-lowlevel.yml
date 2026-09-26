@@ -2,7 +2,9 @@ name: NTT low-level kernel exploration
 on:
   push:
     branches: [codex/ntt-simd-explore]
-    paths: [work/ntt/lowlevel/**, .github/workflows/ntt-lowlevel.yml]
+    paths: [work/ntt/lowlevel/**, work/ntt/atcoder_ntt_lowlevel_compare.cpp, .github/workflows/ntt-lowlevel.yml]
+env:
+  SELECT_VARIANTS: ll_inline_h14,ll_shoup_cursor,ll_shoup_prepack,ll_shoup_wide,ll_shoup_wide_prepack,ll_shoup_wide_cursor,ll_asm_pair_inline
 permissions:
   contents: read
 jobs:
@@ -13,23 +15,26 @@ jobs:
       fail-fast: false
       matrix:
         sample: [1, 2]
+        compiler: [g++, clang++]
     steps:
       - uses: actions/checkout@v4
       - name: Environment
         run: |
           mkdir -p results
-          { lscpu; g++ --version; git rev-parse HEAD; } > results/environment.txt
+          { lscpu; g++ --version; clang++ --version; git rev-parse HEAD; } > results/environment.txt
       - name: Correctness and timings
+        env:
+          CXX: ${{ matrix.compiler }}
         run: python3 work/ntt/lowlevel/run.py
       - name: Assembly
         run: |
-          for name in lazy_hybrid_fused ll_static ll_asm ll_inline ll_mullo ll_shoup; do
+          for name in lazy_hybrid_fused ll_inline_h14 ll_shoup_cursor ll_shoup_prepack ll_shoup_wide_cursor ll_asm_pair_inline; do
             objdump -d -Mintel build/lowlevel/$name.o > results/$name-assembly.txt
           done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: lowlevel-${{ matrix.sample }}
+          name: lowlevel-${{ matrix.compiler }}-${{ matrix.sample }}
           path: results/
           retention-days: 7
   sanitize:
@@ -40,9 +45,15 @@ jobs:
       - name: Environment
         run: |
           mkdir -p results
-          { lscpu; g++ --version; git rev-parse HEAD; } > results/environment.txt
+          { lscpu; g++ --version; clang++ --version; git rev-parse HEAD; } > results/environment.txt
       - name: Correctness with sanitizers
         run: SANITIZE=1 python3 work/ntt/lowlevel/run.py
+      - name: Verify exact standalone source
+        run: |
+          g++ -std=c++17 -O2 work/ntt/atcoder_ntt_lowlevel_compare.cpp -o build/atcoder-lowlevel
+          sha256sum work/ntt/atcoder_ntt_lowlevel_compare.cpp build/atcoder-lowlevel > results/atcoder-hashes.txt
+          /usr/bin/time -v build/atcoder-lowlevel </dev/null > results/atcoder-default.txt 2>results/atcoder-resources.txt
+          printf '22 3 2\n' | build/atcoder-lowlevel > results/atcoder-large.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
