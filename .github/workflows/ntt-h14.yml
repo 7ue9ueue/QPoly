@@ -4,7 +4,7 @@ on:
     branches: [codex/ntt-simd-explore]
     paths: [work/ntt/h14_explore/**, work/ntt/atcoder_ntt_h14_compare.cpp, .github/workflows/ntt-h14.yml]
 env:
-  SELECT_VARIANTS: h14_fixed_tile,h14_pairmul_all,asm_radix4_pair_large_fixed,asm_inverse_serial,asm_inverse_pair,asm_inverse_pair_large,asm_both_pair,asm_both_pair_large,h14_forward_scalar,h14_forward_late,h14_forward_packed,h14_mont_mullo,h14_mont_shiftmod
+  SELECT_VARIANTS: h14_fixed_tile,asm_radix4_pair_large_fixed,h14_mont_mullo,h14_mullo_fixed,h14_mullo_bottom,h14_karatsuba_pair,h14_karatsuba_shared
 permissions:
   contents: read
 jobs:
@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sample: [1, 2]
+        sample: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - name: Environment and tools
@@ -28,9 +28,11 @@ jobs:
           echo 'gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289' > results/container.txt
       - name: Correctness and timing
         run: python3 work/ntt/h14_explore/run.py
+      - name: Exact standalone verification
+        run: python3 work/ntt/h14_explore/verify_atcoder.py
       - name: Assembly
         run: |
-          for name in ll_inline_h14 asm_inverse_pair asm_both_pair_large h14_forward_scalar h14_mont_mullo h14_mont_shiftmod; do
+          for name in ll_inline_h14 asm_radix4_pair_large_fixed h14_mont_mullo h14_mullo_fixed h14_mullo_bottom h14_karatsuba_shared; do
             objdump -d -Mintel build/h14_explore/$name.o > results/$name-assembly.txt
           done
       - uses: actions/upload-artifact@v4

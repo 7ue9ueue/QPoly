@@ -22,6 +22,12 @@ target baseline, but is not directly comparable to Actions wall times.
   scoped uninitialized attributes are tested only on fully overwritten scratch.
 - Alternate odd-lane extraction, split accumulation chains, tile size, and leaf
   unrolling are measured against the same frozen h14 baseline.
+- Whole forward/inverse radix loops use explicit register allocation and paired
+  product scheduling. Large-stage ablations retain C++ for h=1/4. See
+  radix_asm_notes.md and inverse_asm_notes.md.
+- Forward twiddles stored as scalar or packed pairs may reduce live-vector
+  pressure (forward_notes.md); multiply instruction alternatives retain the
+  same Montgomery representation (multiply_notes.md).
 
 ## Contracts and verification
 
@@ -66,3 +72,8 @@ Run: `python3 work/ntt/h14_explore/run.py`; optional CHECK_ONLY=1, SANITIZE=1,
 RESULT_DIR=path, SELECT_VARIANTS=comma,separated,names. The v91 and h14 controls
 are always included. The three direct assembly leaf checks remain independent of
 selected benchmark entries. Binaries/generated translation units stay in build/.
+
+Early native results and retained unsuccessful experiments are recorded in
+[exploration005](../../../notes/explorations/005-h14.md). Assembly rewrites have
+not established a substantial speedup at2^20. Do not promote a variant from a
+single small timing difference or local translated execution.

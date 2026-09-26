@@ -48,12 +48,15 @@ from pairmul_transforms import transform as pairmul_transform,VARIANTS as pairmu
 from inverse_asm_transforms import transform as inverse_transform,VARIANTS as inverse_names
 from forward_transforms import transform as forward_transform,VARIANTS as forward_names
 from multiply_transforms import transform as multiply_transform,VARIANTS as multiply_names
+from karatsuba_transforms import transform as karatsuba_transform,VARIANTS as karatsuba_names
 for name in radix_names:configs[name]=('radix',name,'true,false,2,256,4,2,true')
 for name in pairmul_names:configs[name]=('pairmul',name,'true,false,2,256,4,2,true')
-for kind,names in [('inverse',inverse_names),('forward',forward_names),('multiply',multiply_names)]:
+for kind,names in [('inverse',inverse_names),('forward',forward_names),('multiply',multiply_names),('karatsuba',karatsuba_names)]:
     for name in names:configs[name]=(kind,name,'true,false,2,256,4,2,true')
 for name in ['asm_inverse_pair_large','asm_both_pair','asm_both_pair_large']:
     configs[name]=('inverse_combo',name,'true,false,2,256,4,2,true')
+for name in ['h14_mullo_fixed','h14_mullo_bottom']:
+    configs[name]=('multiply_combo',name,'true,false,2,256,4,2,true')
 for name in ['asm_radix4_serial_large','asm_radix4_pair_large','asm_radix4_pair_leaf','asm_radix4_pair_fixed','asm_radix4_pair_large_fixed']:
     configs[name]=('combo',name,'true,false,2,256,4,2,true')
 def combined(s,name):
@@ -72,6 +75,7 @@ def inverse_combined(s,name):
             s=s.replace(f'        radix4_{direction}_asm(f,h,t);\n        return;',f'        if(h>4){{radix4_{direction}_asm(f,h,t);return;}}')
     return s
 selected=set(os.environ.get('SELECT_VARIANTS','').split(','))-{''}
+assert selected<=set(configs),f'Unknown variants: {selected-set(configs)}'
 for p in out.glob('*.cpp'):p.unlink()
 for p in out.glob('*.o'):p.unlink()
 # Optional baseline controls use only own prior deliverable, never fast reference.
@@ -94,6 +98,10 @@ for name,(kind,opt,args) in configs.items():
     elif kind=='inverse_combo':s=inverse_combined(s,opt)
     elif kind=='forward':s=forward_transform(s,opt)
     elif kind=='multiply':s=multiply_transform(s,opt)
+    elif kind=='karatsuba':s=karatsuba_transform(s,opt)
+    elif kind=='multiply_combo':
+        s=multiply_transform(s,'h14_mont_mullo')
+        s=stage_transform(s,'h14_fixed_bottom' if opt.endswith('_bottom') else 'h14_fixed_tile')
     s=s.replace('#pragma once\n','').replace('namespace qpoly_h14_base {',f'namespace kernel_{name} {{')
     s+=f'\nnamespace {name} {{void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh){{kernel_{name}::Kernel<{args}>::run(n,a,b,r,ir,s,fresh);}}}}\n'
     (out/(name+'.cpp')).write_text(prolog+s);names.append(name)
@@ -102,11 +110,12 @@ if (here/'asm_transforms.py').exists():
     for name in asm_names:
         s=asm_transform(base,name).replace('#pragma once\n','').replace('namespace qpoly_h14_base {',f'namespace kernel_{name} {{')
         (checks/(name+'.cpp')).write_text(prolog+s)
-for name in ['asm_baseline',*radix_names,*inverse_names,*multiply_names]:
+for name in ['asm_baseline',*radix_names,*inverse_names,*multiply_names,*karatsuba_names]:
     s=base
     if name in radix_names:s=radix_transform(s,name)
     elif name in inverse_names:s=inverse_transform(s,name)
     elif name in multiply_names:s=multiply_transform(s,name)
+    elif name in karatsuba_names:s=karatsuba_transform(s,name)
     s=s.replace('#pragma once\n','').replace('namespace qpoly_h14_base {',f'namespace kernel_{name} {{')
     (checks/(name+'.cpp')).write_text(prolog+s)
 (out/'registry.hpp').write_text('\n'.join(f'namespace {n} {{void invoke(int,uint32_t*,uint32_t*,uint32_t*,uint32_t*,int&,bool);}}' for n in names)+'\ninline const Entry entries[]={\n'+''.join(f'{{"{n}",{n}::invoke}},\n' for n in names)+'};\n')
