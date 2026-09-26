@@ -1,0 +1,55 @@
+name: AVX2 benchmark smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/avx2-benchmark]
+    paths: [.github/workflows/avx2-benchmark.yml, kactl_bench.cpp]
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Runner sample ${{ matrix.sample }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record environment and require AVX2
+        run: |
+          mkdir -p results
+          {
+            uname -m
+            lscpu
+            g++ --version
+            git rev-parse HEAD
+            sha256sum kactl_bench.cpp
+          } > results/environment.txt
+          cat results/environment.txt
+          test "$(uname -m)" = x86_64
+          grep -qw avx2 /proc/cpuinfo
+      - name: Compile existing benchmark
+        run: g++ -std=c++23 -O3 -mavx2 kactl_bench.cpp -o /tmp/qpoly-benchmark
+      - name: Run three repetitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for repetition in 1 2 3; do
+            /tmp/qpoly-benchmark | tee "results/run-${repetition}.txt"
+            # The existing harness prints failures without returning an error.
+            ! grep -q FAIL "results/run-${repetition}.txt"
+            test "$(grep -c '^PASS:' "results/run-${repetition}.txt")" -eq 17
+            test "$(grep -c '^| 2\^' "results/run-${repetition}.txt")" -eq 11
+          done
+      - name: Save timings and environment
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: avx2-benchmark-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
