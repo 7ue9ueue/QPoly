@@ -1,0 +1,29 @@
+name: NTT lazy ranges and incremental twiddles
+on:
+  push:
+    branches: [codex/ntt-simd-explore]
+    paths: [work/ntt/lazy_twiddle/**, .github/workflows/ntt-lazy.yml]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment
+        run: |
+          mkdir -p results
+          { lscpu; g++ --version; git rev-parse HEAD; } | tee results/environment.txt
+      - name: Correctness then timings
+        run: bash work/ntt/lazy_twiddle/run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lazy-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
