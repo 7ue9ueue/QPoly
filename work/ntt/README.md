@@ -33,3 +33,11 @@ preferences. [atcoder_ntt_lowlevel_compare.cpp](atcoder_ntt_lowlevel_compare.cpp
 is the new single-file comparison, with the same empty-input / `20 9 2` interface.
 The previous file remains unchanged. The wide-product Shoup entry is retained as
 an unsuccessful comparison, not a recommended default kernel.
+
+The [h14 continuation](h14_explore/README.md) uses the user's AtCoder result as
+its baseline and tests38 further configurations. Packed Montgomery correction
+words plus fixed/bottom traversal produced a modest~2% measured gain on EPYC7763;
+whole-loop assembly and algorithmic alternatives are retained with their results.
+[atcoder_ntt_h14_compare.cpp](atcoder_ntt_h14_compare.cpp) is the new eight-entry
+standalone, printing CPU metadata and `speedup_vs_h14`. Use `20 10 0` or `20 10 2`.
+AtCoder/Intel validation of the final combination remains open.

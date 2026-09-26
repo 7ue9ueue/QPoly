@@ -73,7 +73,16 @@ RESULT_DIR=path, SELECT_VARIANTS=comma,separated,names. The v91 and h14 controls
 are always included. The three direct assembly leaf checks remain independent of
 selected benchmark entries. Binaries/generated translation units stay in build/.
 
-Early native results and retained unsuccessful experiments are recorded in
-[exploration005](../../../notes/explorations/005-h14.md). Assembly rewrites have
-not established a substantial speedup at2^20. Do not promote a variant from a
-single small timing difference or local translated execution.
+Final results and retained unsuccessful experiments are recorded in
+[exploration005](../../../notes/explorations/005-h14.md). Across38 new variants,
+the best final combination is `h14_mullo_bottom`, saving1.9–2.2% in three exact
+standalone AVX2-capped EPYC7763 jobs at2^20. AtCoder and final-combination Intel
+performance remain untested. Assembly rewrites alone did not establish a gain;
+the assembly/traversal combination saves about1%, and Karatsuba regresses.
+
+[atcoder_ntt_h14_compare.cpp](../atcoder_ntt_h14_compare.cpp) contains eight entries
+with h14 as speedup baseline and CPU metadata. Empty input or `20 10 0` measures
+fresh roots; `20 10 2` measures both modes. `make_atcoder.py` reproduces it;
+`verify_atcoder.py` validates the exact file in plain, native-ISA and capped
+profiles. All passed, including2^22, at tested source25a02b5. The Karatsuba entry
+is retained as an unsuccessful algorithmic comparison. Previous files are intact.

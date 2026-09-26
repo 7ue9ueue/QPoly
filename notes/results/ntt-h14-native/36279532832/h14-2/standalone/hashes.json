@@ -1,0 +1,8 @@
+{
+  "source": "8cc5cba4c8844a39583559e227ce37dd2a2ccda99227e4e9dda0b35ebd476eb6",
+  "binaries": {
+    "plain": "8283953f2abc71f53c18b8ee5ce8623b073f76f8cafd5188010e550ad9a073f2",
+    "atcoder_like_native": "d7dff6ba11e2b55050f003b71f386e8d77989c2ffb407eb39abf3c613df66ec4",
+    "avx2_capped": "8196ceb541f997e08b1f066f2343bddf291471f1f530ee231f9c4c421c553561"
+  }
+}

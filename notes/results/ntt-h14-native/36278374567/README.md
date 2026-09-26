@@ -1,0 +1,1 @@
+Setup-only failure at source a173e8880373866e08007b436e6903f8dc3a079b. Git refused checkout ownership inside the GCC container during revision metadata collection. No correctness or timing code ran. Fixed in407b79a using the supplied GITHUB_SHA. Run: https://github.com/7ue9ueue/QPoly/actions/runs/36278374567

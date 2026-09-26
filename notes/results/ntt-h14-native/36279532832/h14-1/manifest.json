@@ -1,0 +1,210 @@
+{
+  "variants": [
+    "v91",
+    "ll_inline_h14",
+    "h14_fixed_tile",
+    "h14_mont_mullo",
+    "h14_karatsuba_pair",
+    "h14_karatsuba_shared",
+    "h14_mullo_fixed",
+    "h14_mullo_bottom",
+    "asm_radix4_pair_large_fixed"
+  ],
+  "configurations": {
+    "ll_inline_h14": [
+      "own",
+      null,
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_noautozero": [
+      "own",
+      "h14_noautozero",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_oddshuffle": [
+      "own",
+      "h14_oddshuffle",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_splitacc": [
+      "own",
+      "h14_splitacc",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_splitacc_nozero": [
+      "own",
+      "h14_splitacc_nozero",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_leaf1": [
+      "own",
+      null,
+      "true,false,2,256,4,1,true"
+    ],
+    "h14_tile64": [
+      "own",
+      null,
+      "true,false,2,64,4,2,true"
+    ],
+    "h14_tile1024": [
+      "own",
+      null,
+      "true,false,2,1024,4,2,true"
+    ],
+    "asm_leaf_full": [
+      "asm",
+      "asm_leaf_full",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_leaf_pair": [
+      "asm",
+      "asm_leaf_pair",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_leaf_inplace": [
+      "asm",
+      "asm_leaf_inplace",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_fuse_bottom": [
+      "stage",
+      "h14_fuse_bottom",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_fuse_two": [
+      "stage",
+      "h14_fuse_two",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_fixed_tile": [
+      "stage",
+      "h14_fixed_tile",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_fixed_bottom": [
+      "stage",
+      "h14_fixed_bottom",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_pair_forward": [
+      "stage",
+      "h14_pair_forward",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_serial": [
+      "radix",
+      "asm_radix4_serial",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair": [
+      "radix",
+      "asm_radix4_pair",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_pairmul_small": [
+      "pairmul",
+      "h14_pairmul_small",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_pairmul_all": [
+      "pairmul",
+      "h14_pairmul_all",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_inverse_serial": [
+      "inverse",
+      "asm_inverse_serial",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_inverse_pair": [
+      "inverse",
+      "asm_inverse_pair",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_forward_scalar": [
+      "forward",
+      "h14_forward_scalar",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_forward_late": [
+      "forward",
+      "h14_forward_late",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_forward_packed": [
+      "forward",
+      "h14_forward_packed",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_mont_mullo": [
+      "multiply",
+      "h14_mont_mullo",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_mont_shiftmod": [
+      "multiply",
+      "h14_mont_shiftmod",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_karatsuba_pair": [
+      "karatsuba",
+      "h14_karatsuba_pair",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_karatsuba_shared": [
+      "karatsuba",
+      "h14_karatsuba_shared",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_inverse_pair_large": [
+      "inverse_combo",
+      "asm_inverse_pair_large",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_both_pair": [
+      "inverse_combo",
+      "asm_both_pair",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_both_pair_large": [
+      "inverse_combo",
+      "asm_both_pair_large",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_mullo_fixed": [
+      "multiply_combo",
+      "h14_mullo_fixed",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_mullo_bottom": [
+      "multiply_combo",
+      "h14_mullo_bottom",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_serial_large": [
+      "combo",
+      "asm_radix4_serial_large",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair_large": [
+      "combo",
+      "asm_radix4_pair_large",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair_leaf": [
+      "combo",
+      "asm_radix4_pair_leaf",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair_fixed": [
+      "combo",
+      "asm_radix4_pair_fixed",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair_large_fixed": [
+      "combo",
+      "asm_radix4_pair_large_fixed",
+      "true,false,2,256,4,2,true"
+    ]
+  }
+}

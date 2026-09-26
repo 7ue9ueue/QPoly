@@ -1,0 +1,6 @@
+sanitize	Environment and tools	2026-09-26T23:06:33.0332306Z fatal: detected dubious ownership in repository at '/__w/QPoly/QPoly'
+sanitize	Environment and tools	2026-09-26T23:06:33.0375148Z ##[error]Process completed with exit code 128.
+compare (2)	Environment and tools	2026-09-26T23:06:35.7074178Z fatal: detected dubious ownership in repository at '/__w/QPoly/QPoly'
+compare (2)	Environment and tools	2026-09-26T23:06:35.7109966Z ##[error]Process completed with exit code 128.
+compare (1)	Environment and tools	2026-09-26T23:06:30.9997497Z fatal: detected dubious ownership in repository at '/__w/QPoly/QPoly'
+compare (1)	Environment and tools	2026-09-26T23:06:31.0041547Z ##[error]Process completed with exit code 128.

@@ -1,0 +1,145 @@
+{
+  "variants": [
+    "v91",
+    "ll_inline_h14",
+    "asm_leaf_inplace",
+    "h14_fixed_tile",
+    "h14_fixed_bottom",
+    "asm_radix4_serial",
+    "asm_radix4_pair",
+    "h14_pairmul_small",
+    "h14_pairmul_all",
+    "asm_radix4_serial_large",
+    "asm_radix4_pair_large",
+    "asm_radix4_pair_leaf",
+    "asm_radix4_pair_fixed",
+    "asm_radix4_pair_large_fixed"
+  ],
+  "configurations": {
+    "ll_inline_h14": [
+      "own",
+      null,
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_noautozero": [
+      "own",
+      "h14_noautozero",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_oddshuffle": [
+      "own",
+      "h14_oddshuffle",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_splitacc": [
+      "own",
+      "h14_splitacc",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_splitacc_nozero": [
+      "own",
+      "h14_splitacc_nozero",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_leaf1": [
+      "own",
+      null,
+      "true,false,2,256,4,1,true"
+    ],
+    "h14_tile64": [
+      "own",
+      null,
+      "true,false,2,64,4,2,true"
+    ],
+    "h14_tile1024": [
+      "own",
+      null,
+      "true,false,2,1024,4,2,true"
+    ],
+    "asm_leaf_full": [
+      "asm",
+      "asm_leaf_full",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_leaf_pair": [
+      "asm",
+      "asm_leaf_pair",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_leaf_inplace": [
+      "asm",
+      "asm_leaf_inplace",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_fuse_bottom": [
+      "stage",
+      "h14_fuse_bottom",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_fuse_two": [
+      "stage",
+      "h14_fuse_two",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_fixed_tile": [
+      "stage",
+      "h14_fixed_tile",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_fixed_bottom": [
+      "stage",
+      "h14_fixed_bottom",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_pair_forward": [
+      "stage",
+      "h14_pair_forward",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_serial": [
+      "radix",
+      "asm_radix4_serial",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair": [
+      "radix",
+      "asm_radix4_pair",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_pairmul_small": [
+      "pairmul",
+      "h14_pairmul_small",
+      "true,false,2,256,4,2,true"
+    ],
+    "h14_pairmul_all": [
+      "pairmul",
+      "h14_pairmul_all",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_serial_large": [
+      "combo",
+      "asm_radix4_serial_large",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair_large": [
+      "combo",
+      "asm_radix4_pair_large",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair_leaf": [
+      "combo",
+      "asm_radix4_pair_leaf",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair_fixed": [
+      "combo",
+      "asm_radix4_pair_fixed",
+      "true,false,2,256,4,2,true"
+    ],
+    "asm_radix4_pair_large_fixed": [
+      "combo",
+      "asm_radix4_pair_large_fixed",
+      "true,false,2,256,4,2,true"
+    ]
+  }
+}

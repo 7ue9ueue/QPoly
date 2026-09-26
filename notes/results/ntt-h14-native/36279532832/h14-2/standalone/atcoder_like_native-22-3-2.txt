@@ -1,0 +1,204 @@
+QPoly NTT comparison / modulus 998244353 / cyclic convolution
+Compiler: 15.2.0
+max_log2=22 repetitions=3 mode=2
+Heap allocation and input copies excluded. Full convolution timed.
+fresh regenerates size-dependent roots; reuse primes each implementation. Fixed constexpr metadata is never timed.
+CPU: AMD EPYC 7763 64-Core Processor                
+CPU feature bits: avx2=1 bmi1=1 avx512f=0
+Suite: h14-20260927. Comparison baseline: ll_inline_h14; instruction sources use AVX2/BMI.
+PASS 2^6 all implementations
+PASS 2^7 all implementations
+PASS 2^8 all implementations
+PASS 2^9 all implementations
+PASS 2^10 all implementations
+PASS 2^11 all implementations
+PASS 2^12 all implementations
+PASS 2^13 all implementations
+PASS 2^14 all implementations
+PASS 2^15 all implementations
+PASS 2^16 all implementations
+PASS 2^17 all implementations
+PASS 2^18 all implementations
+PASS 2^19 all implementations
+PASS 2^20 all implementations
+PASS 2^21 all implementations
+PASS 2^22 all implementations
+PASS maximum coefficients, wraparound, and changing sizes
+mode,log2,implementation,median_ms,min_ms,max_ms,speedup_vs_h14
+fresh,12,ll_inline_h14,0.0157,0.0156,0.0158,1.0000
+fresh,12,v91,0.0288,0.0288,0.0289,0.5443
+fresh,12,h14_fixed_tile,0.0156,0.0155,0.0156,1.0045
+fresh,12,asm_radix4_pair_large_fixed,0.0154,0.0153,0.0156,1.0195
+fresh,12,h14_mont_mullo,0.0156,0.0154,0.0156,1.0071
+fresh,12,h14_mullo_fixed,0.0156,0.0154,0.0158,1.0077
+fresh,12,h14_mullo_bottom,0.0153,0.0153,0.0156,1.0242
+fresh,12,h14_karatsuba_shared,0.0266,0.0265,0.0292,0.5892
+reuse,12,ll_inline_h14,0.0154,0.0154,0.0155,1.0000
+reuse,12,v91,0.0287,0.0287,0.0287,0.5370
+reuse,12,h14_fixed_tile,0.0152,0.0152,0.0153,1.0131
+reuse,12,asm_radix4_pair_large_fixed,0.0152,0.0152,0.0152,1.0158
+reuse,12,h14_mont_mullo,0.0152,0.0152,0.0153,1.0152
+reuse,12,h14_mullo_fixed,0.0152,0.0152,0.0152,1.0152
+reuse,12,h14_mullo_bottom,0.0150,0.0150,0.0151,1.0253
+reuse,12,h14_karatsuba_shared,0.0263,0.0263,0.0263,0.5858
+fresh,13,ll_inline_h14,0.0330,0.0330,0.0331,1.0000
+fresh,13,v91,0.0583,0.0581,0.0583,0.5666
+fresh,13,h14_fixed_tile,0.0330,0.0329,0.0332,1.0019
+fresh,13,asm_radix4_pair_large_fixed,0.0328,0.0326,0.0328,1.0061
+fresh,13,h14_mont_mullo,0.0330,0.0329,0.0330,1.0025
+fresh,13,h14_mullo_fixed,0.0327,0.0327,0.0328,1.0098
+fresh,13,h14_mullo_bottom,0.0325,0.0324,0.0326,1.0176
+fresh,13,h14_karatsuba_shared,0.0552,0.0552,0.0552,0.5986
+reuse,13,ll_inline_h14,0.0326,0.0326,0.0327,1.0000
+reuse,13,v91,0.0580,0.0579,0.0580,0.5628
+reuse,13,h14_fixed_tile,0.0326,0.0326,0.0328,1.0006
+reuse,13,asm_radix4_pair_large_fixed,0.0324,0.0323,0.0324,1.0084
+reuse,13,h14_mont_mullo,0.0326,0.0325,0.0326,1.0025
+reuse,13,h14_mullo_fixed,0.0324,0.0324,0.0325,1.0068
+reuse,13,h14_mullo_bottom,0.0323,0.0322,0.0324,1.0093
+reuse,13,h14_karatsuba_shared,0.0550,0.0548,0.0550,0.5940
+fresh,14,ll_inline_h14,0.0714,0.0712,0.0714,1.0000
+fresh,14,v91,0.1297,0.1192,0.1304,0.5502
+fresh,14,h14_fixed_tile,0.0711,0.0711,0.0712,1.0032
+fresh,14,asm_radix4_pair_large_fixed,0.0707,0.0706,0.0812,1.0101
+fresh,14,h14_mont_mullo,0.0708,0.0707,0.0709,1.0081
+fresh,14,h14_mullo_fixed,0.0707,0.0704,0.0708,1.0099
+fresh,14,h14_mullo_bottom,0.0703,0.0700,0.0703,1.0157
+fresh,14,h14_karatsuba_shared,0.1156,0.1155,0.1158,0.6174
+reuse,14,ll_inline_h14,0.0705,0.0705,0.0706,1.0000
+reuse,14,v91,0.1189,0.1189,0.1191,0.5932
+reuse,14,h14_fixed_tile,0.0703,0.0700,0.0704,1.0028
+reuse,14,asm_radix4_pair_large_fixed,0.0701,0.0698,0.0708,1.0063
+reuse,14,h14_mont_mullo,0.0702,0.0700,0.0705,1.0054
+reuse,14,h14_mullo_fixed,0.0700,0.0698,0.0800,1.0084
+reuse,14,h14_mullo_bottom,0.0696,0.0695,0.0697,1.0134
+reuse,14,h14_karatsuba_shared,0.1151,0.1150,0.1254,0.6131
+fresh,15,ll_inline_h14,0.1624,0.1525,0.1634,1.0000
+fresh,15,v91,0.2527,0.2472,0.2727,0.6427
+fresh,15,h14_fixed_tile,0.1499,0.1498,0.1501,1.0838
+fresh,15,asm_radix4_pair_large_fixed,0.1510,0.1506,0.1607,1.0755
+fresh,15,h14_mont_mullo,0.1502,0.1500,0.1503,1.0817
+fresh,15,h14_mullo_fixed,0.1491,0.1487,0.1707,1.0893
+fresh,15,h14_mullo_bottom,0.1507,0.1478,0.1508,1.0778
+fresh,15,h14_karatsuba_shared,0.2403,0.2403,0.2404,0.6759
+reuse,15,ll_inline_h14,0.1514,0.1513,0.1517,1.0000
+reuse,15,v91,0.2468,0.2466,0.2470,0.6136
+reuse,15,h14_fixed_tile,0.1491,0.1489,0.1492,1.0154
+reuse,15,asm_radix4_pair_large_fixed,0.1502,0.1498,0.1605,1.0083
+reuse,15,h14_mont_mullo,0.1492,0.1492,0.1501,1.0147
+reuse,15,h14_mullo_fixed,0.1481,0.1480,0.1490,1.0223
+reuse,15,h14_mullo_bottom,0.1473,0.1471,0.1479,1.0284
+reuse,15,h14_karatsuba_shared,0.2494,0.2394,0.2518,0.6071
+fresh,16,ll_inline_h14,0.3260,0.3258,0.3367,1.0000
+fresh,16,v91,0.5114,0.5109,0.5227,0.6374
+fresh,16,h14_fixed_tile,0.3218,0.3215,0.3323,1.0131
+fresh,16,asm_radix4_pair_large_fixed,0.3329,0.3257,0.3343,0.9792
+fresh,16,h14_mont_mullo,0.3210,0.3209,0.3213,1.0154
+fresh,16,h14_mullo_fixed,0.3189,0.3188,0.3201,1.0222
+fresh,16,h14_mullo_bottom,0.3178,0.3168,0.3280,1.0256
+fresh,16,h14_karatsuba_shared,0.5060,0.5033,0.5135,0.6442
+reuse,16,ll_inline_h14,0.3251,0.3250,0.3353,1.0000
+reuse,16,v91,0.5220,0.5135,0.5262,0.6227
+reuse,16,h14_fixed_tile,0.3201,0.3199,0.3550,1.0154
+reuse,16,asm_radix4_pair_large_fixed,0.3245,0.3210,0.3317,1.0016
+reuse,16,h14_mont_mullo,0.3197,0.3197,0.3301,1.0169
+reuse,16,h14_mullo_fixed,0.3179,0.3174,0.3282,1.0225
+reuse,16,h14_mullo_bottom,0.3155,0.3150,0.3201,1.0304
+reuse,16,h14_karatsuba_shared,0.5023,0.5014,0.5125,0.6472
+fresh,17,ll_inline_h14,0.6943,0.6937,0.7039,1.0000
+fresh,17,v91,1.0944,1.0910,1.0966,0.6344
+fresh,17,h14_fixed_tile,0.6829,0.6822,0.7237,1.0168
+fresh,17,asm_radix4_pair_large_fixed,0.6892,0.6879,0.6988,1.0074
+fresh,17,h14_mont_mullo,0.6870,0.6769,0.6884,1.0106
+fresh,17,h14_mullo_fixed,0.6865,0.6765,0.6885,1.0114
+fresh,17,h14_mullo_bottom,0.6838,0.6816,0.6856,1.0155
+fresh,17,h14_karatsuba_shared,1.0518,1.0515,1.0521,0.6602
+reuse,17,ll_inline_h14,0.6848,0.6806,0.7008,1.0000
+reuse,17,v91,1.1030,1.1016,1.1095,0.6209
+reuse,17,h14_fixed_tile,0.6915,0.6805,0.7018,0.9903
+reuse,17,asm_radix4_pair_large_fixed,0.6870,0.6869,0.6879,0.9968
+reuse,17,h14_mont_mullo,0.6942,0.6742,0.6987,0.9864
+reuse,17,h14_mullo_fixed,0.6881,0.6847,0.7117,0.9951
+reuse,17,h14_mullo_bottom,0.6902,0.6819,0.7093,0.9921
+reuse,17,h14_karatsuba_shared,1.0531,1.0491,1.0534,0.6502
+fresh,18,ll_inline_h14,1.4968,1.4921,1.5022,1.0000
+fresh,18,v91,2.2880,2.2829,2.2967,0.6542
+fresh,18,h14_fixed_tile,1.4875,1.4864,1.5048,1.0062
+fresh,18,asm_radix4_pair_large_fixed,1.4843,1.4750,1.4869,1.0084
+fresh,18,h14_mont_mullo,1.4828,1.4712,1.4828,1.0095
+fresh,18,h14_mullo_fixed,1.4889,1.4752,1.4890,1.0053
+fresh,18,h14_mullo_bottom,1.4643,1.4614,1.4645,1.0222
+fresh,18,h14_karatsuba_shared,2.2141,2.2140,2.2276,0.6760
+reuse,18,ll_inline_h14,1.4952,1.4831,1.5108,1.0000
+reuse,18,v91,2.3039,2.2953,2.3113,0.6490
+reuse,18,h14_fixed_tile,1.4908,1.4818,1.4911,1.0029
+reuse,18,asm_radix4_pair_large_fixed,1.4693,1.4690,1.4706,1.0176
+reuse,18,h14_mont_mullo,1.4777,1.4663,1.4790,1.0118
+reuse,18,h14_mullo_fixed,1.4658,1.4650,1.4749,1.0200
+reuse,18,h14_mullo_bottom,1.4577,1.4563,1.4595,1.0257
+reuse,18,h14_karatsuba_shared,2.2071,2.2056,2.2560,0.6774
+fresh,19,ll_inline_h14,3.1188,3.1119,3.1244,1.0000
+fresh,19,v91,4.7959,4.7920,4.8002,0.6503
+fresh,19,h14_fixed_tile,3.0809,3.0697,3.0847,1.0123
+fresh,19,asm_radix4_pair_large_fixed,3.0765,3.0746,3.0778,1.0137
+fresh,19,h14_mont_mullo,3.0557,3.0529,3.0616,1.0206
+fresh,19,h14_mullo_fixed,3.0466,3.0457,3.0517,1.0237
+fresh,19,h14_mullo_bottom,3.0202,3.0166,3.0321,1.0326
+fresh,19,h14_karatsuba_shared,4.5470,4.5413,4.5552,0.6859
+reuse,19,ll_inline_h14,3.0957,3.0954,3.1446,1.0000
+reuse,19,v91,4.7909,4.7647,4.8268,0.6462
+reuse,19,h14_fixed_tile,3.0588,3.0546,3.0638,1.0121
+reuse,19,asm_radix4_pair_large_fixed,3.0596,3.0572,3.1418,1.0118
+reuse,19,h14_mont_mullo,3.0484,3.0421,3.0528,1.0155
+reuse,19,h14_mullo_fixed,3.0281,3.0244,3.0288,1.0223
+reuse,19,h14_mullo_bottom,3.0040,3.0031,3.0448,1.0305
+reuse,19,h14_karatsuba_shared,4.5279,4.5192,4.5338,0.6837
+fresh,20,ll_inline_h14,6.5976,6.5902,6.6048,1.0000
+fresh,20,v91,9.8817,9.8246,9.9282,0.6677
+fresh,20,h14_fixed_tile,6.5235,6.5173,6.5324,1.0114
+fresh,20,asm_radix4_pair_large_fixed,6.5247,6.5130,6.5337,1.0112
+fresh,20,h14_mont_mullo,6.4776,6.4770,6.4978,1.0185
+fresh,20,h14_mullo_fixed,6.4816,6.4594,6.5004,1.0179
+fresh,20,h14_mullo_bottom,6.4248,6.4067,6.4255,1.0269
+fresh,20,h14_karatsuba_shared,9.4640,9.4473,9.4872,0.6971
+reuse,20,ll_inline_h14,6.5811,6.5695,6.5823,1.0000
+reuse,20,v91,9.8469,9.7930,9.8569,0.6683
+reuse,20,h14_fixed_tile,6.4901,6.4875,6.5589,1.0140
+reuse,20,asm_radix4_pair_large_fixed,6.5346,6.5345,6.5354,1.0071
+reuse,20,h14_mont_mullo,6.4466,6.4435,6.5351,1.0209
+reuse,20,h14_mullo_fixed,6.4327,6.4246,6.4701,1.0231
+reuse,20,h14_mullo_bottom,6.3847,6.3760,6.3964,1.0308
+reuse,20,h14_karatsuba_shared,9.4292,9.4269,9.4569,0.6979
+fresh,21,ll_inline_h14,13.7486,13.6629,13.7753,1.0000
+fresh,21,v91,21.0885,20.5992,21.1995,0.6519
+fresh,21,h14_fixed_tile,13.7089,13.6573,13.7282,1.0029
+fresh,21,asm_radix4_pair_large_fixed,13.5657,13.5437,13.5877,1.0135
+fresh,21,h14_mont_mullo,13.5123,13.5031,13.5613,1.0175
+fresh,21,h14_mullo_fixed,13.5360,13.5102,13.5379,1.0157
+fresh,21,h14_mullo_bottom,13.4372,13.4299,13.5498,1.0232
+fresh,21,h14_karatsuba_shared,19.4977,19.4907,19.4980,0.7051
+reuse,21,ll_inline_h14,13.6652,13.6574,13.6957,1.0000
+reuse,21,v91,20.7437,20.7262,21.1081,0.6588
+reuse,21,h14_fixed_tile,13.6449,13.6224,13.7138,1.0015
+reuse,21,asm_radix4_pair_large_fixed,13.5331,13.5098,13.5519,1.0098
+reuse,21,h14_mont_mullo,13.5044,13.4928,13.5372,1.0119
+reuse,21,h14_mullo_fixed,13.4454,13.4258,13.4911,1.0163
+reuse,21,h14_mullo_bottom,13.3643,13.3561,13.4640,1.0225
+reuse,21,h14_karatsuba_shared,19.4408,19.4184,19.4685,0.7029
+fresh,22,ll_inline_h14,29.4532,29.3877,29.4717,1.0000
+fresh,22,v91,44.0691,43.5225,44.0983,0.6683
+fresh,22,h14_fixed_tile,29.2356,29.0794,29.3638,1.0074
+fresh,22,asm_radix4_pair_large_fixed,29.0901,29.0531,29.1130,1.0125
+fresh,22,h14_mont_mullo,28.9471,28.7890,28.9650,1.0175
+fresh,22,h14_mullo_fixed,28.9428,28.7768,29.0927,1.0176
+fresh,22,h14_mullo_bottom,28.6837,28.6559,28.7335,1.0268
+fresh,22,h14_karatsuba_shared,40.9725,40.9361,41.0323,0.7189
+reuse,22,ll_inline_h14,29.0445,28.9929,29.0725,1.0000
+reuse,22,v91,43.5064,43.4636,44.0027,0.6676
+reuse,22,h14_fixed_tile,28.9483,28.9205,34.5410,1.0033
+reuse,22,asm_radix4_pair_large_fixed,28.7758,28.7309,28.8031,1.0093
+reuse,22,h14_mont_mullo,28.7755,28.5268,28.8759,1.0093
+reuse,22,h14_mullo_fixed,28.6210,28.5342,28.7352,1.0148
+reuse,22,h14_mullo_bottom,28.4093,28.3514,28.4601,1.0224
+reuse,22,h14_karatsuba_shared,40.6015,40.5010,40.6017,0.7154
+ALL CHECKS PASSED checksum=18094894233420999337

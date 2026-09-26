@@ -1,0 +1,1 @@
+g++ -std=c++17 -O2 work/ntt/atcoder_ntt_h14_compare.cpp -o build/h14_standalone/plain
