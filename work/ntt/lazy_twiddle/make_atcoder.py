@@ -34,7 +34,11 @@ result='''// Paste this entire file into an AtCoder C++17-or-later Custom Test.
 #endif
 '''
 result+='namespace v91 {\n'+base+'}\n'+previous+'\n'+strip((here/'kernel.hpp').read_text())
-selected={'lazy_leaf_incremental':(True,False,2,256),'lazy_hybrid_counted':(True,False,2,256,4,1)}
+selected={
+    'lazy_inc_counted':(True,False,1,256,4,1),
+    'lazy_inc_fused':(True,False,1,256,4,1,True),
+    'lazy_hybrid_fused':(True,False,2,256,4,2,True),
+}
 for name,args in selected.items():
     params=','.join(str(x).lower() for x in args)
     result+=f'\nnamespace {name} {{ void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {{qpoly_lazy::Kernel<{params}>::run(n,a,b,r,ir,s,fresh);}} }}\n'

@@ -32,6 +32,8 @@ configs={
     'lazy_inc_counted': (True,False,1,256,4,1),
     'lazy_inc_unroll2': (True,False,1,256,4,2),
     'lazy_hybrid_counted2': (True,False,2,256,2,1),
+    'lazy_inc_fused': (True,False,1,256,4,1,True),
+    'lazy_hybrid_fused': (True,False,2,256,4,2,True),
 }
 for name,args in configs.items():
     params=','.join(str(x).lower() for x in args)

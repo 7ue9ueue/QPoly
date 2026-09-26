@@ -1099,6 +1099,8 @@ void invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint32_t* ir, int& rs,
 namespace qpoly_lazy {
 using U=uint32_t; using W=uint64_t; using V=__m256i;
 constexpr U P=998244353, P2=2*P, NI=998244351, R2=932051910;
+static_assert(W(4)*P < (W(1)<<32));
+static_assert(W(8)*(P-1)*(P-1) < UINT64_MAX-W(UINT32_MAX)*P);
 constexpr U muls(U a,U b) {
     W x=W(a)*b; U c=U(x)*NI; U z=(x+W(c)*P)>>32;
     return z>=P?z-P:z;
@@ -1261,7 +1263,7 @@ inline void leaf(V* a,V* b,const U* weights) {
 
 // RootMode=0: O(N) root tables. RootMode=1: packed incremental per-stage cursors,
 // and a scalar cursor for batches of four leaf factors. Tile is in AVX2 vectors.
-template<bool Lazy,bool Twist,int RootMode,int Tile,int LeafBatch=4,int LeafSchedule=0>
+template<bool Lazy,bool Twist,int RootMode,int Tile,int LeafBatch=4,int LeafSchedule=0,bool FuseTop=false>
 struct Kernel {
     U *rt,*irt;
     V forward[12],inverse[12]; U leaf_cursor=ONE;
@@ -1347,7 +1349,13 @@ struct Kernel {
                 x=b[i];y=b[i+h];b[i]=low(plus(x,y));b[i+h]=low(diff(x,y));
             }
             job.visit(a,b,h,0);job.visit(a+h,b+h,h,1);
-            for(int i=0;i<h;++i) {V x=a[i],y=a[i+h];a[i]=low(plus(x,y));a[i+h]=low(diff(x,y));}
+            if constexpr(FuseTop) {
+                // The final sums/differences are <4P, acceptable to canonical scale.
+                // This also removes both reduce2 operations and the normalization pass.
+                Fixed scale(mont(mont(power(nv,P-2))));
+                for(int i=0;i<h;++i) {V x=a[i],y=a[i+h];a[i]=shrink(scale(plus(x,y)),P);a[i+h]=shrink(scale(diff(x,y)),P);}
+                return;
+            } else for(int i=0;i<h;++i) {V x=a[i],y=a[i+h];a[i]=low(plus(x,y));a[i+h]=low(diff(x,y));}
         } else job.visit(a,b,nv,0);
         Fixed scale(mont(mont(power(nv,P-2))));
         for(int i=0;i<nv;++i)a[i]=shrink(scale(a[i]),P);
@@ -1355,15 +1363,18 @@ struct Kernel {
 };
 }
 
-namespace lazy_leaf_incremental { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,2,256>::run(n,a,b,r,ir,s,fresh);} }
+namespace lazy_inc_counted { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,1,256,4,1>::run(n,a,b,r,ir,s,fresh);} }
 
-namespace lazy_hybrid_counted { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,2,256,4,1>::run(n,a,b,r,ir,s,fresh);} }
+namespace lazy_inc_fused { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,1,256,4,1,true>::run(n,a,b,r,ir,s,fresh);} }
+
+namespace lazy_hybrid_fused { void invoke(int n,uint32_t*a,uint32_t*b,uint32_t*r,uint32_t*ir,int&s,bool fresh) {qpoly_lazy::Kernel<true,false,2,256,4,2,true>::run(n,a,b,r,ir,s,fresh);} }
 
 const Entry entries[] = {
 {"v91",v91::invoke},
 {"direct8_identity",direct8_identity::invoke},
-{"lazy_leaf_incremental",lazy_leaf_incremental::invoke},
-{"lazy_hybrid_counted",lazy_hybrid_counted::invoke},
+{"lazy_inc_counted",lazy_inc_counted::invoke},
+{"lazy_inc_fused",lazy_inc_fused::invoke},
+{"lazy_hybrid_fused",lazy_hybrid_fused::invoke},
 };
 // Self-contained comparison driver. No problem input/output is required.
 // Empty stdin: max_log2=20, repetitions=5, mode=0 (fresh).
