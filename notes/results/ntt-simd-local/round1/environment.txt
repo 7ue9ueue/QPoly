@@ -1,0 +1,12 @@
+Darwin Shangtongs-MacBook-Air.local 25.2.0 Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:34 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T8112 arm64
+ProductName:		macOS
+ProductVersion:		26.2
+BuildVersion:		25C56
+Apple clang version 17.0.0 (clang-1700.6.3.2)
+Target: arm64-apple-darwin25.2.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+31ba0a6c6e65e164a9c145e8c73d9f9ba67cfd36
+
+Hardware: Apple M2 MacBook Air, 8 cores (4 performance / 4 efficiency).
+Execution: x86_64 Mach-O via Rosetta; AVX2 probe passed.

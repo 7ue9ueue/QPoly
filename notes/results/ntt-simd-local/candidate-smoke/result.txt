@@ -1,0 +1,1 @@
+PASS frozen candidates: canonical output, exact N/8 root buffers, fresh/reuse, random brute-force and large maxima

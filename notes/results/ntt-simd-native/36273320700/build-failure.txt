@@ -1,0 +1,58 @@
+compare (2)	Correctness then timing	﻿2026-09-26T21:33:08.3644634Z ##[group]Run bash work/ntt/simd_explore/run.sh
+compare (2)	Correctness then timing	2026-09-26T21:33:08.3645367Z ^[[36;1mbash work/ntt/simd_explore/run.sh^[[0m
+compare (2)	Correctness then timing	2026-09-26T21:33:08.3680386Z shell: /usr/bin/bash -e {0}
+compare (2)	Correctness then timing	2026-09-26T21:33:08.3680971Z ##[endgroup]
+compare (2)	Correctness then timing	2026-09-26T21:33:08.4034614Z cp/ntt_ver0.91.cpp a2e33cea3a4ef2115c860023647b2ac362ed72af7913fe3f28c5eec4449b511d
+compare (2)	Correctness then timing	2026-09-26T21:33:08.4035897Z kactl_bench.cpp c604a57aaa97fb30257eb9098695670abd0d1c0bcf527f78d0e60ce7e400bc7f
+compare (2)	Correctness then timing	2026-09-26T21:33:08.4037041Z study/fast_ntt_v2.cpp e7ff3a76339ffd3bc36c58f14ad9bcbca43c8392561e40a9b6a37fed15137e24
+compare (2)	Correctness then timing	2026-09-26T21:33:08.4038292Z study/fast_ntt_v3.cpp b8d027880c6ec7a8682b2b4dc0669048b7a2f61fe30572d20d21573c1d072063
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0397118Z build/simd_explore/study_v2.cpp: In function ‘auto study_v2::lalloc(idt)’:
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0400246Z build/simd_explore/study_v2.cpp:140:37: error: ‘PROT_READ’ was not declared in this scope
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0401397Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0402560Z       |                                     ^~~~~~~~~
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0476068Z build/simd_explore/study_v2.cpp:140:47: error: ‘PROT_WRITE’ was not declared in this scope
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0478201Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0565836Z       |                                               ^~~~~~~~~~
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0567574Z build/simd_explore/study_v2.cpp:140:58: error: ‘MAP_PRIVATE’ was not declared in this scope
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0569352Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0570232Z       |                                                          ^~~~~~~~~~~
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0667102Z build/simd_explore/study_v2.cpp:140:70: error: ‘MAP_ANONYMOUS’ was not declared in this scope
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0669314Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0670723Z       |                                                                      ^~~~~~~~~~~~~
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0672333Z build/simd_explore/study_v2.cpp:140:18: error: there are no arguments to ‘mmap’ that depend on a template parameter, so a declaration of ‘mmap’ must be available [-fpermissive]
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0673868Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0674663Z       |                  ^~~~
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0676017Z build/simd_explore/study_v2.cpp:140:18: note: (if you use ‘-fpermissive’, G++ will accept your code, but allowing the use of an undeclared name is deprecated)
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0794507Z build/simd_explore/study_v2.cpp:141:27: error: ‘MADV_POPULATE_WRITE’ was not declared in this scope
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0795507Z   141 |         madvise(raw,bytes,MADV_POPULATE_WRITE);
+compare (2)	Correctness then timing	2026-09-26T21:33:20.0796807Z       |                           ^~~~~~~~~~~~~~~~~~~
+compare (2)	Correctness then timing	2026-09-26T21:33:20.3092746Z ##[error]Process completed with exit code 1.
+compare (1)	Correctness then timing	﻿2026-09-26T21:33:09.1448396Z ##[group]Run bash work/ntt/simd_explore/run.sh
+compare (1)	Correctness then timing	2026-09-26T21:33:09.1450058Z ^[[36;1mbash work/ntt/simd_explore/run.sh^[[0m
+compare (1)	Correctness then timing	2026-09-26T21:33:09.1489311Z shell: /usr/bin/bash -e {0}
+compare (1)	Correctness then timing	2026-09-26T21:33:09.1490667Z ##[endgroup]
+compare (1)	Correctness then timing	2026-09-26T21:33:09.1858195Z cp/ntt_ver0.91.cpp a2e33cea3a4ef2115c860023647b2ac362ed72af7913fe3f28c5eec4449b511d
+compare (1)	Correctness then timing	2026-09-26T21:33:09.1861438Z kactl_bench.cpp c604a57aaa97fb30257eb9098695670abd0d1c0bcf527f78d0e60ce7e400bc7f
+compare (1)	Correctness then timing	2026-09-26T21:33:09.1864185Z study/fast_ntt_v2.cpp e7ff3a76339ffd3bc36c58f14ad9bcbca43c8392561e40a9b6a37fed15137e24
+compare (1)	Correctness then timing	2026-09-26T21:33:09.1866815Z study/fast_ntt_v3.cpp b8d027880c6ec7a8682b2b4dc0669048b7a2f61fe30572d20d21573c1d072063
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4221729Z build/simd_explore/study_v2.cpp: In function ‘auto study_v2::lalloc(idt)’:
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4223036Z build/simd_explore/study_v2.cpp:140:37: error: ‘PROT_READ’ was not declared in this scope
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4223838Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4224698Z       |                                     ^~~~~~~~~
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4297972Z build/simd_explore/study_v2.cpp:140:47: error: ‘PROT_WRITE’ was not declared in this scope
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4298769Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4299512Z       |                                               ^~~~~~~~~~
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4387343Z build/simd_explore/study_v2.cpp:140:58: error: ‘MAP_PRIVATE’ was not declared in this scope
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4388346Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4389075Z       |                                                          ^~~~~~~~~~~
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4487457Z build/simd_explore/study_v2.cpp:140:70: error: ‘MAP_ANONYMOUS’ was not declared in this scope
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4488319Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4489115Z       |                                                                      ^~~~~~~~~~~~~
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4494485Z build/simd_explore/study_v2.cpp:140:18: error: there are no arguments to ‘mmap’ that depend on a template parameter, so a declaration of ‘mmap’ must be available [-fpermissive]
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4495551Z   140 |         auto raw=mmap(nullptr,bytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4496142Z       |                  ^~~~
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4497325Z build/simd_explore/study_v2.cpp:140:18: note: (if you use ‘-fpermissive’, G++ will accept your code, but allowing the use of an undeclared name is deprecated)
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4615019Z build/simd_explore/study_v2.cpp:141:27: error: ‘MADV_POPULATE_WRITE’ was not declared in this scope
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4615924Z   141 |         madvise(raw,bytes,MADV_POPULATE_WRITE);
+compare (1)	Correctness then timing	2026-09-26T21:33:20.4616472Z       |                           ^~~~~~~~~~~~~~~~~~~
+compare (1)	Correctness then timing	2026-09-26T21:33:20.6799354Z ##[error]Process completed with exit code 1.

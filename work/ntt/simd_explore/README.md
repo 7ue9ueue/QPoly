@@ -40,6 +40,9 @@ ordering work for registers/cache. These are inspiration, not NTT timing evidenc
 | trivial_top | Halfroots plus omit identity multiply in the outer radix-2 stage |
 | recursive | Halfroots plus paired recursive radix-4 forward/product/inverse traversal |
 | recursive_direct8 | Pair the cache-local traversal with four direct leaf products |
+| direct8_identity | Batch-4 direct products plus radix-4 identity specialization |
+| recursive_identity | Recursive direct products plus radix-4 identity specialization |
+| recursive_identity2 | Additionally remove the top radix-2 identity multiplies |
 | direct8_b1 | Trivial_top plus stop at 8 coefficients and directly multiply modulo x^8-w |
 | direct8_b4 | Same leaf arithmetic, interleave four independent products |
 | study_v2 | Existing fast reference, 64-vector traversal block |
@@ -107,3 +110,17 @@ Any mismatch exits nonzero. Unsupported moduli, aliasing, noncanonical inputs,
 misalignment, and N>2^22 are not validated by this harness.
 
 See `notes/explorations/002-simd-optimization.md` for measured results and decisions.
+
+## Usable candidate sources
+
+`candidates/direct8_identity.cpp` and `candidates/recursive_identity2.cpp` are frozen
+copies of the exact generated kernels tested at commit `7722004`; source hashes
+were verified against native artifacts before freezing (only the include path and
+a provenance comment differ). Link one or both with your driver and include
+`candidates/api.hpp`. The first is the conservative ~7.8–8.0 ms candidate at 2^20
+on the tested AMD runners. The second is useful for cache traversal experiments
+and larger sizes; its extra radix-2 specialization had mixed 2^20 results.
+
+Compile with the same C++23, O3, AVX2/BMI and unroll flags as the benchmark.
+These are experimental low-level interfaces with explicit caller-owned scratch,
+not a replacement of the historical sources or a new public polynomial API.

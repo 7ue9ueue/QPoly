@@ -13,6 +13,9 @@ for file in sys.argv[1:]:
         groups[key].append(float(row['microseconds']))
         checksums[key[:2]].add(row['checksum'])
     assert all(len(v)==1 for v in checksums.values()), 'Benchmark output checksum mismatch'
+    assert all(len(v)==9 for v in groups.values()), 'Incomplete timing repetitions'
+    variants={key[2] for key in groups}
+    assert len(groups)==len(variants)*7*2, 'Incomplete size/mode coverage'
     print('\nSource:',file)
     print('log2,mode,variant,n,median_ms,min_ms,max_ms,speedup_vs_kactl_simd')
     for (lg,mode,name), values in sorted(groups.items()):
