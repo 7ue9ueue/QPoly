@@ -1,0 +1,59 @@
+name: NTT h14 target exploration
+on:
+  push:
+    branches: [codex/ntt-simd-explore]
+    paths: [work/ntt/h14_explore/**, work/ntt/atcoder_ntt_h14_compare.cpp, .github/workflows/ntt-h14.yml]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment and tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq python3 binutils time
+          mkdir -p results
+          { lscpu; g++ --version; git rev-parse HEAD; cat /etc/os-release; } > results/environment.txt
+          test "$(g++ -dumpfullversion)" = 15.2.0
+          echo 'gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289' > results/container.txt
+      - name: Correctness and timing
+        run: python3 work/ntt/h14_explore/run.py
+      - name: Assembly
+        run: |
+          for name in ll_inline_h14 h14_noautozero asm_leaf_full asm_leaf_inplace h14_fixed_tile h14_fuse_two; do
+            objdump -d -Mintel build/h14_explore/$name.o > results/$name-assembly.txt
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h14-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
+  sanitize:
+    runs-on: ubuntu-24.04
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment and tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq python3 time
+          mkdir -p results
+          { lscpu; g++ --version; git rev-parse HEAD; } > results/environment.txt
+      - name: Sanitizers
+        run: SANITIZE=1 python3 work/ntt/h14_explore/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h14-sanitize
+          path: results/
+          retention-days: 7
