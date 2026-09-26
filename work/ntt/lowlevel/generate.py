@@ -2,6 +2,7 @@
 """Focused source transformations of our frozen 329dd66 kernel. No reference copying."""
 from pathlib import Path
 import subprocess,sys,hashlib,json
+from extra_transforms import specialize_small,prepack,asm_pair,prepack_shoup,shoup_regular_cursor
 root=Path(__file__).resolve().parents[3];here=Path(__file__).resolve().parent
 out=root/'build/lowlevel';out.mkdir(parents=True,exist_ok=True)
 subprocess.run([sys.executable,str(root/'work/ntt/lazy_twiddle/generate.py')],check=True,stdout=subprocess.DEVNULL)
@@ -93,6 +94,16 @@ def transform(name,changes):
         s=s.replace('V x=_mm256_loadu_si256((V*)(expanded[t]+8-i)),y=splat(coeff[t][i]);\n            V z=_mm256_loadu_si256((V*)(expanded[t]+9-i));',
         'V lo=_mm256_loadu_si256((V*)(expanded[t]+8-i)),hi=_mm256_loadu_si256((V*)(expanded[t]+12-i));\n            V x=_mm256_permute4x64_epi64(_mm256_unpacklo_epi64(lo,hi),0xd8),z=_mm256_permute4x64_epi64(_mm256_unpackhi_epi64(lo,hi),0xd8),y=splat(coeff[t][i]);')
         s=s.replace('_mm256_mul_epu32(odd(x),y));','_mm256_mul_epu32(z,y));')
+    if 'asm_pair' in changes:s=asm_pair(s)
+    if 'h1' in changes:s=specialize_small(s,(1,))
+    if 'h14' in changes:s=specialize_small(s,(1,4))
+    if 'prepack' in changes:s=prepack(s)
+    if 'prepack_shoup' in changes:s=prepack_shoup(s)
+    if 'regular_cursor' in changes:s=shoup_regular_cursor(s)
+    if 'mont_leaf' in changes:
+        original_fixed=base[fixed_start:fixed_end].replace('Fixed','MontFixed')
+        s=s.replace('// r[k]',original_fixed+'// r[k]',1)
+        s=s.replace('V x=canonical(a[t]); Fixed w(weights[t]);','V x=canonical(a[t]); MontFixed w(weights[t]);')
     return s
 # Each tuple: root mode, leaf schedule, source changes, optional compiler flags.
 configs={
@@ -111,6 +122,20 @@ configs={
  'll_asm':(2,2,['asm'],[]),
  'll_asm_inc':(1,1,['asm'],[]),
  'll_split':(2,1,['split'],[]),
+ 'll_shoup_inline':(2,2,['shoup','inline'],[]),
+ 'll_shoup_inc':(1,1,['shoup','inline'],[]),
+ 'll_shoup_cursor':(1,1,['shoup','inline','regular_cursor'],[]),
+ 'll_shoup_montleaf':(2,2,['shoup','inline','mont_leaf'],[]),
+ 'll_inline_scratch':(2,2,['inline','scratch'],[]),
+ 'll_inline_inc':(1,1,['inline'],[]),
+ 'll_inline_h1':(2,2,['inline','h1'],[]),
+ 'll_inline_h14':(2,2,['inline','h14'],[]),
+ 'll_shoup_h1':(2,2,['shoup','inline','h1'],[]),
+ 'll_prepack':(2,2,['prepack','inline'],[]),
+ 'll_shoup_prepack':(2,2,['shoup','prepack_shoup','inline'],[]),
+ 'll_asm_pair':(2,2,['asm','asm_pair'],[]),
+ 'll_asm_pair_inline':(2,2,['asm','asm_pair','inline'],[]),
+ 'll_asm_shoup':(2,2,['asm','asm_pair','shoup','inline'],[]),
 }
 names=controls[:]
 flags={}
