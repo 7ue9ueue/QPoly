@@ -38,6 +38,10 @@ jobs:
   e2e:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - name: Judge-like end-to-end (official cases, judge flags and container limits)
@@ -49,6 +53,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: conv-large-e2e
+          name: conv-large-e2e-${{ matrix.sample }}
           path: results-e2e/
           retention-days: 7

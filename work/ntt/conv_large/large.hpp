@@ -89,6 +89,22 @@ struct Drivers {
 
     // qasm run() generalized to n <= 2^26 (assert removed, 64-bit-safe loops) plus an
     // optional zero-upper radix-4 top and an optional fused final scale for even log2(nv).
+    // Normal-form 4th root of unity (forward r[1] or inverse ir[1]) with its Shoup quotient,
+    // exactly the table entry blk(1) that tables() writes.
+    static Fixed root4(bool inv) {
+        const U q = inv ? constants.iq[0] : constants.q[0];   // Montgomery form
+        return Fixed(splat(muls(q, 1)), splat(q * NI));
+    }
+    // Pieces for callers that fuse the two depth-0 levels with I/O (even log2(nv) >= 4):
+    // the caller has applied the depth-0 forward group to a and b (zero-upper form) and
+    // will apply inv_identity_scale_body with root4(true) and scale_factor(nv) afterwards.
+    static void middle(int lg, U* aa, U* bb, Tables& T) {
+        const int n = 1 << lg, nv = n / 8, h = nv / 4;
+        K::tables(n / 16, T.r, T.ir, T.size, true);
+        K job(T.r, T.ir);
+        V *a = (V*)aa, *b = (V*)bb;
+        for (int t = 0; t < 4; ++t) job.visit(a + size_t(t) * h, b + size_t(t) * h, h, t);
+    }
     // Kernel::visit with timers around the forward/inverse groups at depths < 4.
     static void visit_timed(K& job, V* a, V* b, int nv, int k, int depth) {
         if (!depth_clock || depth >= 4 || nv <= K::Tile) { job.visit(a, b, nv, k); return; }

@@ -30,6 +30,13 @@
 #define QL_NT 1
 #endif
 
+#ifndef QL_FUSE
+#define QL_FUSE 0
+#endif
+#ifndef QL_CHUNK
+#define QL_CHUNK 4096
+#endif
+
 #ifdef QPOLY_PHASES
 static long long qp_marks[5];
 static inline long long qp_now() { timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec * 1000000000LL + t.tv_nsec; }
@@ -60,9 +67,66 @@ int main() {
     uint32_t* const a = arena(2 * arr + 2 * tab + panel);
     uint32_t *const b = a + arr, *const roots = b + arr, *const iroots = roots + tab;
     __m256i* const buf = reinterpret_cast<__m256i*>(iroots + tab);
-    input_cursor = qp_parse_flat::parse_tokens(input_cursor, a, n);
-    input_cursor = qp_parse_flat::parse_tokens(input_cursor, b, m);
+    // QL_FUSE: for even log2(len/8) >= 20 with both inputs <= len/2, the depth-0 forward
+    // radix-4 group (zero-upper form) runs while parsing the second input quarter, and the
+    // depth-0 inverse group + scale runs while formatting the first output quarter. The
+    // parser and writer are the exploration-007 routines, called unchanged.
+    const bool fuse = QL_FUSE && lg >= 23 && ((lg - 3) & 1) == 0 && n <= len / 2 && m <= len / 2;
+    if (fuse) {
+        const qasm::Fixed z = D::root4(false);
+        const size_t Q = len / 4, hv = Q / 8;
+        alignas(64) static uint32_t chunk[QL_CHUNK + 64];
+        auto parse_fused = [&](uint32_t* f, size_t count) {
+            input_cursor = qp_parse_flat::parse_tokens(input_cursor, f, std::min(count, Q));
+            size_t rest = count > Q ? count - Q : 0;
+            __m256i* fv = reinterpret_cast<__m256i*>(f);
+            for (size_t v0 = 0; v0 < hv; v0 += QL_CHUNK / 8) {
+                const size_t take = std::min<size_t>(QL_CHUNK, rest);
+                if (take) input_cursor = qp_parse_flat::parse_tokens(input_cursor, chunk, take);
+                if (take < QL_CHUNK) std::memset(chunk + take, 0, (QL_CHUNK - take) * 4);
+                rest -= take;
+                const __m256i* cv = reinterpret_cast<const __m256i*>(chunk);
+                for (size_t j = 0; j < QL_CHUNK / 8; ++j) {
+                    const __m256i x = fv[v0 + j], y = cv[j];
+                    const __m256i zy = z.mul<2, false, false, true>(y);
+                    fv[v0 + j] = qasm::plus(x, y); fv[hv + v0 + j] = qasm::diff(x, y);
+                    fv[2 * hv + v0 + j] = qasm::plus(x, zy); fv[3 * hv + v0 + j] = qasm::diff(x, zy);
+                }
+            }
+        };
+        parse_fused(a, n);
+        parse_fused(b, m);
+    } else {
+        input_cursor = qp_parse_flat::parse_tokens(input_cursor, a, n);
+        input_cursor = qp_parse_flat::parse_tokens(input_cursor, b, m);
+    }
     QP_MARK(2);
+    if (fuse) {
+        qlarge::Tables T; T.r = roots; T.ir = iroots;
+        D::middle(lg, a, b, T);
+        QP_MARK(3);
+        const qasm::Fixed iz = D::root4(true), scale = D::scale_factor(int(len / 8));
+        const size_t hv = len / 32;
+        __m256i* av = reinterpret_cast<__m256i*>(a);
+        alignas(32) uint32_t lane[8];
+        for (size_t j = 0; j < hv; ++j) {   // quarter 0 (all of it is below count)
+            const __m256i p0 = av[j], p1 = av[hv + j], p2 = av[2 * hv + j], p3 = av[3 * hv + j];
+            const __m256i ab = qasm::low(qasm::plus(p0, p1)), cd = qasm::low(qasm::plus(p2, p3));
+            const __m256i amb = qasm::low(qasm::diff(p0, p1)), cmd = iz.mul<2, false, false, true>(qasm::diff(p2, p3));
+            av[hv + j] = D::scale1(scale, qasm::plus(amb, cmd));
+            av[2 * hv + j] = D::scale1(scale, qasm::diff(ab, cd));
+            av[3 * hv + j] = D::scale1(scale, qasm::diff(amb, cmd));
+            _mm256_store_si256(reinterpret_cast<__m256i*>(lane), D::scale1(scale, qasm::plus(ab, cd)));
+            for (int t = 0; t < 8; ++t) write_mod998(out, output_cursor, output_end, lane[t]);
+        }
+        for (size_t i = len / 4; i < count; ++i) write_mod998(out, output_cursor, output_end, a[i]);
+        out.finish(output_cursor);
+        QP_MARK(4);
+#ifdef QPOLY_PHASES
+        dprintf(2, "QP %lld %lld %lld %lld %lld 0\n", qp_marks[0], qp_marks[1], qp_marks[2], qp_marks[3], qp_marks[4]);
+#endif
+        return 0;
+    }
     if (lg <= 22) {
         int root_size = 0;
         qasm::Kernel<qlarge::Sel>::run(int(len), a, b, roots, iroots, root_size, true, int(n), int(m));
