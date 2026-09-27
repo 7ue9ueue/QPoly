@@ -28,8 +28,8 @@ using Q = qasm::Kernel<qasm::Cfg<2, false, true, 0, false, 256, true, true, true
 #ifndef ENTRY_LIST
 #define ENTRY_LIST                                                                         \
     QE(0, 0, 0, 4), QE(11, 71, 5, 4),                                                      \
-    QB(0, 0, 4, 1), QB(0, 0, 4, 3),                                                        \
-    QB(11, 71, 4, 1), QB(11, 71, 4, 2), QB(11, 71, 4, 3), QB(11, 71, 4, 7)
+    QE(225, 71, 5, 4), QE(228, 71, 5, 4), QE(11, 168, 5, 4), QE(11, 160, 5, 4),            \
+    QB(11, 71, 4, 3), QB(11, 71, 4, 8), QB(11, 71, 4, 9), QB(11, 71, 4, 10), QB(11, 71, 4, 11)
 #endif
 const Entry ENTRIES[] = {
     {"live", cand::invoke<cand::Live>},

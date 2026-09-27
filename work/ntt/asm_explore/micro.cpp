@@ -123,10 +123,10 @@ int main(int argc, char** argv) {
         }
     }
     phases<Q<0, 0, 0>>("q_f0i0l0");
-    phases<Q<0, 0, 5>>("q_f0i0l5");
     phases<Q<11, 71, 5, 4>>("q_f11i71l5m4");
-    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 1>>("q_f11i71b1");
-    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 2>>("q_f11i71b2");
     phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 3>>("q_f11i71b3");
-    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 7>>("q_f11i71b7");
+    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 8>>("q_f11i71b8");
+    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 9>>("q_f11i71b9");
+    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 10>>("q_f11i71b10");
+    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 11>>("q_f11i71b11");
 }

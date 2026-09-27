@@ -482,7 +482,9 @@ def gen_pipelined(kind, count, fold, twmem):
     war = [(r, writer[vn.id]) for vc, vn in zip(cur_car, nxt_car) for r in readers[vc.id]]
     pin = {v.id: r for v, r in zip(cur_car + nxt_car, regs + regs)}
     budget = 16 - len(reserved) - len(regs)
-    seq = list_schedule(s1 + s2, extra_deps=war, budget=budget, pinned=pin.keys())
+    # windowed mode: source order is stage 2 of i then stage 1 of i+1, so a small
+    # window stays close to an allocatable order while allowing overlap
+    seq = list_schedule((s2 + s1) if SEARCH['window'] else (s1 + s2), extra_deps=war, budget=budget, pinned=pin.keys())
     assign = allocate(seq, reserved, pinned=pin, live_in=cur_car, live_out=nxt_car)
     pro, pro_car, _ = butterflies(kind, count, fold, twmem, 'p')
     ppin = {v.id: r for v, r in zip(pro_car, regs)}
@@ -526,19 +528,28 @@ for _base, (_strategy, _count, _fold, _twmem) in ((20, ('ls', 1, True, False)), 
     for _k in range(12):
         AUTOTUNE.append((_base + _k, _strategy, _count, _fold, _twmem,
                          (1 + _k * 7 + _base, _r.choice([0, 1, 2, 3, 4]), _r.choice([0.0, 2.0, 4.0, 8.0]),
-                          _r.choice([8, 10, 12, 16]), _r.choice([2, 3]))))
+                          _r.choice([8, 10, 12, 16]), _r.choice([2, 3]), None)))
+# round 5: windowed schedules (window = instructions of lookahead in source order)
+_r = _random.Random(2027)
+for _base, (_strategy, _count, _fold, _twmem) in ((160, ('sp', 1, True, 'half')), (180, ('sp', 2, True, True)),
+                                                 (200, ('sp', 2, True, 'half')), (220, ('ls', 2, True, False)),
+                                                 (240, ('sp', 1, True, False))):
+    for _k in range(12):
+        AUTOTUNE.append((_base + _k, _strategy, _count, _fold, _twmem,
+                         (1 + _k * 5 + _base, _r.choice([0, 1, 2, 3]), _r.choice([0.0, 2.0, 4.0]),
+                          _r.choice([8, 10, 12]), 2, _r.choice([8, 12, 16, 24, 32, 48]))))
 
 
 def generate_fixed(kind, strategy, count, fold, twmem, knobs):
-    seed, margin, noise, lat, lpc = knobs
-    SEARCH.update(rng=_random.Random(seed), margin=margin, noise=noise, load_lat=lat, lpc=lpc)
+    seed, margin, noise, lat, lpc, window = knobs
+    SEARCH.update(rng=_random.Random(seed), margin=margin, noise=noise, load_lat=lat, lpc=lpc, window=window)
     try:
         if strategy == 'sp':
             g = gen_pipelined(kind, count, fold, twmem)
         else:
             g = gen_simple(kind, count, fold, twmem, True, ab=strategy == 'ab')
     finally:
-        SEARCH.update(rng=None, margin=0, noise=0.0, load_lat=LOAD_LAT, lpc=2)
+        SEARCH.update(rng=None, margin=0, noise=0.0, load_lat=LOAD_LAT, lpc=2, window=None)
     g.update(strategy=strategy, fold=fold, twmem=twmem, search=knobs)
     return g
 
@@ -824,16 +835,23 @@ BOTTOM_ARGS = {'s1': ['an', 'bn', 'Ln', 'px', 'py', 'lw'], 's2': ['ac', 'Lc', 'i
                's12': ['an', 'bn', 'Ln', 'px', 'py', 'lw', 'ac', 'Lc', 'ipx', 'ipy']}
 
 
-def gen_bottom(part, fold, share, knobs):
+def gen_bottom(part, fold, share, knobs, merge=None):
     """part: 's1', 's2' or 's12' (stage 2 then stage 1 in source order, scheduled
-    together). knobs = (seed, margin, jitter, window); window 0 = source order."""
+    together). knobs = (seed, margin, jitter, window); window 0 = source order.
+    merge (s12 only): interleave the two stages' source orders proportionally,
+    stage 1 shifted by `merge` (fraction of its length) relative to stage 2."""
     seed, margin, noise, window = knobs
     b = Builder(BOTTOM_CONSTS, fold, '', 0)
     b.share_bcast = share
     if part in ('s2', 's12'):
         bottom_stage2(b)
+    n2 = len(b.ops)
     if part in ('s1', 's12'):
         bottom_stage1(b)
+    if merge is not None and part == 's12':
+        s2, s1 = b.ops[:n2], b.ops[n2:]
+        keyed = [(i / len(s2), 0, i, o) for i, o in enumerate(s2)] + [(j / len(s1) + merge, 1, j, o) for j, o in enumerate(s1)]
+        b.ops = [o for *_, o in sorted(keyed, key=lambda t: t[:3])]
     if window == 0:
         seq = b.ops
     else:
@@ -866,14 +884,18 @@ def bottom_function(name, part, body):
 
 # Bottom variants: id, fold, share broadcasts, scheduling window (0 = source order).
 # For window > 0 the best of several seeds/margins by llvm-mca is kept.
-BOTTOM_VARIANTS = [(1, True, True, 0), (2, True, False, 0), (3, True, True, 12), (4, True, True, 24),
-                   (5, True, True, 48), (6, False, True, 24), (7, True, False, 24)]
+BOTTOM_VARIANTS = [(1, True, True, 0, None), (2, True, False, 0, None), (3, True, True, 12, None),
+                   (4, True, True, 24, None), (5, True, True, 48, None), (6, False, True, 24, None),
+                   (7, True, False, 24, None),
+                   # round 5: stages merged proportionally (per-use broadcasts), windowed
+                   (8, True, False, 8, 0.0), (9, True, False, 12, 0.0), (10, True, False, 16, 0.1),
+                   (11, True, False, 12, 0.25)]
 
 
 def emit_bottom(args, head):
     out = list(head)
     ids = []
-    for vid, fold, share, window in BOTTOM_VARIANTS:
+    for vid, fold, share, window, merge in BOTTOM_VARIANTS:
         funcs = {}
         for part in ('s1', 's2', 's12'):
             best = None
@@ -881,7 +903,7 @@ def emit_bottom(args, head):
                 [(seed, m, 3.0 if seed else 0.0, window) for seed in range(0, 1 + 3 * max(1, args.tries or 0)) for m in (0, 2, 4)]
             for knobs in configs:
                 try:
-                    body = gen_bottom(part, fold, share, knobs)
+                    body = gen_bottom(part, fold, share, knobs, merge)
                 except AllocError:
                     continue
                 cyc = mca(body) if args.mca else 0.0
