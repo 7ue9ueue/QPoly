@@ -1,0 +1,7 @@
+build/conv_large/src/final.cpp 154700 bytes, SHA256 7c4f4c8034dac630ee2107f9a7a57efd90f7026cbaea3d54eb45b66b4d1b2a1b
+build/conv_large/src/m2X3.cpp 213543 bytes, SHA256 4768150d4ef33f9691102d425157da424162814dae5023f11b02472dedab5703
+build/conv_large/src/m2X6.cpp 213543 bytes, SHA256 fd668ccaff667651948e7aa3f05c606fa0a2fd15d501c5ad510371760346a10f
+build/conv_large/src/m3X3.cpp 213564 bytes, SHA256 3000da4c9be84c190c4568e7edbfedba1f5d448366e46c51687bba5df27b1dba
+build/conv_large/src/m3E3.cpp 213564 bytes, SHA256 34d4165e9851d11398ab45f2df0cacb9ab05b1d5bb4e688bc18a0addef587938
+build/conv_large/src/m3E6.cpp 213564 bytes, SHA256 ee8ce3fb5ae6fd0441569ccf50fdefe868b849fc1e1157e338aa3134af1de33d
+reference ref403499 https://judge.yosupo.jp/submission/403499 sha256 ddc397e7dab383e354fbc6948d87a630d9d5beb5908855ad9d8bf1b81564c52b

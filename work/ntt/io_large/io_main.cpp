@@ -12,7 +12,10 @@
 //             2: fmt_fixed.inc blocks<1> (a from x directly)   3: blocks<2> (two blocks interleaved)
 //             4: blocks<4> (four blocks interleaved)   5: blocks3<4> (SWAR BCD groups, fmt_fixed.inc)
 //             6: blocks3<2>
-//   QI_OBUF   output buffer bytes for the fixed writers (default 64000; a multiple of 80 * G)
+//   QI_OBUF   output buffer bytes for the fixed writers (default 64000; a multiple of 80 * G).
+//             Rounds 1-7 flushed after a block, which could leave c == obuf before the final
+//             c[-1] = '\n' when the last block ended exactly at QI_OBUF (count = k * QI_OBUF / 10);
+//             fixed after round 7 (flush before a block; the tail fits in the 512-byte slack).
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
@@ -190,26 +193,27 @@ int main() {
     unsigned i = 0;
 #if QI_FMT == 4 || QI_FMT == 5
     for (; i + 32 <= count; i += 32) {   // a[] has 16 padding words: never reads past them
+        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }   // flush before, never after the last field
 #if QI_FMT == 5
         qp_fixed::blocks3<4>(a + i, c);
 #else
         qp_fixed::blocks<4>(a + i, c);
 #endif
         c += 320;
-        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }
 #elif QI_FMT == 3 || QI_FMT == 6
     for (; i + 16 <= count; i += 16) {
+        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
 #if QI_FMT == 6
         qp_fixed::blocks3<2>(a + i, c);
 #else
         qp_fixed::blocks<2>(a + i, c);
 #endif
         c += 160;
-        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }
 #endif
     for (; i + 8 <= count; i += 8) {   // a block reads 8 values
+        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
 #if QI_FMT == 1
         qp_fixed::eight(a + i, c);
 #elif QI_FMT >= 5
@@ -218,7 +222,6 @@ int main() {
         qp_fixed::blocks<1>(a + i, c);
 #endif
         c += 80;
-        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }
     for (; i < count; ++i, c += 10) qp_fixed::one_table(a[i], c);
     c[-1] = '\n';
