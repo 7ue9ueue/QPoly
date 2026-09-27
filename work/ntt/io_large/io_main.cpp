@@ -5,11 +5,11 @@
 //   QI_PARSE  0: qp_parse_flat (exploration 007)      1: qp_parse_tail (parse_tail.inc; needs QI_INPUT 1)
 //             2: qp_parse_tail8 (8-token steps; needs QI_INPUT 1)
 //             3: qp_parse_ms, 8 lockstep streams per 32 KiB chunk (parse_ms.inc)   4: 4 streams
-//             5: qp_parse_ms2, 4 streams x 2 tokens per step, 32 KiB chunks (parse_ms2.inc)   6: 16 KiB chunks
+//             5: qp_parse_ms2, 4 streams x 2 tokens per step, QI_CHUNK-byte chunks (parse_ms2.inc)
 //   QI_FMT    0: exploration-007 table writer (variable width, 64 KiB buffer)
 //             1: fixed-width AVX2 writer (fmt_fixed.inc eight(): 10 bytes per value, space padded)
 //             2: fmt_fixed.inc blocks<1> (a from x directly)   3: blocks<2> (two blocks interleaved)
-//             4: blocks<4> (four blocks interleaved)
+//             4: blocks<4> (four blocks interleaved)   5: blocks3<4> (SWAR BCD groups, fmt_fixed.inc)
 //   QI_OBUF   output buffer bytes for the fixed writers (default 64000; a multiple of 80 * G)
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
 #if defined(__GNUC__) && !defined(__clang__)
@@ -32,6 +32,9 @@
 #endif
 #ifndef QI_FMT
 #define QI_FMT 1
+#endif
+#ifndef QI_CHUNK
+#define QI_CHUNK 65536
 #endif
 #ifndef QI_OBUF
 #define QI_OBUF 64000
@@ -144,8 +147,8 @@ int main() {
     const size_t len = size_t(1) << lg, arr = len + 16, tab = (qlarge::table_words(lg) + 15) & ~size_t(15);
     uint32_t* const a = lg >= 23 ? lazy_arena(2 * arr + 2 * tab) : arena(2 * arr + 2 * tab);
     uint32_t *const b = a + arr, *const roots = b + arr, *const iroots = roots + tab;
-#if QI_PARSE == 5 || QI_PARSE == 6
-    constexpr auto parse = qp_parse_ms2::parse_tokens<QI_PARSE == 5 ? 32768 : 16384, qp_parse_flat::parse_tokens>;
+#if QI_PARSE == 5
+    constexpr auto parse = qp_parse_ms2::parse_tokens<QI_CHUNK, qp_parse_flat::parse_tokens>;
     input_cursor = parse(input_cursor, a, n);
     input_cursor = parse(input_cursor, b, m);
 #elif QI_PARSE == 3 || QI_PARSE == 4
@@ -175,9 +178,13 @@ int main() {
     alignas(4096) static char obuf[QI_OBUF + 512];
     char* c = obuf;
     unsigned i = 0;
-#if QI_FMT == 4
+#if QI_FMT == 4 || QI_FMT == 5
     for (; i + 32 <= count; i += 32) {   // a[] has 16 padding words: never reads past them
+#if QI_FMT == 5
+        qp_fixed::blocks3<4>(a + i, c);
+#else
         qp_fixed::blocks<4>(a + i, c);
+#endif
         c += 320;
         if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }

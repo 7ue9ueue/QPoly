@@ -1,0 +1,62 @@
+ws-equal (not byte-exact) case random_02 variant ms4
+ws-equal (not byte-exact) case random_02 variant m2
+ws-equal (not byte-exact) case random_02 variant m2s
+ws-equal (not byte-exact) case random_02 variant m2_probe
+stderr m2_probe random_02: map 0.0 parse 63.7 ntt 334.9 out 105.4 ms (from main) | thp [always] madvise never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case max_random_00 variant ms4
+ws-equal (not byte-exact) case max_random_00 variant m2
+ws-equal (not byte-exact) case max_random_00 variant m2s
+ws-equal (not byte-exact) case max_random_00 variant m2_probe
+stderr m2_probe max_random_00: map 0.0 parse 79.7 ntt 327.9 out 132.4 ms (from main) | thp [always] madvise never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case fft_killer_00 variant ms4
+ws-equal (not byte-exact) case fft_killer_00 variant m2
+ws-equal (not byte-exact) case fft_killer_00 variant m2s
+ws-equal (not byte-exact) case fft_killer_00 variant m2_probe
+stderr m2_probe fft_killer_00: map 0.0 parse 79.6 ntt 331.1 out 132.5 ms (from main) | thp [always] madvise never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case max_ans_zero_00 variant ms4
+ws-equal (not byte-exact) case max_ans_zero_00 variant m2
+ws-equal (not byte-exact) case max_ans_zero_00 variant m2s
+ws-equal (not byte-exact) case max_ans_zero_00 variant m2_probe
+stderr m2_probe max_ans_zero_00: map 0.0 parse 79.7 ntt 329.4 out 133.3 ms (from main) | thp [always] madvise never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case small_and_large_00 variant ms4
+ws-equal (not byte-exact) case small_and_large_00 variant m2
+ws-equal (not byte-exact) case small_and_large_00 variant m2s
+ws-equal (not byte-exact) case small_and_large_00 variant m2_probe
+stderr m2_probe small_and_large_00: map 0.0 parse 40.1 ntt 334.5 out 66.2 ms (from main) | thp [always] madvise never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case all_same_00 variant ms4
+ws-equal (not byte-exact) case all_same_00 variant m2
+ws-equal (not byte-exact) case all_same_00 variant m2s
+ws-equal (not byte-exact) case all_same_00 variant m2_probe
+stderr m2_probe all_same_00: map 0.0 parse 69.2 ntt 330.2 out 132.2 ms (from main) | thp [always] madvise never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+PASS 6 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+ws-equal (not byte-exact) case random_02 variant m2_probe
+stderr m2_probe random_02: map 0.0 parse 63.2 ntt 330.4 out 106.0 ms (from main) | thp always [madvise] never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case random_02 variant m2s
+ws-equal (not byte-exact) case random_02 variant m2
+ws-equal (not byte-exact) case random_02 variant ms4
+ws-equal (not byte-exact) case max_random_00 variant m2_probe
+stderr m2_probe max_random_00: map 0.0 parse 80.4 ntt 325.7 out 132.1 ms (from main) | thp always [madvise] never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case max_random_00 variant m2s
+ws-equal (not byte-exact) case max_random_00 variant m2
+ws-equal (not byte-exact) case max_random_00 variant ms4
+ws-equal (not byte-exact) case fft_killer_00 variant m2_probe
+stderr m2_probe fft_killer_00: map 0.0 parse 80.8 ntt 328.1 out 131.7 ms (from main) | thp always [madvise] never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case fft_killer_00 variant m2s
+ws-equal (not byte-exact) case fft_killer_00 variant m2
+ws-equal (not byte-exact) case fft_killer_00 variant ms4
+ws-equal (not byte-exact) case max_ans_zero_00 variant m2_probe
+stderr m2_probe max_ans_zero_00: map 0.0 parse 80.7 ntt 328.3 out 132.6 ms (from main) | thp always [madvise] never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case max_ans_zero_00 variant m2s
+ws-equal (not byte-exact) case max_ans_zero_00 variant m2
+ws-equal (not byte-exact) case max_ans_zero_00 variant ms4
+ws-equal (not byte-exact) case small_and_large_00 variant m2_probe
+stderr m2_probe small_and_large_00: map 0.0 parse 40.3 ntt 336.9 out 66.0 ms (from main) | thp always [madvise] never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case small_and_large_00 variant m2s
+ws-equal (not byte-exact) case small_and_large_00 variant m2
+ws-equal (not byte-exact) case small_and_large_00 variant ms4
+ws-equal (not byte-exact) case all_same_00 variant m2_probe
+stderr m2_probe all_same_00: map 0.0 parse 70.7 ntt 332.2 out 188.4 ms (from main) | thp always [madvise] never | Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz 
+ws-equal (not byte-exact) case all_same_00 variant m2s
+ws-equal (not byte-exact) case all_same_00 variant m2
+ws-equal (not byte-exact) case all_same_00 variant ms4
+PASS 6 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0
