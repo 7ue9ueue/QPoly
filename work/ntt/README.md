@@ -41,3 +41,11 @@ whole-loop assembly and algorithmic alternatives are retained with their results
 [atcoder_ntt_h14_compare.cpp](atcoder_ntt_h14_compare.cpp) is the new eight-entry
 standalone, printing CPU metadata and `speedup_vs_h14`. Use `20 10 0` or `20 10 2`.
 AtCoder/Intel validation of the final combination remains open.
+
+The [convolution_mod_large exploration](conv_large/README.md) (010) scales the
+exploration-009 kernel to transform length 2^25 (N, M ≤ 2^24) with a zero-upper first
+level, the final scale fused into the last inverse level and a lazily faulted THP arena.
+[yosupo_convolution_mod_large.cpp](yosupo_convolution_mod_large.cpp) (exploration-007 I/O)
+passes all 54 official cases; 528 ms vs 758 ms for the current leader on the same EPYC 7763
+runner. [yosupo_convolution_mod_large_probe.cpp](yosupo_convolution_mod_large_probe.cpp) also
+prints a one-line phase/THP/CPU report to stderr.

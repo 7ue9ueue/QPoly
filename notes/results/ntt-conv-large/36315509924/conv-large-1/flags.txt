@@ -1,0 +1,1 @@
+g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native -I/__w/QPoly/QPoly/work/ntt/conv_large
