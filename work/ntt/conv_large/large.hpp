@@ -34,6 +34,10 @@ using namespace qasm;
 
 // Exploration 009 selected configuration (Library Checker submission kernel).
 using Sel = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 23, 0, 2, 2, 104>;
+// Same with 1024-vector fixed tiles (exploration 010 round 4 test).
+using Sel1024 = Cfg<2, false, true, 0, false, 1024, true, true, true, 1, true, true, 11, 71, 0, 4, 23, 0, 2, 2, 104>;
+// Round 4 control: when false, run_b0 keeps previously built root tables (fresh = false).
+inline bool fresh_tables = true;
 
 // Root tables in qasm's block layout: n/16 entries -> n/8 words each (+16 padding).
 struct Tables {
@@ -119,7 +123,7 @@ struct Drivers {
     }
     static void run_b0(int lg, U* aa, U* bb, Tables& T, long nza, long nzb, bool zero_even, bool fuse_scale = false, bool nt_top = false) {
         const int n = 1 << lg, nv = n / 8;
-        K::tables(n / 16, T.r, T.ir, T.size, true);
+        K::tables(n / 16, T.r, T.ir, T.size, fresh_tables);
         K job(T.r, T.ir);
         V *a = (V*)aa, *b = (V*)bb;
         const Fixed scale = scale_factor(nv);

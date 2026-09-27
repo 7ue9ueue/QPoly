@@ -56,3 +56,23 @@ jobs:
           name: conv-large-e2e-${{ matrix.sample }}
           path: results-e2e/
           retention-days: 7
+  official:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: All 53 official cases, generated standalone file (hash-verified outputs)
+        run: |
+          set -a; . work/ntt/conv_large/ci.env; set +a
+          mkdir -p results-official; echo "$GITHUB_SHA" > results-official/commit.txt
+          if [ "$OFFICIAL" = 1 ]; then
+            python3 work/ntt/conv_large/make_submission.py $OFFICIAL_ARGS --out "$RUNNER_TEMP/submission.cpp" | tee results-official/generated.txt
+            cp "$RUNNER_TEMP/submission.cpp" results-official/submission.cpp
+            bash work/ntt/conv_large/run_official_all.sh results-official "$RUNNER_TEMP/submission.cpp"
+          else echo "official job disabled by ci.env"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conv-large-official
+          path: results-official/
+          retention-days: 7

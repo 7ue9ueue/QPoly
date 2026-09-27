@@ -71,6 +71,12 @@ using Fn = void (*)(int lg, U* a, U* b, long nza, long nzb);
 struct Entry { const char* name; Fn fn; bool shortcut = true; };   // shortcut: never reads above nz <= n/2
 using D = qlarge::Drivers<qlarge::Sel>;
 template<bool Z, bool S = false, bool N = false> void e_b0(int lg, U* a, U* b, long nza, long nzb) { D::run_b0(lg, a, b, work().T, nza, nzb, Z, S, N); }
+// Round 4: 1024-vector tiles; and b0zs with root tables kept from the previous call (tables
+// are only rebuilt when the size grows), bounding what on-the-fly twiddles could save.
+void e_b0zs_t1024(int lg, U* a, U* b, long nza, long nzb) { qlarge::Drivers<qlarge::Sel1024>::run_b0(lg, a, b, work().T, nza, nzb, true, true); }
+void e_b0zs_keep(int lg, U* a, U* b, long nza, long nzb) {
+    qlarge::fresh_tables = false; D::run_b0(lg, a, b, work().T, nza, nzb, true, true); qlarge::fresh_tables = true;
+}
 template<int L, int Wd, int Dist, bool Nt, bool Pair = true>
 void e_top(int lg, U* a, U* b, long nza, long nzb) {
     const int nv = (1 << lg) / 8, lgv = __builtin_ctz(unsigned(nv)), odd = lgv & 1;
@@ -85,9 +91,10 @@ void e_top(int lg, U* a, U* b, long nza, long nzb) {
 // Round 1 entries (kept for reference): TOP(2,2,4) TOPNT(2,2,4) TOP(3,2,4) TOPNT(3,2,4)
 // TOP(4,2,4) TOPNT(4,2,4) TOPNT(5,2,4) TOPNT(3,4,2) TOPNT(4,4,2).
 const Entry ENTRIES[] = {
-    {"b0", e_b0<false>, false}, {"b0z", e_b0<true>}, {"b0zs", e_b0<true, true>}, {"b0zsn", e_b0<true, true, true>},
-    TOP(2, 8, 1), TOP(3, 32, 1), TOP(4, 16, 1),
+    {"b0zs", e_b0<true, true>}, {"b0", e_b0<false>, false}, {"b0zs_t1024", e_b0zs_t1024}, {"b0zs_keep", e_b0zs_keep},
 };
+// Round 3 entries (run 36313058400): {"b0z", e_b0<true>}, {"b0zsn", e_b0<true, true, true>} (NT top,
+// +14 ms), TOP(2, 8, 1), TOP(3, 32, 1), TOP(4, 16, 1).
 // Round 2 entries (run 36312561197): TOP(2,32,1) TOP(2,64,1) TOP(3,8,1) TOP(3,16,1) TOP(4,4,1)
 // TOP(4,8,1) TOPS(3,16,1) TOPS(4,16,1) TOPS(5,8,1) TOP(2,2,4) -- all slower than b0zs.
 

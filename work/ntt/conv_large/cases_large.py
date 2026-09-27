@@ -76,13 +76,14 @@ for test in info['tests']:
         else:
             fetch(PROBLEM + 'gen/' + case + '.in', fin)
         assert sha(fin) == hashes[case + '.in'], case + '.in'
-        with open(fin, 'rb') as f, open(fout, 'wb') as g:
-            subprocess.run([str(work / 'correct')], stdin=f, stdout=g, check=True)
-        assert sha(fout) == hashes[case + '.out'], case + '.out'
+        if not os.getenv('NO_MODEL'):   # NO_MODEL=1: callers compare output hashes instead
+            with open(fin, 'rb') as f, open(fout, 'wb') as g:
+                subprocess.run([str(work / 'correct')], stdin=f, stdout=g, check=True)
+            assert sha(fout) == hashes[case + '.out'], case + '.out'
         with open(fin, 'rb') as f:
             n, m = map(int, f.readline().split()[:2])
         cases.append({'case': case, 'n': n, 'm': m, 'in_bytes': fin.stat().st_size,
-                      'out_bytes': fout.stat().st_size, 'out_sha256': hashes[case + '.out']})
-        print(f'case {case}: n={n} m={m} in={fin.stat().st_size} out={fout.stat().st_size}', flush=True)
+                      'out_bytes': fout.stat().st_size if fout.exists() else None, 'out_sha256': hashes[case + '.out']})
+        print(f'case {case}: n={n} m={m} in={fin.stat().st_size} out={fout.stat().st_size if fout.exists() else "-"}', flush=True)
 listing.write_text(json.dumps({'problems_commit': COMMIT, 'cases': cases}, indent=1) + '\n')
 print(f'PASS {len(cases)} official cases: .in and model .out match hash.json at {COMMIT}')

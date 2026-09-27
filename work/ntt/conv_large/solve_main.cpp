@@ -33,6 +33,9 @@
 #ifndef QL_FUSE
 #define QL_FUSE 0
 #endif
+#ifndef QL_LAZY_ARENA
+#define QL_LAZY_ARENA 0
+#endif
 #ifndef QL_CHUNK
 #define QL_CHUNK 4096
 #endif
@@ -64,7 +67,23 @@ int main() {
     const int lgv = lg - 3, odd = lgv & 1;
     int L = QL_L; while (L > 1 && lgv - odd - 2 * L < 2) --L;
     const size_t panel = (size_t(2) << (odd + 2 * L)) * QL_W * 8 + 64;
+#if QL_LAZY_ARENA
+    // Round 4 variant: the same 2 MiB-aligned THP-hinted mapping, faulted on first touch
+    // instead of MADV_POPULATE_WRITE up front.
+    uint32_t* const a = [](size_t words) {
+        constexpr size_t huge = size_t(2) << 20;
+        const size_t bytes = (words * 4 + huge - 1) & ~(huge - 1);
+        char* raw = static_cast<char*>(mmap(nullptr, bytes + huge, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+        if (raw == MAP_FAILED) std::exit(1);
+        char* p = reinterpret_cast<char*>((reinterpret_cast<uintptr_t>(raw) + huge - 1) & ~uintptr_t(huge - 1));
+#ifdef MADV_HUGEPAGE
+        madvise(p, bytes, MADV_HUGEPAGE);
+#endif
+        return reinterpret_cast<uint32_t*>(p);
+    }(2 * arr + 2 * tab + panel);
+#else
     uint32_t* const a = arena(2 * arr + 2 * tab + panel);
+#endif
     uint32_t *const b = a + arr, *const roots = b + arr, *const iroots = roots + tab;
     __m256i* const buf = reinterpret_cast<__m256i*>(iroots + tab);
     // QL_FUSE: for even log2(len/8) >= 20 with both inputs <= len/2, the depth-0 forward
