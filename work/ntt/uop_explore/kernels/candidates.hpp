@@ -15,6 +15,7 @@ using S_ns_oli = qflip::Cfg<2, false, true,  0, false, 256, true, true,  true, 2
 using S_ns_olb = qflip::Cfg<2, false, true,  0, false, 256, true, true,  true, 1, true>;
 using S_sh_olb = qflip::Cfg<2, false, true,  0, true,  256, true, true,  true, 1, true>;
 using S_ns_olb1k = qflip::Cfg<2, false, true, 0, false, 1024, true, true, true, 1, true>;
+using S_ns_olbp  = qflip::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true>;   // + pipelined leaves
 }  // namespace cand
 
 #define CANDIDATE_ENTRIES \
@@ -37,4 +38,5 @@ inline void lc_invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint32_t* ir
     {"f_fp_nml", cand::flip_invoke<cand::F_fp_nml>}, \
     {"s_ns_ol", cand::flip_invoke<cand::S_ns_ol>}, \
     {"s_ns_olb", cand::flip_invoke<cand::S_ns_olb>}, \
+    {"s_ns_olbp", cand::flip_invoke<cand::S_ns_olbp>}, \
     {"s_ns_olb_lc", cand::lc_invoke},

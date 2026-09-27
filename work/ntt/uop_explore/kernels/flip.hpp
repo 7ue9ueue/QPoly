@@ -135,8 +135,11 @@ inline constexpr Constants constants{};
 // butterfly's loaded c,d inputs come from unaligned loads (needs 4 readable
 // bytes past the end of the array).
 template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true,
-         bool Opq_ = false, bool LdOdd_ = false, int Il_ = 1, bool Blk_ = false>
+         bool Opq_ = false, bool LdOdd_ = false, int Il_ = 1, bool Blk_ = false, bool Pipe_ = false>
 struct Cfg {
+    // Pipe: bottom stage builds the next batch's leaf windows before this batch's
+    // multiply-accumulate, so the unaligned window loads read committed stores.
+    static constexpr bool Pipe = Pipe_;
     // Blk (Shoup only): table in blocks of 8 values then their 8 quotients, built
     // with 8-lane Shoup products instead of 4-pair Montgomery products.
     static constexpr bool Opq = Opq_, LdOdd = LdOdd_, Blk = Blk_;
@@ -202,18 +205,24 @@ QF_AI void inv4(V* f, int h, const Twiddle& t) {
 // Direct product of 4 leaves: a[t] = a[t]*b[t] mod (x^8 - w[t]) (times R^-1 scale
 // handled by the final constant). Inputs < 4P, natural lane order; output < 2P with
 // permutation sigma when Flip. Sum bound 8(P-1)^2 + (2^32-1)P < 2^64.
+struct LeafBuf { alignas(32) U window[4][16]; alignas(32) U coeff[4][8]; };
+// Stores the windows [w*a, a] and canonical b coefficients of four leaves.
 template<class C>
-QF_AI void leaf4(V* a, V* b, const U* weights, const U* weights_ni) {
-    alignas(32) U window[4][16], coeff[4][8];
-    V e[4], o[4];
+QF_AI void leaf_build(const V* a, const V* b, const U* weights, const U* weights_ni, LeafBuf& L) {
     for (int t = 0; t < 4; ++t) {
         V x = canonical(a[t]);
         const Fixed wt = weights_ni ? Fixed(splat(weights[t]), splat(weights_ni[t])) : Fixed::scalar(weights[t]);
-        _mm256_store_si256((V*)window[t], shrink(wt.mul<C::LeafMul, false, C::Shuf, C::Opq>(x), P));
-        _mm256_store_si256((V*)(window[t] + 8), x);
-        _mm256_store_si256((V*)coeff[t], canonical(b[t]));
-        e[t] = o[t] = _mm256_setzero_si256();
+        _mm256_store_si256((V*)L.window[t], shrink(wt.mul<C::LeafMul, false, C::Shuf, C::Opq>(x), P));
+        _mm256_store_si256((V*)(L.window[t] + 8), x);
+        _mm256_store_si256((V*)L.coeff[t], canonical(b[t]));
     }
+}
+// Multiply-accumulate from a built buffer; a[t] = product, < 2P.
+template<class C>
+QF_AI void leaf_mac(V* a, const LeafBuf& L) {
+    const auto& window = L.window; const auto& coeff = L.coeff;
+    V e[4], o[4];
+    for (int t = 0; t < 4; ++t) e[t] = o[t] = _mm256_setzero_si256();
     auto step = [&](int i, auto reuse) __attribute__((always_inline)) {
         for (int t = 0; t < 4; ++t) {
             V x = _mm256_loadu_si256((const V*)(window[t] + 8 - i)), y = splat(coeff[t][i]);
@@ -238,6 +247,12 @@ QF_AI void leaf4(V* a, V* b, const U* weights, const U* weights_ni) {
         for (int i = 0; i < 8; ++i) step(i, std::false_type{});
     }
     for (int t = 0; t < 4; ++t) a[t] = low(reduce<C::Flip>(e[t], o[t]));
+}
+template<class C>
+QF_AI void leaf4(V* a, V* b, const U* weights, const U* weights_ni) {
+    LeafBuf L;
+    leaf_build<C>(a, b, weights, weights_ni, L);
+    leaf_mac<C>(a, L);
 }
 
 template<class C>
@@ -334,7 +349,37 @@ struct Kernel {
             if constexpr (Inv) inv4<C, false>(a, h, t); else { fwd4<C, false>(a, h, t); fwd4<C, false>(b, h, t); }
         }
     }
+    // Weights of the four leaves of group k (in order) and their quotients.
+    QF_AI void leaf_weights(int k, U* w, U* wi) {
+        w[0] = leaf_cursor; w[2] = muls(w[0], constants.q[0]);
+        leaf_cursor = muls(leaf_cursor, constants.even_step[__builtin_ctz(~unsigned(k))]);
+        __m128i wv = _mm_setr_epi32(int(w[0]), int(P - w[0]), int(w[2]), int(P - w[2]));
+        _mm_store_si128((__m128i*)wi, _mm_mullo_epi32(wv, _mm_set1_epi32(int(NI))));
+        if constexpr (C::ShoupAux) {
+            U n0 = muls(w[0], 1), n2 = muls(w[2], 1);
+            wv = _mm_setr_epi32(int(n0), int(P - n0), int(n2), int(P - n2));
+        }
+        _mm_store_si128((__m128i*)w, wv);
+    }
     QF_AI void leaves(V* a, V* b, int nv, int first) {
+        if constexpr (C::Pipe) {
+            static_assert(C::Pair);
+            LeafBuf L[2];
+            auto prep = [&](int j, LeafBuf& buf) __attribute__((always_inline)) {
+                const int k = (first + j) / 4;
+                group<false, 1>(a + j, b + j, 1, k);
+                alignas(16) U w[4], wi[4];
+                leaf_weights(k, w, wi);
+                leaf_build<C>(a + j, b + j, w, wi, buf);
+            };
+            prep(0, L[0]);
+            for (int j = 0; j < nv; j += 4) {
+                if (j + 4 < nv) prep(j + 4, L[((j >> 2) + 1) & 1]);
+                leaf_mac<C>(a + j, L[(j >> 2) & 1]);
+                group<true, 1>(a + j, nullptr, 1, (first + j) / 4);
+            }
+            return;
+        }
         for (int j = 0; j < nv; j += 4) {
             int k = (first + j) / 4;
             group<false, 1>(a + j, b + j, 1, k);

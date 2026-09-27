@@ -19,6 +19,7 @@
 using namespace qflip;
 using Best = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true>;   // s_ns_olb
 using MontFlip = Cfg<0, true, true, 0, false, 256, true, false, true>;       // f_fp_nml
+using BestPipe = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true>;
 
 static double now_ns() { return std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 static double cycle_ns() {   // dependent integer adds: one per cycle
@@ -53,6 +54,15 @@ template<class C> void run(const char* name, double cyc, long scale) {
     alignas(16) U w[4] = {ONE, P - ONE, ONE, P - ONE}, wi[4];
     for (int t = 0; t < 4; ++t) wi[t] = w[t] * NI;
     bench("leaf4 per vector", 256, [&] { for (int j = 0; j < 256; j += 4) leaf4<C>(a + j, b + j, w, wi); });   // per vector
+    LeafBuf L[2];
+    bench("leaf pipelined", 256, [&] {   // build batch j+1 before MAC of batch j
+        leaf_build<C>(a, b, w, wi, L[0]);
+        for (int j = 0; j < 256; j += 4) {
+            if (j + 4 < 256) leaf_build<C>(a + j + 4, b + j + 4, w, wi, L[((j >> 2) + 1) & 1]);
+            leaf_mac<C>(a + j, L[(j >> 2) & 1]);
+        }
+    });
+    bench("leaf mac only", 256, [&] { for (int j = 0; j < 256; j += 4) leaf_mac<C>(a + j, L[0]); });
     bench("bottom per vector", 256, [&] { k.leaves_all(a, b); });                  // per vector: fwd h=1 + leaf + inv h=1
     bench("tile per vector", 256, [&] { k.tile(a, b); });                        // per vector: whole 256-vector tile
 }
@@ -63,5 +73,6 @@ int main(int argc, char** argv) {
     std::printf("cycle %.4f ns (%.2f GHz)\n", cyc, 1 / cyc);
     std::printf("units: fwd4/inv4 = one radix-4 butterfly (4 vectors); leaf/bottom/tile = one vector\n");
     run<Best>("shoup", cyc, scale);
+    run<BestPipe>("shoup_pipe", cyc, scale);
     run<MontFlip>("montflip", cyc, scale);
 }
