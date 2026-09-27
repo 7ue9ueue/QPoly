@@ -29,4 +29,11 @@ for round in 1 2 3; do
     "$BIN/bench-$prof" time 21 ${REPS:-11} ${MODE:-2} ${MINLOG:-19} > "$OUT/time-$prof-$round.csv"
   done
 done
+# Pragma variants (same entries, Library Checker flags otherwise).
+for opt in SCHED SCHED_ONLY O3 NONE; do
+  "$CXX" "${COMMON[@]}" -march=native -DQPOLY_OPT_$opt -I"$HERE" "$HERE/bench.cpp" -o "$BIN/bench-$opt"
+  for round in 1 2; do
+    ONLY=${OPT_ONLY:-h14,ref_yosupo,s_ns_olb,s_ns_olbp} "$BIN/bench-$opt" time 20 11 0 20 > "$OUT/opt-$opt-$round.csv"
+  done
+done
 grep ',20,' "$OUT"/time-*.csv | cut -d, -f1-7

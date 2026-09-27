@@ -42,8 +42,4 @@ inline void lc_invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint32_t* ir
     {"f_fp_nml", cand::flip_invoke<cand::F_fp_nml>}, \
     {"s_ns_olb", cand::flip_invoke<cand::S_ns_olb>}, \
     {"s_ns_olbp", cand::flip_invoke<cand::S_ns_olbp>}, \
-    {"s_l3p", cand::flip_invoke<cand::S_l3p>}, \
-    {"s_l6", cand::flip_invoke<cand::S_l6>}, \
-    {"s_l7", cand::flip_invoke<cand::S_l7>}, \
-    {"s_l8", cand::flip_invoke<cand::S_l8>}, \
     {"s_ns_olb_lc", cand::lc_invoke},

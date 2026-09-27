@@ -25,8 +25,19 @@
 #include <vector>
 #include <cpuid.h>
 
+// Optimization pragma variants (the judge's command line is fixed, so these are
+// what a submission can control): default O3+unroll-loops as in all submissions.
 #if defined(__GNUC__) && !defined(__clang__)
+#if defined(QPOLY_OPT_SCHED)
+#pragma GCC optimize("O3,unroll-loops,schedule-insns,sched-pressure")
+#elif defined(QPOLY_OPT_SCHED_ONLY)
+#pragma GCC optimize("O3,unroll-loops,schedule-insns")
+#elif defined(QPOLY_OPT_O3)
+#pragma GCC optimize("O3")
+#elif defined(QPOLY_OPT_NONE)
+#else
 #pragma GCC optimize("O3,unroll-loops")
+#endif
 #endif
 #pragma GCC target("avx2,bmi")
 

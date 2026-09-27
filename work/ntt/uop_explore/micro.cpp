@@ -77,8 +77,5 @@ int main(int argc, char** argv) {
     std::printf("units: fwd4/inv4 = one radix-4 butterfly (4 vectors); leaf/bottom/tile = one vector\n");
     run<Best>("shoup", cyc, scale);
     run<BestPipe>("shoup_pipe", cyc, scale);
-    run<Leaf6>("leaf6", cyc, scale);
-    run<Leaf7>("leaf7", cyc, scale);
-    run<Leaf8>("leaf8", cyc, scale);
     run<MontFlip>("montflip", cyc, scale);
 }
