@@ -98,5 +98,13 @@ for key, file, origin in (('final_asm', 'yosupo_convolution_asm_radix4_pair_larg
         text[key] = path.read_text()
         assert kernel(text[key]) == kernel(text[origin]), key
         VARIANTS[key] = (key, [])
+# final_shoup must differ from shoup_fl_ob64k only in header comment lines 14-17.
+if 'final_shoup' in text:
+    twin = text['shoup']
+    for transform in VARIANTS['shoup_fl_ob64k'][1]:
+        twin = transform(twin)
+    mine, theirs = text['final_shoup'].splitlines(), twin.splitlines()
+    assert len(mine) == len(theirs) and all(a == b or 13 <= i <= 16 and a.startswith('//')
+                                            and b.startswith('//') for i, (a, b) in enumerate(zip(mine, theirs)))
 PHASES += ['io_all', 'io_all_thp', 'sse_short_arena', 'g4_arena_ob64k', 'g4_fx2_arena_ob64k',
            'fl_arena_ob64k', 'fl_arena_ob64k_falloc']

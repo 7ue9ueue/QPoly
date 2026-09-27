@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
 env:
-  VARIANTS: base,sse_short,shoup,shoup_g4_ob64k,shoup_fl_ob64k,shoup_fl_ob64k_falloc,g4_arena_ob64k,fl_arena_ob64k,fl_arena_ob64k_falloc,final_asm,final_shoup
+  VARIANTS: base,sse_short,shoup,shoup_fl_ob64k,final_shoup,final_asm
 jobs:
   judge-like:
     runs-on: ubuntu-24.04
@@ -51,7 +51,7 @@ jobs:
       - name: Judge-method polling replica
         env:
           PASSES: correctness replica
-          VARIANTS: base,shoup,final_shoup,final_asm
+          VARIANTS: base,shoup,shoup_fl_ob64k,final_shoup,final_asm
           REPLICA_VARIANTS: base,shoup,final_shoup,final_asm
         run: bash work/ntt/io_yosupo/run.sh results
       - uses: actions/upload-artifact@v4

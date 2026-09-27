@@ -11,13 +11,10 @@
 // transparent-huge-page hint, pre-faulted before the timed transform (the record
 // holder likewise pre-faults its arrays before its timer). Arrays have 16 words of
 // padding because the unaligned odd-lane loads read 4 bytes past the last vector.
-// I/O (QPoly exploration 007, Library Checker continuation, work/ntt/io_yosupo):
-// the input is mapped with a readable zero page after it (read() fallback for
-// pipes), adapted from QgQ, https://judge.yosupo.jp/submission/393435 (2026-08-14;
-// no license notice was present in the displayed source). Two-stage AVX2 parser
-// (separator offsets, then four tokens per step; parse_flat.inc).
-// Output uses a 64 KiB buffer and the QgQ-style grouped decimal table writer.
-// Valid judge input only: tokens of 1..9 digits separated by whitespace.
+// Prints the transform time to stderr (compute_ms=...) unless QPOLY_QUIET is defined.
+// I/O: QgQ's padded input mapping and table writer, https://judge.yosupo.jp/submission/393435
+// (2026-08-14; no license notice displayed), with a 64 KiB output buffer and the two-stage
+// AVX2 parser qp_parse_flat (QPoly exploration 007, work/ntt/io_yosupo/parse_flat.inc).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
 #endif
@@ -27,6 +24,7 @@
 #include <array>
 #include <cassert>
 #include <cerrno>
+#include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -600,7 +598,7 @@ struct Kernel {
 };
 }  // namespace qflip
 
-// Selected uint32 I/O owner and sink from QgQ's submission 393435 (see header).
+// Selected uint32 I/O from QgQ's submission 393435; see attribution above.
 namespace fastio_unsafe_impl {
 using u32 = uint32_t;
 struct input {
@@ -723,6 +721,159 @@ __attribute__((always_inline)) inline void emit_u32_unchecked(char*& cursor, u32
 }
 } // namespace fastio_unsafe_impl
 
+constexpr auto make_mod998_pair_digits() {
+    std::array<uint8_t, 1 << 14> table{};
+    // std::array::fill is not constexpr until C++20.
+    for (auto& x : table) x = 255;
+    for (unsigned a = 0; a < 10; ++a)
+        for (unsigned b = 0; b < 10; ++b)
+            table[('0' + a) | (('0' + b) << 8)] = a * 10 + b;
+    return table;
+}
+inline constexpr auto mod998_pair_digits = make_mod998_pair_digits();
+__attribute__((always_inline)) inline uint32_t digit_pair(const char* p) noexcept {
+    uint16_t pair;
+    std::memcpy(&pair, p, sizeof(pair));
+    return mod998_pair_digits[pair];
+}
+// Valid unsigned decimal input only. ASCII digits/whitespace/zero padding keep
+// each two-byte table index below 2^14. At least 9 readable bytes follow cursor.
+__attribute__((always_inline)) inline uint32_t read_mod998_u32(char*& cursor) noexcept {
+    while (*cursor != 0 && *cursor <= ' ') ++cursor;
+    const auto q0 = digit_pair(cursor + 1), q1 = digit_pair(cursor + 3);
+    const auto q2 = digit_pair(cursor + 5), q3 = digit_pair(cursor + 7);
+    if (__builtin_expect((q0 | q1 | q2 | q3) < 128, 1)) {
+        uint32_t value = static_cast<unsigned char>(cursor[0]) - '0';
+        value = value * 100 + q0;
+        value = value * 100 + q1;
+        value = value * 100 + q2;
+        value = value * 100 + q3;
+        cursor += 10;
+        return value;
+    }
+    uint32_t value = static_cast<unsigned char>(*cursor++) - '0';
+    for (unsigned i = 0; i < 4; ++i) {
+        const auto pair = digit_pair(cursor);
+        if (pair > 99) break;
+        value = value * 100 + pair;
+        cursor += 2;
+    }
+    if (*cursor > ' ') value = value * 10 + unsigned(*cursor++ & 15);
+    ++cursor;
+    return value;
+}
+__attribute__((always_inline)) inline void write_mod998(
+    fastio_unsafe_impl::output& sink, char*& cursor, char* end, uint32_t value) noexcept {
+    if (__builtin_expect(end - cursor < 16, 0)) cursor = sink.flush(cursor);
+    *cursor++ = ' ';
+    if (value >= 100000000U) {
+        const uint32_t high = value / 100000000U;
+        *cursor++ = char('0' + high);
+        value -= high * 100000000U;
+        fastio_unsafe_impl::emit_padded(cursor, value / 10000U);
+        fastio_unsafe_impl::emit_padded(cursor, value % 10000U);
+    } else fastio_unsafe_impl::emit_u32_unchecked(cursor, value);
+}
+
+// Eight-digit SWAR reduction follows Daniel Lemire's published derivation:
+// https://lemire.me/blog/2022/01/21/swar-explained-parsing-eight-digits/
+// Only valid ASCII digit/whitespace input, uint32 values <=998244352 is supported.
+// Read lookahead is at most 9 bytes, covered by the existing padded input owner.
+__attribute__((always_inline)) inline uint32_t parse_eight(uint64_t x) {
+    x -= 0x3030303030303030ULL;
+    x = x * 10 + (x >> 8);
+    constexpr uint64_t mask = 0x000000ff000000ffULL;
+    return uint32_t(((x & mask) * 0x000f424000000064ULL
+        + ((x >> 16) & mask) * 0x0000271000000001ULL) >> 32);
+}
+__attribute__((always_inline)) inline uint32_t read_swar(char*& p) {
+    while (*p && *p <= ' ') ++p;
+    uint64_t word;
+    std::memcpy(&word, p + 1, 8);
+    // On our valid input alphabet, any separator makes its byte's high bit set.
+    if (__builtin_expect(((word - 0x3030303030303030ULL) & 0x8080808080808080ULL) == 0, 1)) {
+        uint32_t value = uint32_t(p[0] - '0') * 100000000U + parse_eight(word);
+        p += 10;
+        return value;
+    }
+    return read_mod998_u32(p);
+}
+__attribute__((always_inline)) inline uint32_t read_sse(char*& p) {
+    while (*p && *p <= ' ') ++p;
+    __m128i digits = _mm_sub_epi8(_mm_loadl_epi64(reinterpret_cast<const __m128i*>(p+1)),
+                                 _mm_set1_epi8('0'));
+    if (__builtin_expect((_mm_movemask_epi8(digits) & 255) == 0, 1)) {
+        __m128i pairs = _mm_maddubs_epi16(digits, _mm_set1_epi16(0x010a));
+        __m128i quads = _mm_madd_epi16(pairs, _mm_set1_epi32(0x00010064));
+        uint32_t value = uint32_t(p[0]-'0') * 100000000U
+            + uint32_t(_mm_cvtsi128_si32(quads)) * 10000U
+            + uint32_t(_mm_extract_epi32(quads, 1));
+        p += 10;
+        return value;
+    }
+    return read_mod998_u32(p);
+}
+__attribute__((always_inline)) inline uint32_t read_sse_short(char*& p) {
+    while (*p && *p <= ' ') ++p;
+    if (p[1] <= ' ') {
+        uint32_t value=uint32_t(p[0]-'0');
+        p+=2;
+        return value;
+    }
+    return read_sse(p);
+}
+// Expose independent divisions by constants instead of a remainder dependency.
+__attribute__((always_inline)) inline void write_split(
+    fastio_unsafe_impl::output& sink, char*& p, char* end, uint32_t x) {
+    if (x < 100000000U) { write_mod998(sink, p, end, x); return; }
+    if (__builtin_expect(end-p < 16, 0)) p=sink.flush(p);
+    const uint32_t q4 = x / 10000U, q8 = x / 100000000U;
+    const uint32_t middle = q4 - q8 * 10000U, last = x - q4 * 10000U;
+    const uint16_t prefix = uint16_t(' ') | (uint16_t('0' + q8) << 8);
+    const uint64_t packed = uint64_t(fastio_unsafe_impl::padded_groups[middle])
+        | (uint64_t(fastio_unsafe_impl::padded_groups[last]) << 32);
+    std::memcpy(p, &prefix, 2);
+    std::memcpy(p+2, &packed, 8);
+    p += 10;
+}
+constexpr auto make_two_digits() {
+    std::array<uint16_t, 100> table{};
+    for (unsigned i=0;i<100;++i) table[i]=uint16_t('0'+i/10) | (uint16_t('0'+i%10)<<8);
+    return table;
+}
+inline constexpr auto two_digits=make_two_digits();
+__attribute__((always_inline)) inline void write_two_digits(
+    fastio_unsafe_impl::output& sink, char*& p, char* end, uint32_t x) {
+    if (x < 100000000U) { write_mod998(sink, p, end, x); return; }
+    if (__builtin_expect(end-p < 16, 0)) p=sink.flush(p);
+    const uint32_t q2=x/100U, q4=x/10000U, q6=x/1000000U, q8=x/100000000U;
+    const uint16_t prefix=uint16_t(' ') | (uint16_t('0'+q8)<<8);
+    const uint64_t packed=uint64_t(two_digits[q6-q8*100U])
+        | (uint64_t(two_digits[q4-q6*100U])<<16)
+        | (uint64_t(two_digits[q2-q4*100U])<<32)
+        | (uint64_t(two_digits[x-q2*100U])<<48);
+    std::memcpy(p,&prefix,2); std::memcpy(p+2,&packed,8); p+=10;
+}
+
+
+// Pre-faulted 2 MiB-aligned zeroed words (huge pages when the kernel allows them).
+static uint32_t* arena(size_t words) {
+    constexpr size_t huge = size_t(2) << 20;
+    const size_t bytes = (words * 4 + huge - 1) & ~(huge - 1);
+    char* raw = static_cast<char*>(mmap(nullptr, bytes + huge, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+    if (raw == MAP_FAILED) std::exit(1);
+    char* p = reinterpret_cast<char*>((reinterpret_cast<uintptr_t>(raw) + huge - 1) & ~uintptr_t(huge - 1));
+#if defined(MADV_HUGEPAGE) && !defined(QPOLY_NO_HUGEPAGE)
+    madvise(p, bytes, MADV_HUGEPAGE);
+#endif
+    bool populated = false;
+#ifdef MADV_POPULATE_WRITE
+    populated = madvise(p, bytes, MADV_POPULATE_WRITE) == 0;
+#endif
+    if (!populated) for (size_t i = 0; i < bytes; i += 4096) static_cast<volatile char*>(p)[i] = 0;
+    return reinterpret_cast<uint32_t*>(p);
+}
+
 // AVX2 two-stage token parser, QPoly exploration 007 (Library Checker continuation).
 // Independently written; the two-stage separator-index structure is a common SIMD
 // parsing technique (see simdjson), the digit weighting follows the exploration-007
@@ -821,46 +972,13 @@ __attribute__((noinline)) char* parse_tokens(char* p, uint32_t* dst, size_t coun
     return const_cast<char*>(origin) + pos[i] + 1;
 }
 } // namespace qp_parse_flat
-
-__attribute__((always_inline)) inline void write_mod998(
-    fastio_unsafe_impl::output& sink, char*& cursor, char* end, uint32_t value) noexcept {
-    if (__builtin_expect(end - cursor < 16, 0)) cursor = sink.flush(cursor);
-    *cursor++ = ' ';
-    if (value >= 100000000U) {
-        const uint32_t high = value / 100000000U;
-        *cursor++ = char('0' + high);
-        value -= high * 100000000U;
-        fastio_unsafe_impl::emit_padded(cursor, value / 10000U);
-        fastio_unsafe_impl::emit_padded(cursor, value % 10000U);
-    } else fastio_unsafe_impl::emit_u32_unchecked(cursor, value);
-}
-
-
-// Pre-faulted 2 MiB-aligned zeroed words (huge pages when the kernel allows them).
-static uint32_t* arena(size_t words) {
-    constexpr size_t huge = size_t(2) << 20;
-    const size_t bytes = (words * 4 + huge - 1) & ~(huge - 1);
-    char* raw = static_cast<char*>(mmap(nullptr, bytes + huge, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
-    if (raw == MAP_FAILED) std::exit(1);
-    char* p = reinterpret_cast<char*>((reinterpret_cast<uintptr_t>(raw) + huge - 1) & ~uintptr_t(huge - 1));
-#if defined(MADV_HUGEPAGE) && !defined(QPOLY_NO_HUGEPAGE)
-    madvise(p, bytes, MADV_HUGEPAGE);
-#endif
-    bool populated = false;
-#ifdef MADV_POPULATE_WRITE
-    populated = madvise(p, bytes, MADV_POPULATE_WRITE) == 0;
-#endif
-    if (!populated) for (size_t i = 0; i < bytes; i += 4096) static_cast<volatile char*>(p)[i] = 0;
-    return reinterpret_cast<uint32_t*>(p);
-}
-
-
 int main() {
     fastio_unsafe_impl::input in;
     static fastio_unsafe_impl::output out;
-    uint32_t header[2];
-    char* input_cursor = qp_parse_flat::parse_tokens(in.cursor(), header, 2);
-    const unsigned n = header[0], m = header[1];
+    char* input_cursor = in.cursor();
+    char* output_cursor = out.begin();
+    char* const output_end = out.end();
+    const unsigned n = read_sse_short(input_cursor), m = read_sse_short(input_cursor);
     if (n == 0 || m == 0 || n > (1u << 19) || m > (1u << 19)) return 1;
     const unsigned count = n + m - 1;
     int length = 64;  // kernel minimum
@@ -869,12 +987,15 @@ int main() {
     uint32_t* const a = arena(2 * len + 2 * tab);
     uint32_t *const b = a + len, *const roots = b + len, *const inverse_roots = roots + tab;
     input_cursor = qp_parse_flat::parse_tokens(input_cursor, a, n);
-    qp_parse_flat::parse_tokens(input_cursor, b, m);
+    input_cursor = qp_parse_flat::parse_tokens(input_cursor, b, m);
     int root_size = 0;
+    auto t0 = std::chrono::steady_clock::now();
     qflip::Kernel<qflip::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true>>::run(length, a, b, roots, inverse_roots, root_size, true, int(n), int(m));
-    char* output_cursor = out.begin();
-    char* const output_end = out.end();
+    auto t1 = std::chrono::steady_clock::now();
     for (unsigned i = 0; i < count; ++i) write_mod998(out, output_cursor, output_end, a[i]);
     out.finish(output_cursor);
+#ifndef QPOLY_QUIET
+    std::fprintf(stderr, "compute_ms=%.4f\n", std::chrono::duration<double, std::milli>(t1 - t0).count());
+#endif
     return 0;
 }

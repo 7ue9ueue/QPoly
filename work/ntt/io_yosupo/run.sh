@@ -46,7 +46,11 @@ docker run --rm -v "$BUILD":/build -v "$ROOT/work/ntt":/ntt:ro -e FLAGS="$FLAGS"
     # The Shoup file prints compute_ms to stderr; the edge suite needs a silent build.
     case $name in shoup*) g++ $FLAGS -DQPOLY_QUIET -o bin/${name}_quiet judge/$name/main.cpp;; esac
   done
-  ldd "$(ls -d judge/*/main | head -1)" >> bin/compiler.txt'
+  ldd "$(ls -d judge/*/main | head -1)" >> bin/compiler.txt
+  if [ -e bin/final_shoup ] && [ -e bin/shoup_fl_ob64k ]; then
+    if cmp -s bin/final_shoup bin/shoup_fl_ob64k; then echo "IDENTICAL binaries: final_shoup shoup_fl_ob64k";
+    else echo "DIFFERENT binaries: final_shoup shoup_fl_ob64k"; fi | tee -a bin/compiler.txt
+  fi'
 cp "$BUILD/bin/compiler.txt" "$RESULTS/"
 names=$(cd "$BUILD/src" && ls *.cpp | sed 's/\.cpp$//')
 timed=$(echo "$names" | grep -v '_phases$' || true)

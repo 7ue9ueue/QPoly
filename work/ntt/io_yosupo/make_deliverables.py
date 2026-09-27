@@ -136,11 +136,41 @@ int main() {{
     return header + prologue + io_code(src) + '\n' + main, kernel
 
 
+# Shoup: the exact measured variant shoup_fl_ob64k (64 KiB buffer + parse_flat.inc
+# in place of the sse_short loops), with only header lines 14-17 reworded. The line
+# count is kept so the kernel's assert(__LINE__) and hence the code are unchanged;
+# the original (cleaned) make_shoup build measured ~0.35 ms slower on EPYC 7763,
+# attributed to code placement, and is not delivered.
+SHOUP_IO_LINES = '''// Prints the transform time to stderr (compute_ms=...) unless QPOLY_QUIET is defined.
+// I/O: QgQ's padded input mapping and table writer, https://judge.yosupo.jp/submission/393435
+// (2026-08-14; no license notice displayed), with a 64 KiB output buffer and the two-stage
+// AVX2 parser qp_parse_flat (QPoly exploration 007, work/ntt/io_yosupo/parse_flat.inc).
+'''
+
+
+def make_shoup_measured(src):
+    lines = src.splitlines(keepends=True)
+    assert lines[13].startswith('// Prints the transform time') and lines[14].startswith('// I/O: sse_short_lut8')
+    s = src.replace('std::array<char, 1u << 19> buffer_', 'std::array<char, 1u << 16> buffer_')
+    s = s.replace('int main() {', (here / 'parse_flat.inc').read_text() + 'int main() {')
+    reads = ('    for (unsigned i = 0; i < n; ++i) a[i] = read_sse_short(input_cursor);\n'
+             '    for (unsigned i = 0; i < m; ++i) b[i] = read_sse_short(input_cursor);\n')
+    assert s.count(reads) == 1
+    s = s.replace(reads, '    input_cursor = qp_parse_flat::parse_tokens(input_cursor, a, n);\n'
+                         '    input_cursor = qp_parse_flat::parse_tokens(input_cursor, b, m);\n')
+    out = s.splitlines(keepends=True)
+    out[13:17] = SHOUP_IO_LINES.splitlines(keepends=True)
+    return ''.join(out), cut(src, 'namespace qflip {', '}  // namespace qflip')
+
+
+MEASURED = {'asm': '26f7847049aad864ddec93202352d7d6c3d40f333b17aa1919d9cfc0e9eb49f1'}
 for key, (name, digest) in SOURCES.items():
     data = (ntt / name).read_bytes()
     assert hashlib.sha256(data).hexdigest() == digest, name
     src = data.decode()
-    text, kernel = (make_asm if key == 'asm' else make_shoup)(src)
+    text, kernel = (make_asm if key == 'asm' else make_shoup_measured)(src)
     assert text.count(kernel) == 1, key
+    if key in MEASURED and parser == 'flat' and formatter == 'table':
+        assert hashlib.sha256(text.encode()).hexdigest() == MEASURED[key], key
     (ntt / OUTPUTS[key]).write_text(text)
     print(hashlib.sha256(text.encode()).hexdigest(), OUTPUTS[key])
