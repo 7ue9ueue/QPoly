@@ -198,7 +198,58 @@ def inv_graph(b):
     return [ab, cd, amb, cmd]
 
 
-GRAPHS = {'fwd': fwd_graph, 'inv': inv_graph}
+def fwd_id_graph(b):
+    """Identity group (k = 0) of qflip::fwd4<C, true> without Flip: only z multiplies."""
+    c = b.c
+    f0, f1, f2, f3 = (b.mem(f'f{i}', i) for i in range(4))
+    a, bb, cc, dd = b.low(f0, 'a'), b.low(f1, 'b'), b.low(f2, 'c'), b.low(f3, 'd')
+    ac = b.low(b.op('vpaddd', 's', a, cc), 'ac')
+    amc = b.low_signed(b.op('vpsubd', 't', a, cc), 'amc')
+    bd = b.low(b.op('vpaddd', 'sbd', bb, dd), 'bd'); bmd = b.diff(bb, dd, 'bmd')
+    split = len(b.ops)
+    z = b.shoup(bmd, None, c['WZ'], c['WIZ'], 'z')
+    b.store(b.op('vpaddd', 'o0', ac, bd), 0)
+    b.store(b.diff(ac, bd, 'o1'), 1)
+    b.store(b.op('vpaddd', 'o2', amc, z), 2)
+    b.store(b.diff(amc, z, 'o3'), 3)
+    for o in b.ops[split:]:
+        o.stage = 1
+    return [ac, amc, bd, bmd]
+
+
+def inv_id_graph(b):
+    """Identity group of qflip::inv4<C, true> without Flip: only z multiplies.
+    low(x + 2P - y) is computed as min(t, t + 2P), t = x - y (same value for x, y < 2P)."""
+    c = b.c
+    f0, f1, f2, f3 = (b.mem(f'f{i}', i) for i in range(4))
+    ab = b.low(b.op('vpaddd', 'sab', f0, f1), 'ab')
+    cd = b.low(b.op('vpaddd', 'scd', f2, f3), 'cd')
+    amb = b.low_signed(b.op('vpsubd', 'tab', f0, f1), 'amb')
+    cmd = b.shoup(b.diff(f2, f3, 'ecmd'), None, c['WZ'], c['WIZ'], 'z')
+    split = len(b.ops)
+    b.store(b.low(b.op('vpaddd', 's0', ab, cd), 'o0'), 0)
+    b.store(b.low(b.op('vpaddd', 's1', amb, cmd), 'o1'), 1)
+    b.store(b.low_signed(b.op('vpsubd', 't2', ab, cd), 'o2'), 2)
+    b.store(b.low_signed(b.op('vpsubd', 't3', amb, cmd), 'o3'), 3)
+    for o in b.ops[split:]:
+        o.stage = 1
+    return [ab, cd, amb, cmd]
+
+
+def scale_graph(b):
+    """Final top radix-2 + scale (qflip::Kernel::run, odd log2 n): x = f[j], y = f[j + h];
+    f[j] = shrink(s*(x + y), P), f[j + h] = shrink(s*(x - y + 2P), P). WZ/WIZ hold s."""
+    c = b.c
+    x, y = b.mem('x', 0), b.mem('y', 1)
+    xs = b.op('vpaddd', 'xs', x, y)
+    xd = b.diff(x, y, 'xd')
+    for v, slot, nm in ((xs, 0, 'u'), (xd, 1, 'v')):
+        r = b.shoup(v, None, c['WZ'], c['WIZ'], nm)
+        b.store(b.op('vpminud', nm + 'm', r, b.op('vpsubd', nm + 'p', r, c['P'])), slot)
+    return []
+
+
+GRAPHS = {'fwd': fwd_graph, 'inv': inv_graph, 'fid': fwd_id_graph, 'iid': inv_id_graph, 'scale': scale_graph}
 
 
 def constants(twmem):
@@ -206,6 +257,9 @@ def constants(twmem):
     stack memory operands; 'half' = quotients wi in ymm11..13, values w in memory."""
     c = {'P': Val('creg', 'P', reg=15), 'P2': Val('creg', 'P2', reg=14)}
     reserved = {14, 15}
+    if twmem == 'z':   # identity / scale loops: only one twiddle pair, in ymm12/13
+        c['WZ'], c['WIZ'] = Val('creg', 'WZ', reg=12), Val('creg', 'WIZ', reg=13)
+        return c, reserved | {12, 13}
     for i, n in enumerate(['WX', 'WIX', 'WY', 'WIY', 'WZ', 'WIZ']):
         if twmem is True or (twmem == 'half' and not n.startswith('WI')):
             c[n] = Val('cmem', n, mem=('tw', 32 * i))
@@ -599,6 +653,10 @@ def asm_function(name, kind, g):
     step, twmem = g['step'], g['twmem']
     body = ['vpbroadcastd %[cP], %%ymm15', 'vpbroadcastd %[cP2], %%ymm14']
     for i, src in enumerate(['(%[px])', '32(%[px])', '(%[py])', '32(%[py])', '4(%[py])', '36(%[py])']):
+        if twmem == 'z':
+            if i >= 4:
+                body.append(f'vbroadcastss {src}, %%ymm{8 + i}')
+            continue
         if twmem is True or (twmem == 'half' and i % 2 == 0):
             body += [f'vbroadcastss {src}, %%ymm0', f'vmovdqa %%ymm0, {32 * i}(%[tw])']
         else:
@@ -616,7 +674,7 @@ def asm_function(name, kind, g):
          (f'QA_AI void {name}(V* f, V* g, long h, const U* px, const U* py) {{' if g.get('ab') else
           f'QA_AI void {name}(V* f, const V* src, long h, const U* px, const U* py) {{' if g.get('src') else
           f'QA_AI void {name}(V* f, long h, const U* px, const U* py) {{'),
-         '    alignas(32) V tw[6];' if twmem else '    V* tw = nullptr;',   # half: w at even slots
+         '    alignas(32) V tw[6];' if twmem in (True, 'half') else '    V* tw = nullptr;',   # half: w at even slots
          '    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;',
          '    char* q = (char*)g;' if g.get('ab') else '    char* q = nullptr;',
          '    const char* s = (const char*)src;' if g.get('src') else '    // (no source array)',
@@ -1022,6 +1080,28 @@ def main():
                       f'  search={g.get("search")}', file=sys.stderr)
             out += [asm_function(name, kind, g), '']
             cases[kind].append((vid, name))
+    # identity groups and final scale: 1 or 2 per iteration, deterministic + seeded schedules
+    extra = []
+    for kind in ('fid', 'iid', 'scale'):
+        for vid, count, knobs in ((1, 1, None), (2, 2, None), (3, 2, (31, 1, 2.0, 8, 2, None)),
+                                  (4, 2, (47, 2, 4.0, 12, 2, None)), (5, 2, (59, 0, 2.0, 10, 2, 16))):
+            try:
+                g = generate('fwd' if False else kind, 'ls', count, True, 'z', 0) if knobs is None else \
+                    generate_fixed(kind, 'ls', count, True, 'z', knobs)
+            except AllocError as e:
+                print(f'{kind}{vid}: skipped ({e})', file=sys.stderr)
+                continue
+            if args.mca:
+                print(f'{kind}{vid}: {len(g["body"])} instr/{g["step"]}  mca {mca(g["body"]) / g["step"]:6.2f}', file=sys.stderr)
+            out += [asm_function(f'{kind}_asm{vid}', kind, g), '']
+            extra.append((kind, vid, g['step']))
+    for kind in ('fid', 'iid', 'scale'):
+        out.append(f'QA_AI void {kind}_asm(int v, V* f, long h, const U* px, const U* py) {{')
+        out.append('    switch (v) {')
+        out += [f'    case {vid}: {kind}_asm{vid}(f, h, px, py); break;' for k, vid, _ in extra if k == kind]
+        out += ['    default: __builtin_unreachable();', '    }', '}']
+        out.append(f'constexpr int {kind}_step(int v) {{ switch (v) {{ '
+                   + ' '.join(f'case {vid}: return {st};' for k, vid, st in extra if k == kind) + ' } return 0; }')
     # copy-free top level: forward loop reading from a separate source array
     SRC_MODE['on'] = True
     src_ids = []

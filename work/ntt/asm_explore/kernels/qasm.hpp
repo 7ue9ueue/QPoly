@@ -145,8 +145,12 @@ inline constexpr Constants constants{};
 // bytes past the end of the array).
 template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true,
          bool Opq_ = false, bool LdOdd_ = false, int Il_ = 1, bool Blk_ = false, bool Pipe_ = false,
-         int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0, int AsmMinH_ = 4, int AsmBottom_ = 0, int AsmTop_ = 0>
+         int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0, int AsmMinH_ = 4, int AsmBottom_ = 0, int AsmTop_ = 0,
+         int AsmId_ = 0, int AsmScale_ = 0>
 struct Cfg {
+    // Generated identity-group (k = 0) loops and final radix-2 + scale loop (0 = C++).
+    static constexpr int AsmId = AsmId_, AsmScale = AsmScale_;
+    static_assert((AsmId_ == 0 && AsmScale_ == 0) || (Mul_ == 2 && Blk_ && Aux_ && !Flip_));
     // Copy-free top level (generated fwd_src variant; 0 = copy): with both upper halves
     // zero, the first radix-4 group of the upper half reads the untouched lower half.
     static constexpr int AsmTop = AsmTop_;
@@ -459,6 +463,14 @@ struct Kernel {
         static_assert(C::AsmI == 0 || asm_has(1, C::AsmI), "inverse asm variant not generated");
         static_assert(C::AsmMinH % asm_step(0, C::AsmF) == 0 && C::AsmMinH % asm_step(1, C::AsmI) == 0,
                       "asm loop step must divide every h it is used for");
+        if constexpr (C::AsmId != 0 && (H == 0 || H >= 4)) {
+            if (k == 0 && h % (Inv ? iid_step(C::AsmId) : fid_step(C::AsmId)) == 0) {
+                const U* py = Inv ? irt : rt;   // z = entry 1 (blk(1) = 1), quotient at +8
+                if constexpr (Inv) iid_asm(C::AsmId, a, h, nullptr, py);
+                else { fid_asm(C::AsmId, a, h, nullptr, py); fid_asm(C::AsmId, b, h, nullptr, py); }
+                return;
+            }
+        }
         if constexpr ((Inv ? C::AsmI : C::AsmF) != 0 && (H == 0 || H >= C::AsmMinH)) {
             if (k != 0 && (H != 0 || h >= C::AsmMinH)) {
                 const U* t = Inv ? irt : rt;
@@ -635,6 +647,14 @@ struct Kernel {
             top(a, nza <= n / 2); top(b, nzb <= n / 2);
             job.visit(a, b, h, 0); job.visit(a + h, b + h, h, 1);
         scale:
+            if constexpr (C::AsmScale != 0) {
+                if (h % scale_step(C::AsmScale) == 0) {
+                    alignas(32) U sc[16] = {};
+                    sc[1] = s_norm; sc[9] = s_mont * NI;   // read as (w_z, wi_z) = (sc[1], sc[9])
+                    scale_asm(C::AsmScale, a, h, nullptr, sc);
+                    return;
+                }
+            }
             // Values < 2P; sums/differences < 4P are valid multiply inputs.
             for (int i = 0; i < h; ++i) {
                 V x = a[i], y = a[i + h];

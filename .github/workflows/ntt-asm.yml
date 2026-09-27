@@ -46,7 +46,7 @@ jobs:
       - name: Library Checker submissions (exact judge flags)
         run: |
           echo "$GITHUB_SHA" > commit.txt
-          bash work/ntt/asm_explore/run_yosupo.sh results-yosupo work/ntt/yosupo_convolution_asm_shoup.cpp
+          bash work/ntt/asm_explore/run_yosupo.sh results-yosupo work/ntt/yosupo_convolution_asm_shoup.cpp work/ntt/asm_explore/generated/yosupo_asm_idsc.cpp
           cp commit.txt results-yosupo/
       - uses: actions/upload-artifact@v4
         if: always()

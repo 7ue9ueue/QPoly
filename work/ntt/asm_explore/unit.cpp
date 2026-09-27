@@ -82,6 +82,42 @@ int main(int argc, char** argv) {
         }
         std::printf("PASS %s variants %s\n", kind ? "inv" : "fwd", kind ? ASM_INV_IDS : ASM_FWD_IDS);
     }
+    // identity groups (k = 0) and the final scale loop
+    for (int kind = 0; kind < 3; ++kind) {
+        for (int v = 1; v <= 5; ++v) {
+            const int st = kind == 0 ? fid_step(v) : kind == 1 ? iid_step(v) : scale_step(v);
+            if (!st) continue;
+            for (int h : {2, 4, 16, 64}) {
+                if (h % st) continue;
+                for (int it = 0; it < iters; ++it) {
+                    const int n = (kind == 2 ? 2 : 4) * h * 8;
+                    for (int i = 0; i < n + 16; ++i) x[i] = pick(kind == 0 ? 4 * P : 2 * P);
+                    std::memcpy(y, x, sizeof(U) * (n + 16));
+                    const U* t = kind == 1 ? IT : T;
+                    if (kind == 2) {
+                        const U s = 1 + rng() % (P - 1), sm = mont(s);
+                        alignas(32) U sc[16] = {}; sc[1] = s; sc[9] = sm * NI;
+                        const Fixed f(splat(s), splat(sm * NI));
+                        V* xv = (V*)x;
+                        for (int i = 0; i < h; ++i) {
+                            V a = xv[i], b = xv[i + h];
+                            xv[i] = shrink(f.mul<2, false, false, true>(plus(a, b)), P);
+                            xv[i + h] = shrink(f.mul<2, false, false, true>(diff(a, b)), P);
+                        }
+                        scale_asm(v, (V*)y, h, nullptr, sc);
+                    } else {
+                        const Twiddle tw{Fixed(splat(t[0]), splat(t[8])), Fixed(splat(t[0]), splat(t[8])),
+                                         Fixed(splat(t[1]), splat(t[9]))};
+                        if (kind == 0) { fwd4<C, true>((V*)x, h, tw); fid_asm(v, (V*)y, h, nullptr, t); }
+                        else { inv4<C, true>((V*)x, h, tw); iid_asm(v, (V*)y, h, nullptr, t); }
+                    }
+                    for (int i = 0; i < n + 16; ++i) if (x[i] != y[i]) fail(kind == 0 ? "fid" : kind == 1 ? "iid" : "scale", v, h, i);
+                    ++checks;
+                }
+            }
+            std::printf("PASS %s variant %d\n", kind == 0 ? "fid" : kind == 1 ? "iid" : "scale", v);
+        }
+    }
     // copy-free top level: fwd_src_asm(v, dst, src) == copy src -> dst, then fwd4 on dst
     for (int v = 1; v <= 2; ++v) {
         for (int h : {2, 4, 16, 64}) {

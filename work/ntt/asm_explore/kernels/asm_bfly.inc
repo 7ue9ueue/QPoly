@@ -20175,6 +20175,1350 @@ QA_AI void inv_ls2h(V* f, long h, const U* px, const U* py) {
           "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
 }
 
+// fid_asm1: strategy=ls step=1 fold=1 twmem=z; 41 loop instructions; search (seed, margin, jitter) = (0, 0, 0.0); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void fid_asm1(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 32;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p],%[H]), %%ymm0\n\t"
+        "vmovdqa (%[p],%[H3]), %%ymm1\n\t"
+        "vmovdqa (%[p]), %%ymm2\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm3\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm4\n\t"
+        "vpminud %%ymm4, %%ymm0, %%ymm4\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm0\n\t"
+        "vpminud %%ymm0, %%ymm1, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm4, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm5\n\t"
+        "vpsubd %%ymm0, %%ymm1, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm6\n\t"
+        "vpminud %%ymm5, %%ymm2, %%ymm5\n\t"
+        "vpaddd %%ymm0, %%ymm4, %%ymm0\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm2\n\t"
+        "vpminud %%ymm6, %%ymm3, %%ymm6\n\t"
+        "vpmulld %%ymm12, %%ymm1, %%ymm1\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm4\n\t"
+        "vpaddd %%ymm6, %%ymm5, %%ymm3\n\t"
+        "vpsubd %%ymm6, %%ymm5, %%ymm6\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm7\n\t"
+        "vpaddd %%ymm14, %%ymm6, %%ymm8\n\t"
+        "vpminud %%ymm5, %%ymm0, %%ymm5\n\t"
+        "vpsrlq $32, %%ymm2, %%ymm2\n\t"
+        "vpminud %%ymm7, %%ymm3, %%ymm7\n\t"
+        "vpminud %%ymm8, %%ymm6, %%ymm8\n\t"
+        "vpblendd $170, %%ymm4, %%ymm2, %%ymm4\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm2\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm6\n\t"
+        "vpaddd %%ymm5, %%ymm7, %%ymm7\n\t"
+        "vpmulld %%ymm15, %%ymm4, %%ymm4\n\t"
+        "vpsubd %%ymm5, %%ymm2, %%ymm5\n\t"
+        "vmovdqa %%ymm7, (%[p])\n\t"
+        "vmovdqa %%ymm5, (%[p],%[H])\n\t"
+        "vpsubd %%ymm4, %%ymm1, %%ymm4\n\t"
+        "vpaddd %%ymm4, %%ymm8, %%ymm8\n\t"
+        "vpsubd %%ymm4, %%ymm6, %%ymm4\n\t"
+        "vmovdqa %%ymm8, (%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm4, (%[p],%[H3])\n\t"
+        "add $32, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// fid_asm2: strategy=ls step=2 fold=1 twmem=z; 82 loop instructions; search (seed, margin, jitter) = (0, 0, 0.0); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void fid_asm2(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p],%[H]), %%ymm0\n\t"
+        "vmovdqa 32(%[p],%[H]), %%ymm1\n\t"
+        "vmovdqa (%[p],%[H3]), %%ymm2\n\t"
+        "vmovdqa 32(%[p],%[H3]), %%ymm3\n\t"
+        "vmovdqa (%[p]), %%ymm4\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm5\n\t"
+        "vmovdqa 32(%[p]), %%ymm6\n\t"
+        "vmovdqa 32(%[p],%[H],2), %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm9\n\t"
+        "vpminud %%ymm8, %%ymm0, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm0\n\t"
+        "vpminud %%ymm9, %%ymm1, %%ymm9\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm10\n\t"
+        "vpminud %%ymm0, %%ymm2, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm9, %%ymm2\n\t"
+        "vpminud %%ymm10, %%ymm3, %%ymm10\n\t"
+        "vpsubd %%ymm0, %%ymm1, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm4, %%ymm3\n\t"
+        "vpaddd %%ymm0, %%ymm8, %%ymm0\n\t"
+        "vpsubd %%ymm10, %%ymm2, %%ymm2\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm8\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm11\n\t"
+        "vpminud %%ymm3, %%ymm4, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm2, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm8, %%ymm8\n\t"
+        "vpmulld %%ymm12, %%ymm1, %%ymm1\n\t"
+        "vpaddd %%ymm10, %%ymm9, %%ymm10\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm9\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm11, %%ymm11\n\t"
+        "vpmulld %%ymm12, %%ymm2, %%ymm2\n\t"
+        "vpblendd $170, %%ymm8, %%ymm11, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm5, %%ymm11\n\t"
+        "vpsrlq $32, %%ymm9, %%ymm9\n\t"
+        "vpminud %%ymm11, %%ymm5, %%ymm11\n\t"
+        "vpmulld %%ymm15, %%ymm8, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm5\n\t"
+        "vpminud %%ymm5, %%ymm6, %%ymm5\n\t"
+        "vpblendd $170, %%ymm4, %%ymm9, %%ymm4\n\t"
+        "vpsubd %%ymm14, %%ymm7, %%ymm9\n\t"
+        "vpaddd %%ymm11, %%ymm3, %%ymm6\n\t"
+        "vpminud %%ymm9, %%ymm7, %%ymm9\n\t"
+        "vpsubd %%ymm11, %%ymm3, %%ymm11\n\t"
+        "vpmulld %%ymm15, %%ymm4, %%ymm4\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm3\n\t"
+        "vpaddd %%ymm9, %%ymm5, %%ymm7\n\t"
+        "vpsubd %%ymm9, %%ymm5, %%ymm9\n\t"
+        "vpaddd %%ymm14, %%ymm11, %%ymm5\n\t"
+        "vpminud %%ymm3, %%ymm6, %%ymm3\n\t"
+        "vpsubd %%ymm14, %%ymm7, %%ymm6\n\t"
+        "vpminud %%ymm5, %%ymm11, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm11\n\t"
+        "vpsubd %%ymm8, %%ymm1, %%ymm8\n\t"
+        "vpaddd %%ymm14, %%ymm9, %%ymm1\n\t"
+        "vpminud %%ymm6, %%ymm7, %%ymm6\n\t"
+        "vpsubd %%ymm14, %%ymm10, %%ymm7\n\t"
+        "vpminud %%ymm11, %%ymm0, %%ymm11\n\t"
+        "vpminud %%ymm1, %%ymm9, %%ymm1\n\t"
+        "vpaddd %%ymm14, %%ymm3, %%ymm9\n\t"
+        "vpaddd %%ymm14, %%ymm5, %%ymm0\n\t"
+        "vpminud %%ymm7, %%ymm10, %%ymm7\n\t"
+        "vpsubd %%ymm4, %%ymm2, %%ymm4\n\t"
+        "vpaddd %%ymm14, %%ymm6, %%ymm2\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm10\n\t"
+        "vpaddd %%ymm11, %%ymm3, %%ymm3\n\t"
+        "vpsubd %%ymm11, %%ymm9, %%ymm11\n\t"
+        "vpaddd %%ymm8, %%ymm5, %%ymm5\n\t"
+        "vpsubd %%ymm8, %%ymm0, %%ymm8\n\t"
+        "vpaddd %%ymm7, %%ymm6, %%ymm6\n\t"
+        "vmovdqa %%ymm3, (%[p])\n\t"
+        "vpsubd %%ymm7, %%ymm2, %%ymm7\n\t"
+        "vpaddd %%ymm4, %%ymm1, %%ymm1\n\t"
+        "vpsubd %%ymm4, %%ymm10, %%ymm4\n\t"
+        "vmovdqa %%ymm11, (%[p],%[H])\n\t"
+        "vmovdqa %%ymm5, (%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm8, (%[p],%[H3])\n\t"
+        "vmovdqa %%ymm6, 32(%[p])\n\t"
+        "vmovdqa %%ymm7, 32(%[p],%[H])\n\t"
+        "vmovdqa %%ymm1, 32(%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm4, 32(%[p],%[H3])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// fid_asm3: strategy=ls step=2 fold=1 twmem=z; 82 loop instructions; search (seed, margin, jitter) = (31, 1, 2.0, 8, 2, None); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void fid_asm3(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p],%[H]), %%ymm0\n\t"
+        "vmovdqa 32(%[p],%[H3]), %%ymm1\n\t"
+        "vmovdqa (%[p],%[H3]), %%ymm2\n\t"
+        "vmovdqa 32(%[p],%[H]), %%ymm3\n\t"
+        "vmovdqa 32(%[p],%[H],2), %%ymm4\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm5\n\t"
+        "vmovdqa 32(%[p]), %%ymm6\n\t"
+        "vmovdqa (%[p]), %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm9\n\t"
+        "vpminud %%ymm8, %%ymm0, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm0\n\t"
+        "vpminud %%ymm9, %%ymm1, %%ymm9\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm10\n\t"
+        "vpminud %%ymm0, %%ymm2, %%ymm0\n\t"
+        "vpminud %%ymm10, %%ymm3, %%ymm10\n\t"
+        "vpsubd %%ymm0, %%ymm1, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm4, %%ymm3\n\t"
+        "vpaddd %%ymm0, %%ymm8, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm10, %%ymm8\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm2\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm11\n\t"
+        "vpminud %%ymm3, %%ymm4, %%ymm3\n\t"
+        "vpsubd %%ymm9, %%ymm8, %%ymm8\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm2\n\t"
+        "vpmulld %%ymm12, %%ymm1, %%ymm1\n\t"
+        "vpaddd %%ymm9, %%ymm10, %%ymm9\n\t"
+        "vpmuludq %%ymm13, %%ymm8, %%ymm10\n\t"
+        "vpsrlq $32, %%ymm8, %%ymm4\n\t"
+        "vpmulld %%ymm12, %%ymm8, %%ymm8\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm11, %%ymm11\n\t"
+        "vpblendd $170, %%ymm2, %%ymm11, %%ymm2\n\t"
+        "vpsubd %%ymm14, %%ymm5, %%ymm11\n\t"
+        "vpsrlq $32, %%ymm10, %%ymm10\n\t"
+        "vpmulld %%ymm15, %%ymm2, %%ymm2\n\t"
+        "vpminud %%ymm11, %%ymm5, %%ymm11\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm5\n\t"
+        "vpblendd $170, %%ymm4, %%ymm10, %%ymm4\n\t"
+        "vpminud %%ymm5, %%ymm6, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm7, %%ymm6\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm10\n\t"
+        "vpminud %%ymm6, %%ymm7, %%ymm6\n\t"
+        "vpmulld %%ymm15, %%ymm4, %%ymm4\n\t"
+        "vpminud %%ymm10, %%ymm0, %%ymm10\n\t"
+        "vpaddd %%ymm3, %%ymm5, %%ymm0\n\t"
+        "vpsubd %%ymm3, %%ymm5, %%ymm3\n\t"
+        "vpsubd %%ymm2, %%ymm1, %%ymm2\n\t"
+        "vpsubd %%ymm11, %%ymm6, %%ymm1\n\t"
+        "vpaddd %%ymm11, %%ymm6, %%ymm11\n\t"
+        "vpaddd %%ymm14, %%ymm3, %%ymm6\n\t"
+        "vpsubd %%ymm14, %%ymm11, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm7\n\t"
+        "vpminud %%ymm6, %%ymm3, %%ymm6\n\t"
+        "vpminud %%ymm5, %%ymm11, %%ymm5\n\t"
+        "vpsubd %%ymm4, %%ymm8, %%ymm4\n\t"
+        "vpminud %%ymm7, %%ymm0, %%ymm7\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm5, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm9, %%ymm11\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm3\n\t"
+        "vpminud %%ymm11, %%ymm9, %%ymm11\n\t"
+        "vpminud %%ymm0, %%ymm1, %%ymm0\n\t"
+        "vpaddd %%ymm10, %%ymm5, %%ymm5\n\t"
+        "vpsubd %%ymm10, %%ymm8, %%ymm10\n\t"
+        "vpaddd %%ymm4, %%ymm6, %%ymm8\n\t"
+        "vpaddd %%ymm2, %%ymm0, %%ymm1\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm6, %%ymm6\n\t"
+        "vmovdqa %%ymm5, (%[p])\n\t"
+        "vpsubd %%ymm2, %%ymm0, %%ymm2\n\t"
+        "vpaddd %%ymm11, %%ymm7, %%ymm7\n\t"
+        "vpsubd %%ymm4, %%ymm6, %%ymm4\n\t"
+        "vmovdqa %%ymm10, (%[p],%[H])\n\t"
+        "vpsubd %%ymm11, %%ymm3, %%ymm11\n\t"
+        "vmovdqa %%ymm7, 32(%[p])\n\t"
+        "vmovdqa %%ymm2, (%[p],%[H3])\n\t"
+        "vmovdqa %%ymm4, 32(%[p],%[H3])\n\t"
+        "vmovdqa %%ymm1, (%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm8, 32(%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm11, 32(%[p],%[H])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// fid_asm4: strategy=ls step=2 fold=1 twmem=z; 82 loop instructions; search (seed, margin, jitter) = (47, 2, 4.0, 12, 2, None); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void fid_asm4(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa 32(%[p],%[H]), %%ymm0\n\t"
+        "vmovdqa (%[p],%[H]), %%ymm1\n\t"
+        "vmovdqa 32(%[p],%[H3]), %%ymm2\n\t"
+        "vmovdqa (%[p],%[H3]), %%ymm3\n\t"
+        "vmovdqa 32(%[p]), %%ymm4\n\t"
+        "vmovdqa (%[p]), %%ymm5\n\t"
+        "vmovdqa 32(%[p],%[H],2), %%ymm6\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm8\n\t"
+        "vpminud %%ymm8, %%ymm0, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm9\n\t"
+        "vpminud %%ymm0, %%ymm1, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm1\n\t"
+        "vpminud %%ymm1, %%ymm2, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm2\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm10\n\t"
+        "vpminud %%ymm2, %%ymm3, %%ymm2\n\t"
+        "vpsubd %%ymm1, %%ymm9, %%ymm9\n\t"
+        "vpaddd %%ymm1, %%ymm8, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm4, %%ymm8\n\t"
+        "vpsubd %%ymm2, %%ymm10, %%ymm10\n\t"
+        "vpminud %%ymm8, %%ymm4, %%ymm8\n\t"
+        "vpaddd %%ymm2, %%ymm0, %%ymm2\n\t"
+        "vpmuludq %%ymm13, %%ymm9, %%ymm0\n\t"
+        "vpsrlq $32, %%ymm10, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm10, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm9, %%ymm11\n\t"
+        "vpmulld %%ymm12, %%ymm10, %%ymm10\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm11, %%ymm11\n\t"
+        "vpsrlq $32, %%ymm0, %%ymm0\n\t"
+        "vpmulld %%ymm12, %%ymm9, %%ymm9\n\t"
+        "vpsrlq $32, %%ymm3, %%ymm3\n\t"
+        "vpblendd $170, %%ymm4, %%ymm3, %%ymm4\n\t"
+        "vpblendd $170, %%ymm11, %%ymm0, %%ymm11\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm5, %%ymm3\n\t"
+        "vpmulld %%ymm15, %%ymm4, %%ymm4\n\t"
+        "vpmulld %%ymm15, %%ymm11, %%ymm11\n\t"
+        "vpminud %%ymm3, %%ymm5, %%ymm3\n\t"
+        "vpminud %%ymm0, %%ymm6, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm7, %%ymm6\n\t"
+        "vpsubd %%ymm0, %%ymm8, %%ymm5\n\t"
+        "vpaddd %%ymm0, %%ymm8, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm8\n\t"
+        "vpminud %%ymm6, %%ymm7, %%ymm6\n\t"
+        "vpminud %%ymm8, %%ymm1, %%ymm8\n\t"
+        "vpaddd %%ymm14, %%ymm5, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm7\n\t"
+        "vpminud %%ymm7, %%ymm0, %%ymm7\n\t"
+        "vpminud %%ymm1, %%ymm5, %%ymm1\n\t"
+        "vpsubd %%ymm11, %%ymm9, %%ymm11\n\t"
+        "vpsubd %%ymm4, %%ymm10, %%ymm4\n\t"
+        "vpsubd %%ymm6, %%ymm3, %%ymm10\n\t"
+        "vpaddd %%ymm6, %%ymm3, %%ymm6\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm9\n\t"
+        "vpaddd %%ymm8, %%ymm7, %%ymm7\n\t"
+        "vpaddd %%ymm11, %%ymm1, %%ymm1\n\t"
+        "vpsubd %%ymm11, %%ymm9, %%ymm11\n\t"
+        "vpsubd %%ymm8, %%ymm3, %%ymm8\n\t"
+        "vpaddd %%ymm14, %%ymm10, %%ymm3\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm9\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm5\n\t"
+        "vmovdqa %%ymm11, 32(%[p],%[H3])\n\t"
+        "vpminud %%ymm9, %%ymm6, %%ymm9\n\t"
+        "vpminud %%ymm5, %%ymm2, %%ymm5\n\t"
+        "vpminud %%ymm3, %%ymm10, %%ymm3\n\t"
+        "vmovdqa %%ymm1, 32(%[p],%[H],2)\n\t"
+        "vpaddd %%ymm14, %%ymm3, %%ymm1\n\t"
+        "vpaddd %%ymm4, %%ymm3, %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm9, %%ymm10\n\t"
+        "vpaddd %%ymm5, %%ymm9, %%ymm9\n\t"
+        "vmovdqa %%ymm7, 32(%[p])\n\t"
+        "vpsubd %%ymm4, %%ymm1, %%ymm4\n\t"
+        "vmovdqa %%ymm3, (%[p],%[H],2)\n\t"
+        "vpsubd %%ymm5, %%ymm10, %%ymm5\n\t"
+        "vmovdqa %%ymm9, (%[p])\n\t"
+        "vmovdqa %%ymm8, 32(%[p],%[H])\n\t"
+        "vmovdqa %%ymm5, (%[p],%[H])\n\t"
+        "vmovdqa %%ymm4, (%[p],%[H3])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// fid_asm5: strategy=ls step=2 fold=1 twmem=z; 82 loop instructions; search (seed, margin, jitter) = (59, 0, 2.0, 10, 2, 16); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void fid_asm5(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p],%[H]), %%ymm0\n\t"
+        "vmovdqa (%[p],%[H3]), %%ymm1\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm2\n\t"
+        "vmovdqa (%[p]), %%ymm3\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm4\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm5\n\t"
+        "vpminud %%ymm4, %%ymm0, %%ymm4\n\t"
+        "vpaddd %%ymm14, %%ymm4, %%ymm0\n\t"
+        "vpminud %%ymm5, %%ymm1, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm1\n\t"
+        "vpsubd %%ymm5, %%ymm0, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm6\n\t"
+        "vpminud %%ymm1, %%ymm2, %%ymm1\n\t"
+        "vpaddd %%ymm5, %%ymm4, %%ymm5\n\t"
+        "vpmuludq %%ymm13, %%ymm0, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm0, %%ymm2\n\t"
+        "vpminud %%ymm6, %%ymm3, %%ymm6\n\t"
+        "vpmulld %%ymm12, %%ymm0, %%ymm0\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm2\n\t"
+        "vpaddd %%ymm1, %%ymm6, %%ymm3\n\t"
+        "vpsubd %%ymm1, %%ymm6, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm5, %%ymm6\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm8\n\t"
+        "vpminud %%ymm6, %%ymm5, %%ymm6\n\t"
+        "vpsrlq $32, %%ymm4, %%ymm4\n\t"
+        "vpminud %%ymm7, %%ymm1, %%ymm7\n\t"
+        "vpminud %%ymm8, %%ymm3, %%ymm8\n\t"
+        "vmovdqa 32(%[p]), %%ymm3\n\t"
+        "vpblendd $170, %%ymm2, %%ymm4, %%ymm2\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm4\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm1\n\t"
+        "vpaddd %%ymm6, %%ymm8, %%ymm8\n\t"
+        "vmovdqa 32(%[p],%[H]), %%ymm5\n\t"
+        "vpmulld %%ymm15, %%ymm2, %%ymm2\n\t"
+        "vpsubd %%ymm6, %%ymm1, %%ymm6\n\t"
+        "vmovdqa %%ymm8, (%[p])\n\t"
+        "vmovdqa 32(%[p],%[H3]), %%ymm8\n\t"
+        "vmovdqa %%ymm6, (%[p],%[H])\n\t"
+        "vmovdqa 32(%[p],%[H],2), %%ymm6\n\t"
+        "vpsubd %%ymm2, %%ymm0, %%ymm2\n\t"
+        "vpaddd %%ymm2, %%ymm7, %%ymm7\n\t"
+        "vpsubd %%ymm2, %%ymm4, %%ymm2\n\t"
+        "vmovdqa %%ymm2, (%[p],%[H3])\n\t"
+        "vmovdqa %%ymm7, (%[p],%[H],2)\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm5, %%ymm2\n\t"
+        "vpminud %%ymm7, %%ymm3, %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm8, %%ymm3\n\t"
+        "vpminud %%ymm2, %%ymm5, %%ymm2\n\t"
+        "vpminud %%ymm3, %%ymm8, %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm2, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm5\n\t"
+        "vpsubd %%ymm3, %%ymm8, %%ymm8\n\t"
+        "vpminud %%ymm5, %%ymm6, %%ymm5\n\t"
+        "vpaddd %%ymm3, %%ymm2, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm8, %%ymm2\n\t"
+        "vpmuludq %%ymm13, %%ymm8, %%ymm6\n\t"
+        "vpsubd %%ymm5, %%ymm7, %%ymm4\n\t"
+        "vpmulld %%ymm12, %%ymm8, %%ymm8\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm2\n\t"
+        "vpaddd %%ymm5, %%ymm7, %%ymm5\n\t"
+        "vpaddd %%ymm14, %%ymm4, %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm5, %%ymm1\n\t"
+        "vpminud %%ymm7, %%ymm4, %%ymm7\n\t"
+        "vpminud %%ymm0, %%ymm3, %%ymm0\n\t"
+        "vpsrlq $32, %%ymm6, %%ymm6\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm3\n\t"
+        "vpminud %%ymm1, %%ymm5, %%ymm1\n\t"
+        "vpblendd $170, %%ymm2, %%ymm6, %%ymm2\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm6\n\t"
+        "vpaddd %%ymm0, %%ymm1, %%ymm1\n\t"
+        "vpmulld %%ymm15, %%ymm2, %%ymm2\n\t"
+        "vpsubd %%ymm0, %%ymm6, %%ymm0\n\t"
+        "vmovdqa %%ymm1, 32(%[p])\n\t"
+        "vmovdqa %%ymm0, 32(%[p],%[H])\n\t"
+        "vpsubd %%ymm2, %%ymm8, %%ymm2\n\t"
+        "vpsubd %%ymm2, %%ymm3, %%ymm3\n\t"
+        "vpaddd %%ymm2, %%ymm7, %%ymm2\n\t"
+        "vmovdqa %%ymm2, 32(%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm3, 32(%[p],%[H3])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// iid_asm1: strategy=ls step=1 fold=1 twmem=z; 37 loop instructions; search (seed, margin, jitter) = (0, 0, 0.0); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void iid_asm1(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 32;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm0\n\t"
+        "vmovdqa (%[p]), %%ymm1\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm2\n\t"
+        "vpaddd (%[p],%[H3]), %%ymm0, %%ymm0\n\t"
+        "vpsubd (%[p],%[H3]), %%ymm2, %%ymm2\n\t"
+        "vpaddd (%[p],%[H]), %%ymm1, %%ymm3\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm2, %%ymm5\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm6\n\t"
+        "vpmulld %%ymm12, %%ymm2, %%ymm2\n\t"
+        "vpsubd (%[p],%[H]), %%ymm1, %%ymm1\n\t"
+        "vpmuludq %%ymm13, %%ymm5, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm7\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm8\n\t"
+        "vpminud %%ymm4, %%ymm0, %%ymm4\n\t"
+        "vpminud %%ymm7, %%ymm3, %%ymm7\n\t"
+        "vpminud %%ymm8, %%ymm1, %%ymm8\n\t"
+        "vpsrlq $32, %%ymm6, %%ymm6\n\t"
+        "vpaddd %%ymm4, %%ymm7, %%ymm1\n\t"
+        "vpsubd %%ymm4, %%ymm7, %%ymm4\n\t"
+        "vpblendd $170, %%ymm5, %%ymm6, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm6\n\t"
+        "vpaddd %%ymm14, %%ymm4, %%ymm7\n\t"
+        "vpmulld %%ymm15, %%ymm5, %%ymm5\n\t"
+        "vpminud %%ymm6, %%ymm1, %%ymm6\n\t"
+        "vpminud %%ymm7, %%ymm4, %%ymm7\n\t"
+        "vmovdqa %%ymm6, (%[p])\n\t"
+        "vmovdqa %%ymm7, (%[p],%[H],2)\n\t"
+        "vpsubd %%ymm5, %%ymm2, %%ymm5\n\t"
+        "vpaddd %%ymm5, %%ymm8, %%ymm2\n\t"
+        "vpsubd %%ymm5, %%ymm8, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm8\n\t"
+        "vpaddd %%ymm14, %%ymm5, %%ymm7\n\t"
+        "vpminud %%ymm8, %%ymm2, %%ymm8\n\t"
+        "vpminud %%ymm7, %%ymm5, %%ymm7\n\t"
+        "vmovdqa %%ymm8, (%[p],%[H])\n\t"
+        "vmovdqa %%ymm7, (%[p],%[H3])\n\t"
+        "add $32, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// iid_asm2: strategy=ls step=2 fold=1 twmem=z; 74 loop instructions; search (seed, margin, jitter) = (0, 0, 0.0); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void iid_asm2(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm0\n\t"
+        "vmovdqa 32(%[p],%[H],2), %%ymm1\n\t"
+        "vmovdqa (%[p]), %%ymm2\n\t"
+        "vmovdqa 32(%[p]), %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm4\n\t"
+        "vpaddd (%[p],%[H3]), %%ymm0, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm5\n\t"
+        "vpsubd (%[p],%[H3]), %%ymm4, %%ymm4\n\t"
+        "vpaddd 32(%[p],%[H3]), %%ymm1, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm6\n\t"
+        "vpsubd 32(%[p],%[H3]), %%ymm5, %%ymm5\n\t"
+        "vpsrlq $32, %%ymm4, %%ymm7\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm8\n\t"
+        "vpmulld %%ymm12, %%ymm4, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm5, %%ymm9\n\t"
+        "vpmuludq %%ymm13, %%ymm5, %%ymm10\n\t"
+        "vpmuludq %%ymm13, %%ymm7, %%ymm7\n\t"
+        "vpaddd (%[p],%[H]), %%ymm2, %%ymm11\n\t"
+        "vpmuludq %%ymm13, %%ymm9, %%ymm9\n\t"
+        "vpmulld %%ymm12, %%ymm5, %%ymm5\n\t"
+        "vpsubd (%[p],%[H]), %%ymm2, %%ymm2\n\t"
+        "vpminud %%ymm6, %%ymm0, %%ymm6\n\t"
+        "vpsrlq $32, %%ymm8, %%ymm8\n\t"
+        "vpaddd 32(%[p],%[H]), %%ymm3, %%ymm0\n\t"
+        "vpsubd 32(%[p],%[H]), %%ymm3, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm10, %%ymm10\n\t"
+        "vpblendd $170, %%ymm7, %%ymm8, %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm11, %%ymm8\n\t"
+        "vpblendd $170, %%ymm9, %%ymm10, %%ymm9\n\t"
+        "vpmulld %%ymm15, %%ymm7, %%ymm7\n\t"
+        "vpminud %%ymm8, %%ymm11, %%ymm8\n\t"
+        "vpaddd %%ymm14, %%ymm2, %%ymm11\n\t"
+        "vpmulld %%ymm15, %%ymm9, %%ymm9\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm10\n\t"
+        "vpminud %%ymm11, %%ymm2, %%ymm11\n\t"
+        "vpaddd %%ymm6, %%ymm8, %%ymm2\n\t"
+        "vpminud %%ymm10, %%ymm0, %%ymm10\n\t"
+        "vpsubd %%ymm6, %%ymm8, %%ymm6\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm8\n\t"
+        "vpaddd %%ymm14, %%ymm3, %%ymm0\n\t"
+        "vpsubd %%ymm7, %%ymm4, %%ymm7\n\t"
+        "vpminud %%ymm8, %%ymm1, %%ymm8\n\t"
+        "vpminud %%ymm0, %%ymm3, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm3\n\t"
+        "vpsubd %%ymm9, %%ymm5, %%ymm9\n\t"
+        "vpaddd %%ymm7, %%ymm11, %%ymm5\n\t"
+        "vpsubd %%ymm7, %%ymm11, %%ymm7\n\t"
+        "vpaddd %%ymm8, %%ymm10, %%ymm11\n\t"
+        "vpaddd %%ymm9, %%ymm0, %%ymm1\n\t"
+        "vpsubd %%ymm8, %%ymm10, %%ymm8\n\t"
+        "vpsubd %%ymm9, %%ymm0, %%ymm9\n\t"
+        "vpsubd %%ymm14, %%ymm5, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm6, %%ymm10\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm4\n\t"
+        "vpminud %%ymm3, %%ymm2, %%ymm3\n\t"
+        "vpminud %%ymm0, %%ymm5, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm11, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm2\n\t"
+        "vpminud %%ymm10, %%ymm6, %%ymm10\n\t"
+        "vpminud %%ymm4, %%ymm7, %%ymm4\n\t"
+        "vmovdqa %%ymm3, (%[p])\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm9, %%ymm7\n\t"
+        "vpminud %%ymm5, %%ymm11, %%ymm5\n\t"
+        "vpminud %%ymm2, %%ymm1, %%ymm2\n\t"
+        "vmovdqa %%ymm0, (%[p],%[H])\n\t"
+        "vpminud %%ymm3, %%ymm8, %%ymm3\n\t"
+        "vpminud %%ymm7, %%ymm9, %%ymm7\n\t"
+        "vmovdqa %%ymm10, (%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm4, (%[p],%[H3])\n\t"
+        "vmovdqa %%ymm5, 32(%[p])\n\t"
+        "vmovdqa %%ymm2, 32(%[p],%[H])\n\t"
+        "vmovdqa %%ymm3, 32(%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm7, 32(%[p],%[H3])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// iid_asm3: strategy=ls step=2 fold=1 twmem=z; 74 loop instructions; search (seed, margin, jitter) = (31, 1, 2.0, 8, 2, None); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void iid_asm3(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa 32(%[p],%[H],2), %%ymm0\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm1\n\t"
+        "vmovdqa 32(%[p]), %%ymm2\n\t"
+        "vmovdqa (%[p]), %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm4\n\t"
+        "vpaddd 32(%[p],%[H3]), %%ymm0, %%ymm0\n\t"
+        "vpsubd 32(%[p],%[H3]), %%ymm4, %%ymm4\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm5\n\t"
+        "vpaddd (%[p],%[H3]), %%ymm1, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm6\n\t"
+        "vpsubd (%[p],%[H3]), %%ymm5, %%ymm5\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm7\n\t"
+        "vpsrlq $32, %%ymm4, %%ymm8\n\t"
+        "vpmulld %%ymm12, %%ymm4, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm8, %%ymm8\n\t"
+        "vpsrlq $32, %%ymm5, %%ymm9\n\t"
+        "vpmuludq %%ymm13, %%ymm5, %%ymm10\n\t"
+        "vpsubd 32(%[p],%[H]), %%ymm2, %%ymm11\n\t"
+        "vpmuludq %%ymm13, %%ymm9, %%ymm9\n\t"
+        "vpmulld %%ymm12, %%ymm5, %%ymm5\n\t"
+        "vpaddd 32(%[p],%[H]), %%ymm2, %%ymm2\n\t"
+        "vpminud %%ymm6, %%ymm0, %%ymm6\n\t"
+        "vpsrlq $32, %%ymm7, %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm0\n\t"
+        "vpsrlq $32, %%ymm10, %%ymm10\n\t"
+        "vpblendd $170, %%ymm8, %%ymm7, %%ymm8\n\t"
+        "vpminud %%ymm0, %%ymm2, %%ymm0\n\t"
+        "vpsubd (%[p],%[H]), %%ymm3, %%ymm2\n\t"
+        "vpmulld %%ymm15, %%ymm8, %%ymm8\n\t"
+        "vpblendd $170, %%ymm9, %%ymm10, %%ymm9\n\t"
+        "vpaddd (%[p],%[H]), %%ymm3, %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm2, %%ymm10\n\t"
+        "vpmulld %%ymm15, %%ymm9, %%ymm9\n\t"
+        "vpminud %%ymm10, %%ymm2, %%ymm10\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm2\n\t"
+        "vpaddd %%ymm14, %%ymm11, %%ymm7\n\t"
+        "vpminud %%ymm2, %%ymm3, %%ymm2\n\t"
+        "vpminud %%ymm7, %%ymm11, %%ymm7\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm11\n\t"
+        "vpsubd %%ymm6, %%ymm0, %%ymm3\n\t"
+        "vpminud %%ymm11, %%ymm1, %%ymm11\n\t"
+        "vpsubd %%ymm8, %%ymm4, %%ymm8\n\t"
+        "vpaddd %%ymm6, %%ymm0, %%ymm6\n\t"
+        "vpaddd %%ymm14, %%ymm3, %%ymm0\n\t"
+        "vpsubd %%ymm11, %%ymm2, %%ymm4\n\t"
+        "vpsubd %%ymm9, %%ymm5, %%ymm9\n\t"
+        "vpaddd %%ymm8, %%ymm7, %%ymm5\n\t"
+        "vpsubd %%ymm8, %%ymm7, %%ymm8\n\t"
+        "vpsubd %%ymm9, %%ymm10, %%ymm7\n\t"
+        "vpaddd %%ymm11, %%ymm2, %%ymm11\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm2\n\t"
+        "vpaddd %%ymm9, %%ymm10, %%ymm9\n\t"
+        "vpsubd %%ymm14, %%ymm5, %%ymm10\n\t"
+        "vpsubd %%ymm14, %%ymm9, %%ymm1\n\t"
+        "vpminud %%ymm0, %%ymm3, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm11, %%ymm3\n\t"
+        "vpminud %%ymm3, %%ymm11, %%ymm3\n\t"
+        "vpminud %%ymm1, %%ymm9, %%ymm1\n\t"
+        "vpminud %%ymm2, %%ymm8, %%ymm2\n\t"
+        "vpminud %%ymm10, %%ymm5, %%ymm10\n\t"
+        "vmovdqa %%ymm0, 32(%[p],%[H],2)\n\t"
+        "vpaddd %%ymm14, %%ymm4, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm5\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm8\n\t"
+        "vmovdqa %%ymm1, (%[p],%[H])\n\t"
+        "vpminud %%ymm8, %%ymm7, %%ymm8\n\t"
+        "vmovdqa %%ymm2, 32(%[p],%[H3])\n\t"
+        "vpminud %%ymm0, %%ymm4, %%ymm0\n\t"
+        "vpminud %%ymm5, %%ymm6, %%ymm5\n\t"
+        "vmovdqa %%ymm5, 32(%[p])\n\t"
+        "vmovdqa %%ymm8, (%[p],%[H3])\n\t"
+        "vmovdqa %%ymm0, (%[p],%[H],2)\n\t"
+        "vmovdqa %%ymm10, 32(%[p],%[H])\n\t"
+        "vmovdqa %%ymm3, (%[p])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// iid_asm4: strategy=ls step=2 fold=1 twmem=z; 74 loop instructions; search (seed, margin, jitter) = (47, 2, 4.0, 12, 2, None); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void iid_asm4(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa 32(%[p],%[H],2), %%ymm0\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm1\n\t"
+        "vmovdqa 32(%[p]), %%ymm2\n\t"
+        "vmovdqa (%[p]), %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm4\n\t"
+        "vpaddd 32(%[p],%[H3]), %%ymm0, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm5\n\t"
+        "vpsubd 32(%[p],%[H3]), %%ymm4, %%ymm4\n\t"
+        "vpaddd (%[p],%[H3]), %%ymm1, %%ymm1\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm6\n\t"
+        "vpsubd (%[p],%[H3]), %%ymm5, %%ymm5\n\t"
+        "vpsrlq $32, %%ymm4, %%ymm7\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm8\n\t"
+        "vpmulld %%ymm12, %%ymm4, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm5, %%ymm9\n\t"
+        "vpsrlq $32, %%ymm5, %%ymm10\n\t"
+        "vpmuludq %%ymm13, %%ymm7, %%ymm7\n\t"
+        "vpaddd 32(%[p],%[H]), %%ymm2, %%ymm11\n\t"
+        "vpmuludq %%ymm13, %%ymm10, %%ymm10\n\t"
+        "vpmulld %%ymm12, %%ymm5, %%ymm5\n\t"
+        "vpsubd 32(%[p],%[H]), %%ymm2, %%ymm2\n\t"
+        "vpminud %%ymm6, %%ymm0, %%ymm6\n\t"
+        "vpsrlq $32, %%ymm8, %%ymm8\n\t"
+        "vpsubd %%ymm14, %%ymm11, %%ymm0\n\t"
+        "vpsrlq $32, %%ymm9, %%ymm9\n\t"
+        "vpblendd $170, %%ymm7, %%ymm8, %%ymm7\n\t"
+        "vpminud %%ymm0, %%ymm11, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm2, %%ymm11\n\t"
+        "vpmulld %%ymm15, %%ymm7, %%ymm7\n\t"
+        "vpblendd $170, %%ymm10, %%ymm9, %%ymm10\n\t"
+        "vpminud %%ymm11, %%ymm2, %%ymm11\n\t"
+        "vpaddd (%[p],%[H]), %%ymm3, %%ymm2\n\t"
+        "vpmulld %%ymm15, %%ymm10, %%ymm10\n\t"
+        "vpsubd (%[p],%[H]), %%ymm3, %%ymm3\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm9\n\t"
+        "vpaddd %%ymm6, %%ymm0, %%ymm8\n\t"
+        "vpminud %%ymm9, %%ymm2, %%ymm9\n\t"
+        "vpsubd %%ymm6, %%ymm0, %%ymm6\n\t"
+        "vpaddd %%ymm14, %%ymm3, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm2\n\t"
+        "vpsubd %%ymm7, %%ymm4, %%ymm7\n\t"
+        "vpminud %%ymm2, %%ymm1, %%ymm2\n\t"
+        "vpminud %%ymm0, %%ymm3, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm6, %%ymm3\n\t"
+        "vpsubd %%ymm10, %%ymm5, %%ymm10\n\t"
+        "vpminud %%ymm3, %%ymm6, %%ymm3\n\t"
+        "vpaddd %%ymm7, %%ymm11, %%ymm6\n\t"
+        "vpsubd %%ymm2, %%ymm9, %%ymm5\n\t"
+        "vpsubd %%ymm7, %%ymm11, %%ymm7\n\t"
+        "vpaddd %%ymm2, %%ymm9, %%ymm2\n\t"
+        "vmovdqa %%ymm3, 32(%[p],%[H],2)\n\t"
+        "vpaddd %%ymm10, %%ymm0, %%ymm3\n\t"
+        "vpsubd %%ymm10, %%ymm0, %%ymm10\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm0\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm9\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm11\n\t"
+        "vpaddd %%ymm14, %%ymm10, %%ymm1\n\t"
+        "vpminud %%ymm11, %%ymm7, %%ymm11\n\t"
+        "vpminud %%ymm9, %%ymm6, %%ymm9\n\t"
+        "vpminud %%ymm1, %%ymm10, %%ymm1\n\t"
+        "vpminud %%ymm0, %%ymm3, %%ymm0\n\t"
+        "vmovdqa %%ymm9, 32(%[p],%[H])\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm9\n\t"
+        "vpsubd %%ymm14, %%ymm8, %%ymm3\n\t"
+        "vpaddd %%ymm14, %%ymm5, %%ymm10\n\t"
+        "vpminud %%ymm9, %%ymm2, %%ymm9\n\t"
+        "vmovdqa %%ymm0, (%[p],%[H])\n\t"
+        "vpminud %%ymm3, %%ymm8, %%ymm3\n\t"
+        "vpminud %%ymm10, %%ymm5, %%ymm10\n\t"
+        "vmovdqa %%ymm3, 32(%[p])\n\t"
+        "vmovdqa %%ymm1, (%[p],%[H3])\n\t"
+        "vmovdqa %%ymm9, (%[p])\n\t"
+        "vmovdqa %%ymm11, 32(%[p],%[H3])\n\t"
+        "vmovdqa %%ymm10, (%[p],%[H],2)\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// iid_asm5: strategy=ls step=2 fold=1 twmem=z; 74 loop instructions; search (seed, margin, jitter) = (59, 0, 2.0, 10, 2, 16); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void iid_asm5(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p],%[H],2), %%ymm0\n\t"
+        "vmovdqa (%[p]), %%ymm1\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm2\n\t"
+        "vpaddd (%[p],%[H3]), %%ymm0, %%ymm0\n\t"
+        "vpsubd (%[p],%[H3]), %%ymm2, %%ymm2\n\t"
+        "vpaddd (%[p],%[H]), %%ymm1, %%ymm3\n\t"
+        "vpsubd %%ymm14, %%ymm0, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm2, %%ymm5\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm6\n\t"
+        "vpmulld %%ymm12, %%ymm2, %%ymm2\n\t"
+        "vpsubd (%[p],%[H]), %%ymm1, %%ymm1\n\t"
+        "vpmuludq %%ymm13, %%ymm5, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm7\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm8\n\t"
+        "vpminud %%ymm4, %%ymm0, %%ymm4\n\t"
+        "vpminud %%ymm8, %%ymm1, %%ymm8\n\t"
+        "vpminud %%ymm7, %%ymm3, %%ymm7\n\t"
+        "vpsrlq $32, %%ymm6, %%ymm6\n\t"
+        "vpaddd %%ymm4, %%ymm7, %%ymm3\n\t"
+        "vpsubd %%ymm4, %%ymm7, %%ymm4\n\t"
+        "vpblendd $170, %%ymm5, %%ymm6, %%ymm5\n\t"
+        "vpaddd %%ymm14, %%ymm4, %%ymm6\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm7\n\t"
+        "vmovdqa 32(%[p]), %%ymm1\n\t"
+        "vpmulld %%ymm15, %%ymm5, %%ymm5\n\t"
+        "vpminud %%ymm6, %%ymm4, %%ymm6\n\t"
+        "vpminud %%ymm7, %%ymm3, %%ymm7\n\t"
+        "vmovdqa 32(%[p],%[H],2), %%ymm3\n\t"
+        "vmovdqa %%ymm7, (%[p])\n\t"
+        "vmovdqa %%ymm6, (%[p],%[H],2)\n\t"
+        "vpsubd %%ymm5, %%ymm2, %%ymm5\n\t"
+        "vpaddd %%ymm5, %%ymm8, %%ymm2\n\t"
+        "vpsubd %%ymm5, %%ymm8, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm2, %%ymm8\n\t"
+        "vpaddd %%ymm14, %%ymm5, %%ymm6\n\t"
+        "vpminud %%ymm6, %%ymm5, %%ymm6\n\t"
+        "vpminud %%ymm8, %%ymm2, %%ymm8\n\t"
+        "vmovdqa %%ymm6, (%[p],%[H3])\n\t"
+        "vmovdqa %%ymm8, (%[p],%[H])\n\t"
+        "vpsubd 32(%[p],%[H]), %%ymm1, %%ymm8\n\t"
+        "vpaddd 32(%[p],%[H]), %%ymm1, %%ymm1\n\t"
+        "vpaddd %%ymm14, %%ymm3, %%ymm6\n\t"
+        "vpaddd 32(%[p],%[H3]), %%ymm3, %%ymm3\n\t"
+        "vpsubd %%ymm14, %%ymm1, %%ymm2\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm5\n\t"
+        "vpsubd 32(%[p],%[H3]), %%ymm6, %%ymm6\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm7\n\t"
+        "vpminud %%ymm5, %%ymm8, %%ymm5\n\t"
+        "vpminud %%ymm2, %%ymm1, %%ymm2\n\t"
+        "vpmuludq %%ymm13, %%ymm6, %%ymm1\n\t"
+        "vpsrlq $32, %%ymm6, %%ymm8\n\t"
+        "vpmulld %%ymm12, %%ymm6, %%ymm6\n\t"
+        "vpminud %%ymm7, %%ymm3, %%ymm7\n\t"
+        "vpmuludq %%ymm13, %%ymm8, %%ymm8\n\t"
+        "vpaddd %%ymm7, %%ymm2, %%ymm3\n\t"
+        "vpsubd %%ymm7, %%ymm2, %%ymm7\n\t"
+        "vpaddd %%ymm14, %%ymm7, %%ymm2\n\t"
+        "vpsubd %%ymm14, %%ymm3, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm1\n\t"
+        "vpminud %%ymm4, %%ymm3, %%ymm4\n\t"
+        "vpminud %%ymm2, %%ymm7, %%ymm2\n\t"
+        "vpblendd $170, %%ymm8, %%ymm1, %%ymm8\n\t"
+        "vmovdqa %%ymm4, 32(%[p])\n\t"
+        "vpmulld %%ymm15, %%ymm8, %%ymm8\n\t"
+        "vmovdqa %%ymm2, 32(%[p],%[H],2)\n\t"
+        "vpsubd %%ymm8, %%ymm6, %%ymm8\n\t"
+        "vpaddd %%ymm8, %%ymm5, %%ymm6\n\t"
+        "vpsubd %%ymm8, %%ymm5, %%ymm8\n\t"
+        "vpaddd %%ymm14, %%ymm8, %%ymm5\n\t"
+        "vpsubd %%ymm14, %%ymm6, %%ymm2\n\t"
+        "vpminud %%ymm5, %%ymm8, %%ymm5\n\t"
+        "vpminud %%ymm2, %%ymm6, %%ymm2\n\t"
+        "vmovdqa %%ymm2, 32(%[p],%[H])\n\t"
+        "vmovdqa %%ymm5, 32(%[p],%[H3])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// scale_asm1: strategy=ls step=1 fold=1 twmem=z; 26 loop instructions; search (seed, margin, jitter) = (0, 0, 0.0); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void scale_asm1(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 32;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p]), %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm1\n\t"
+        "vpaddd (%[p],%[H]), %%ymm0, %%ymm0\n\t"
+        "vpsubd (%[p],%[H]), %%ymm1, %%ymm1\n\t"
+        "vpsrlq $32, %%ymm0, %%ymm2\n\t"
+        "vpmuludq %%ymm13, %%ymm0, %%ymm3\n\t"
+        "vpmulld %%ymm12, %%ymm0, %%ymm0\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm5\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm2\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm4\n\t"
+        "vpmulld %%ymm12, %%ymm1, %%ymm1\n\t"
+        "vpsrlq $32, %%ymm3, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm5, %%ymm5\n\t"
+        "vpblendd $170, %%ymm2, %%ymm3, %%ymm2\n\t"
+        "vpblendd $170, %%ymm4, %%ymm5, %%ymm4\n\t"
+        "vpmulld %%ymm15, %%ymm2, %%ymm2\n\t"
+        "vpmulld %%ymm15, %%ymm4, %%ymm4\n\t"
+        "vpsubd %%ymm2, %%ymm0, %%ymm2\n\t"
+        "vpsubd %%ymm4, %%ymm1, %%ymm4\n\t"
+        "vpsubd %%ymm15, %%ymm2, %%ymm1\n\t"
+        "vpsubd %%ymm15, %%ymm4, %%ymm0\n\t"
+        "vpminud %%ymm1, %%ymm2, %%ymm1\n\t"
+        "vpminud %%ymm0, %%ymm4, %%ymm0\n\t"
+        "vmovdqa %%ymm1, (%[p])\n\t"
+        "vmovdqa %%ymm0, (%[p],%[H])\n\t"
+        "add $32, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// scale_asm2: strategy=ls step=2 fold=1 twmem=z; 52 loop instructions; search (seed, margin, jitter) = (0, 0, 0.0); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void scale_asm2(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p]), %%ymm0\n\t"
+        "vmovdqa 32(%[p]), %%ymm1\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm2\n\t"
+        "vpaddd (%[p],%[H]), %%ymm0, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm3\n\t"
+        "vpsubd (%[p],%[H]), %%ymm2, %%ymm2\n\t"
+        "vpaddd 32(%[p],%[H]), %%ymm1, %%ymm1\n\t"
+        "vpsrlq $32, %%ymm0, %%ymm4\n\t"
+        "vpsubd 32(%[p],%[H]), %%ymm3, %%ymm3\n\t"
+        "vpmuludq %%ymm13, %%ymm0, %%ymm5\n\t"
+        "vpsrlq $32, %%ymm2, %%ymm6\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm7\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm8\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm9\n\t"
+        "vpsrlq $32, %%ymm3, %%ymm10\n\t"
+        "vpmuludq %%ymm13, %%ymm3, %%ymm11\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm6, %%ymm6\n\t"
+        "vpmuludq %%ymm13, %%ymm8, %%ymm8\n\t"
+        "vpmuludq %%ymm13, %%ymm10, %%ymm10\n\t"
+        "vpsrlq $32, %%ymm5, %%ymm5\n\t"
+        "vpsrlq $32, %%ymm7, %%ymm7\n\t"
+        "vpsrlq $32, %%ymm9, %%ymm9\n\t"
+        "vpsrlq $32, %%ymm11, %%ymm11\n\t"
+        "vpmulld %%ymm12, %%ymm0, %%ymm0\n\t"
+        "vpmulld %%ymm12, %%ymm2, %%ymm2\n\t"
+        "vpblendd $170, %%ymm4, %%ymm5, %%ymm4\n\t"
+        "vpblendd $170, %%ymm6, %%ymm7, %%ymm6\n\t"
+        "vpmulld %%ymm12, %%ymm1, %%ymm1\n\t"
+        "vpmulld %%ymm12, %%ymm3, %%ymm3\n\t"
+        "vpblendd $170, %%ymm8, %%ymm9, %%ymm8\n\t"
+        "vpblendd $170, %%ymm10, %%ymm11, %%ymm10\n\t"
+        "vpmulld %%ymm15, %%ymm4, %%ymm4\n\t"
+        "vpmulld %%ymm15, %%ymm6, %%ymm6\n\t"
+        "vpmulld %%ymm15, %%ymm8, %%ymm8\n\t"
+        "vpmulld %%ymm15, %%ymm10, %%ymm10\n\t"
+        "vpsubd %%ymm4, %%ymm0, %%ymm4\n\t"
+        "vpsubd %%ymm6, %%ymm2, %%ymm6\n\t"
+        "vpsubd %%ymm8, %%ymm1, %%ymm8\n\t"
+        "vpsubd %%ymm10, %%ymm3, %%ymm10\n\t"
+        "vpsubd %%ymm15, %%ymm4, %%ymm3\n\t"
+        "vpsubd %%ymm15, %%ymm6, %%ymm1\n\t"
+        "vpsubd %%ymm15, %%ymm8, %%ymm2\n\t"
+        "vpsubd %%ymm15, %%ymm10, %%ymm0\n\t"
+        "vpminud %%ymm3, %%ymm4, %%ymm3\n\t"
+        "vpminud %%ymm1, %%ymm6, %%ymm1\n\t"
+        "vpminud %%ymm2, %%ymm8, %%ymm2\n\t"
+        "vpminud %%ymm0, %%ymm10, %%ymm0\n\t"
+        "vmovdqa %%ymm3, (%[p])\n\t"
+        "vmovdqa %%ymm1, (%[p],%[H])\n\t"
+        "vmovdqa %%ymm2, 32(%[p])\n\t"
+        "vmovdqa %%ymm0, 32(%[p],%[H])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// scale_asm3: strategy=ls step=2 fold=1 twmem=z; 52 loop instructions; search (seed, margin, jitter) = (31, 1, 2.0, 8, 2, None); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void scale_asm3(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa 32(%[p]), %%ymm0\n\t"
+        "vmovdqa (%[p]), %%ymm1\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm2\n\t"
+        "vpaddd 32(%[p],%[H]), %%ymm0, %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm3\n\t"
+        "vpsubd 32(%[p],%[H]), %%ymm2, %%ymm2\n\t"
+        "vpaddd (%[p],%[H]), %%ymm1, %%ymm1\n\t"
+        "vpsrlq $32, %%ymm0, %%ymm4\n\t"
+        "vpsubd (%[p],%[H]), %%ymm3, %%ymm3\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm5\n\t"
+        "vpmuludq %%ymm13, %%ymm4, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm2, %%ymm6\n\t"
+        "vpsrlq $32, %%ymm3, %%ymm7\n\t"
+        "vpmuludq %%ymm13, %%ymm0, %%ymm8\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm9\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm10\n\t"
+        "vpmuludq %%ymm13, %%ymm9, %%ymm9\n\t"
+        "vpmuludq %%ymm13, %%ymm6, %%ymm6\n\t"
+        "vpmuludq %%ymm13, %%ymm7, %%ymm7\n\t"
+        "vpsrlq $32, %%ymm5, %%ymm5\n\t"
+        "vpmulld %%ymm12, %%ymm1, %%ymm1\n\t"
+        "vpsrlq $32, %%ymm8, %%ymm8\n\t"
+        "vpsrlq $32, %%ymm10, %%ymm10\n\t"
+        "vpmulld %%ymm12, %%ymm0, %%ymm0\n\t"
+        "vpmulld %%ymm12, %%ymm2, %%ymm2\n\t"
+        "vpblendd $170, %%ymm6, %%ymm5, %%ymm6\n\t"
+        "vpblendd $170, %%ymm9, %%ymm10, %%ymm9\n\t"
+        "vpblendd $170, %%ymm4, %%ymm8, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm3, %%ymm8\n\t"
+        "vpmulld %%ymm15, %%ymm4, %%ymm4\n\t"
+        "vpmulld %%ymm15, %%ymm9, %%ymm9\n\t"
+        "vpmulld %%ymm15, %%ymm6, %%ymm6\n\t"
+        "vpmulld %%ymm12, %%ymm3, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm8, %%ymm8\n\t"
+        "vpblendd $170, %%ymm7, %%ymm8, %%ymm7\n\t"
+        "vpsubd %%ymm4, %%ymm0, %%ymm4\n\t"
+        "vpsubd %%ymm9, %%ymm1, %%ymm9\n\t"
+        "vpmulld %%ymm15, %%ymm7, %%ymm7\n\t"
+        "vpsubd %%ymm6, %%ymm2, %%ymm6\n\t"
+        "vpsubd %%ymm15, %%ymm9, %%ymm2\n\t"
+        "vpsubd %%ymm15, %%ymm4, %%ymm1\n\t"
+        "vpsubd %%ymm15, %%ymm6, %%ymm0\n\t"
+        "vpminud %%ymm1, %%ymm4, %%ymm1\n\t"
+        "vpminud %%ymm2, %%ymm9, %%ymm2\n\t"
+        "vpminud %%ymm0, %%ymm6, %%ymm0\n\t"
+        "vmovdqa %%ymm1, 32(%[p])\n\t"
+        "vpsubd %%ymm7, %%ymm3, %%ymm7\n\t"
+        "vmovdqa %%ymm0, 32(%[p],%[H])\n\t"
+        "vpsubd %%ymm15, %%ymm7, %%ymm0\n\t"
+        "vmovdqa %%ymm2, (%[p])\n\t"
+        "vpminud %%ymm0, %%ymm7, %%ymm0\n\t"
+        "vmovdqa %%ymm0, (%[p],%[H])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// scale_asm4: strategy=ls step=2 fold=1 twmem=z; 52 loop instructions; search (seed, margin, jitter) = (47, 2, 4.0, 12, 2, None); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void scale_asm4(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa 32(%[p]), %%ymm0\n\t"
+        "vmovdqa (%[p]), %%ymm1\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm2\n\t"
+        "vpaddd 32(%[p],%[H]), %%ymm0, %%ymm0\n\t"
+        "vpsubd 32(%[p],%[H]), %%ymm2, %%ymm2\n\t"
+        "vpaddd %%ymm14, %%ymm1, %%ymm3\n\t"
+        "vpaddd (%[p],%[H]), %%ymm1, %%ymm1\n\t"
+        "vpmuludq %%ymm13, %%ymm0, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm5\n\t"
+        "vpsrlq $32, %%ymm2, %%ymm6\n\t"
+        "vpsubd (%[p],%[H]), %%ymm3, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm7\n\t"
+        "vpsrlq $32, %%ymm3, %%ymm8\n\t"
+        "vpmuludq %%ymm13, %%ymm3, %%ymm9\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm10\n\t"
+        "vpsrlq $32, %%ymm0, %%ymm11\n\t"
+        "vpmuludq %%ymm13, %%ymm6, %%ymm6\n\t"
+        "vpmuludq %%ymm13, %%ymm11, %%ymm11\n\t"
+        "vpsrlq $32, %%ymm4, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm8, %%ymm8\n\t"
+        "vpsrlq $32, %%ymm5, %%ymm5\n\t"
+        "vpmuludq %%ymm13, %%ymm7, %%ymm7\n\t"
+        "vpsrlq $32, %%ymm9, %%ymm9\n\t"
+        "vpmulld %%ymm12, %%ymm3, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm10, %%ymm10\n\t"
+        "vpmulld %%ymm12, %%ymm2, %%ymm2\n\t"
+        "vpblendd $170, %%ymm11, %%ymm4, %%ymm11\n\t"
+        "vpblendd $170, %%ymm6, %%ymm5, %%ymm6\n\t"
+        "vpmulld %%ymm12, %%ymm0, %%ymm0\n\t"
+        "vpmulld %%ymm12, %%ymm1, %%ymm1\n\t"
+        "vpmulld %%ymm15, %%ymm11, %%ymm11\n\t"
+        "vpblendd $170, %%ymm8, %%ymm9, %%ymm8\n\t"
+        "vpblendd $170, %%ymm7, %%ymm10, %%ymm7\n\t"
+        "vpmulld %%ymm15, %%ymm6, %%ymm6\n\t"
+        "vpmulld %%ymm15, %%ymm7, %%ymm7\n\t"
+        "vpmulld %%ymm15, %%ymm8, %%ymm8\n\t"
+        "vpsubd %%ymm11, %%ymm0, %%ymm11\n\t"
+        "vpsubd %%ymm6, %%ymm2, %%ymm6\n\t"
+        "vpsubd %%ymm7, %%ymm1, %%ymm7\n\t"
+        "vpsubd %%ymm15, %%ymm11, %%ymm1\n\t"
+        "vpsubd %%ymm8, %%ymm3, %%ymm8\n\t"
+        "vpsubd %%ymm15, %%ymm6, %%ymm3\n\t"
+        "vpsubd %%ymm15, %%ymm8, %%ymm2\n\t"
+        "vpminud %%ymm1, %%ymm11, %%ymm1\n\t"
+        "vpsubd %%ymm15, %%ymm7, %%ymm11\n\t"
+        "vpminud %%ymm3, %%ymm6, %%ymm3\n\t"
+        "vpminud %%ymm2, %%ymm8, %%ymm2\n\t"
+        "vpminud %%ymm11, %%ymm7, %%ymm11\n\t"
+        "vmovdqa %%ymm1, 32(%[p])\n\t"
+        "vmovdqa %%ymm11, (%[p])\n\t"
+        "vmovdqa %%ymm2, (%[p],%[H])\n\t"
+        "vmovdqa %%ymm3, 32(%[p],%[H])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+// scale_asm5: strategy=ls step=2 fold=1 twmem=z; 52 loop instructions; search (seed, margin, jitter) = (59, 0, 2.0, 10, 2, 16); llvm-mca znver3 0.00 cycles/butterfly
+QA_AI void scale_asm5(V* f, long h, const U* px, const U* py) {
+    V* tw = nullptr;
+    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;
+    char* q = nullptr;
+    // (no source array)
+    char* const end = p + H; char* const last = end - 64;
+    (void)last; (void)end;
+    asm volatile(
+        "vpbroadcastd %[cP], %%ymm15\n\t"
+        "vpbroadcastd %[cP2], %%ymm14\n\t"
+        "vbroadcastss 4(%[py]), %%ymm12\n\t"
+        "vbroadcastss 36(%[py]), %%ymm13\n\t"
+        ".p2align 5\n\t"
+        "1:\n\t"
+        "vmovdqa (%[p]), %%ymm0\n\t"
+        "vpaddd %%ymm14, %%ymm0, %%ymm1\n\t"
+        "vpaddd (%[p],%[H]), %%ymm0, %%ymm0\n\t"
+        "vpsrlq $32, %%ymm0, %%ymm2\n\t"
+        "vpmuludq %%ymm13, %%ymm0, %%ymm3\n\t"
+        "vpsubd (%[p],%[H]), %%ymm1, %%ymm1\n\t"
+        "vpmulld %%ymm12, %%ymm0, %%ymm0\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm4\n\t"
+        "vpsrlq $32, %%ymm1, %%ymm5\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm2\n\t"
+        "vpmuludq %%ymm13, %%ymm5, %%ymm5\n\t"
+        "vpmulld %%ymm12, %%ymm1, %%ymm1\n\t"
+        "vmovdqa 32(%[p]), %%ymm6\n\t"
+        "vpsrlq $32, %%ymm3, %%ymm3\n\t"
+        "vpsrlq $32, %%ymm4, %%ymm4\n\t"
+        "vpblendd $170, %%ymm2, %%ymm3, %%ymm2\n\t"
+        "vpmulld %%ymm15, %%ymm2, %%ymm2\n\t"
+        "vpblendd $170, %%ymm5, %%ymm4, %%ymm5\n\t"
+        "vpmulld %%ymm15, %%ymm5, %%ymm5\n\t"
+        "vpsubd %%ymm2, %%ymm0, %%ymm2\n\t"
+        "vpsubd %%ymm5, %%ymm1, %%ymm5\n\t"
+        "vpsubd %%ymm15, %%ymm2, %%ymm1\n\t"
+        "vpminud %%ymm1, %%ymm2, %%ymm1\n\t"
+        "vpsubd %%ymm15, %%ymm5, %%ymm2\n\t"
+        "vpminud %%ymm2, %%ymm5, %%ymm2\n\t"
+        "vmovdqa %%ymm1, (%[p])\n\t"
+        "vmovdqa %%ymm2, (%[p],%[H])\n\t"
+        "vpaddd %%ymm14, %%ymm6, %%ymm2\n\t"
+        "vpaddd 32(%[p],%[H]), %%ymm6, %%ymm6\n\t"
+        "vpsubd 32(%[p],%[H]), %%ymm2, %%ymm2\n\t"
+        "vpsrlq $32, %%ymm6, %%ymm1\n\t"
+        "vpmuludq %%ymm13, %%ymm6, %%ymm5\n\t"
+        "vpmulld %%ymm12, %%ymm6, %%ymm6\n\t"
+        "vpsrlq $32, %%ymm2, %%ymm0\n\t"
+        "vpmuludq %%ymm13, %%ymm2, %%ymm4\n\t"
+        "vpmuludq %%ymm13, %%ymm1, %%ymm1\n\t"
+        "vpmuludq %%ymm13, %%ymm0, %%ymm0\n\t"
+        "vpmulld %%ymm12, %%ymm2, %%ymm2\n\t"
+        "vpsrlq $32, %%ymm5, %%ymm5\n\t"
+        "vpsrlq $32, %%ymm4, %%ymm4\n\t"
+        "vpblendd $170, %%ymm1, %%ymm5, %%ymm1\n\t"
+        "vpblendd $170, %%ymm0, %%ymm4, %%ymm0\n\t"
+        "vpmulld %%ymm15, %%ymm1, %%ymm1\n\t"
+        "vpmulld %%ymm15, %%ymm0, %%ymm0\n\t"
+        "vpsubd %%ymm1, %%ymm6, %%ymm1\n\t"
+        "vpsubd %%ymm0, %%ymm2, %%ymm0\n\t"
+        "vpsubd %%ymm15, %%ymm1, %%ymm2\n\t"
+        "vpsubd %%ymm15, %%ymm0, %%ymm6\n\t"
+        "vpminud %%ymm2, %%ymm1, %%ymm2\n\t"
+        "vpminud %%ymm6, %%ymm0, %%ymm6\n\t"
+        "vmovdqa %%ymm2, 32(%[p])\n\t"
+        "vmovdqa %%ymm6, 32(%[p],%[H])\n\t"
+        "add $64, %[p]\n\t"
+        "cmp %[end], %[p]\n\t"
+        "jne 1b\n\t"
+        : [p] "+r"(p), [q] "+r"(q)
+        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),
+          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)
+        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc");
+}
+
+QA_AI void fid_asm(int v, V* f, long h, const U* px, const U* py) {
+    switch (v) {
+    case 1: fid_asm1(f, h, px, py); break;
+    case 2: fid_asm2(f, h, px, py); break;
+    case 3: fid_asm3(f, h, px, py); break;
+    case 4: fid_asm4(f, h, px, py); break;
+    case 5: fid_asm5(f, h, px, py); break;
+    default: __builtin_unreachable();
+    }
+}
+constexpr int fid_step(int v) { switch (v) { case 1: return 1; case 2: return 2; case 3: return 2; case 4: return 2; case 5: return 2; } return 0; }
+QA_AI void iid_asm(int v, V* f, long h, const U* px, const U* py) {
+    switch (v) {
+    case 1: iid_asm1(f, h, px, py); break;
+    case 2: iid_asm2(f, h, px, py); break;
+    case 3: iid_asm3(f, h, px, py); break;
+    case 4: iid_asm4(f, h, px, py); break;
+    case 5: iid_asm5(f, h, px, py); break;
+    default: __builtin_unreachable();
+    }
+}
+constexpr int iid_step(int v) { switch (v) { case 1: return 1; case 2: return 2; case 3: return 2; case 4: return 2; case 5: return 2; } return 0; }
+QA_AI void scale_asm(int v, V* f, long h, const U* px, const U* py) {
+    switch (v) {
+    case 1: scale_asm1(f, h, px, py); break;
+    case 2: scale_asm2(f, h, px, py); break;
+    case 3: scale_asm3(f, h, px, py); break;
+    case 4: scale_asm4(f, h, px, py); break;
+    case 5: scale_asm5(f, h, px, py); break;
+    default: __builtin_unreachable();
+    }
+}
+constexpr int scale_step(int v) { switch (v) { case 1: return 1; case 2: return 2; case 3: return 2; case 4: return 2; case 5: return 2; } return 0; }
 // fwd_src1: strategy=ls step=2 fold=1 twmem=half; 114 loop instructions; search (seed, margin, jitter) = (0, 0, 0.0); llvm-mca znver3 15.85 cycles/butterfly
 QA_AI void fwd_src1(V* f, const V* src, long h, const U* px, const U* py) {
     alignas(32) V tw[6];

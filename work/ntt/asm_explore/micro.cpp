@@ -183,6 +183,14 @@ int main(int argc, char** argv) {
                 va[i + h] = shrink(scale.mul<2, false, false, true>(diff(x, y)), P);
             }
         });
+        for (int v = 1; v <= 5; ++v) {
+            char nm[16]; std::snprintf(nm, sizeof nm, "id%d", v);
+            if (fid_step(v)) bench(nm, "identity fwd h=2^14 a+b", nv, [&] { for (V* f : {va, vb, va + h, vb + h}) fid_asm(v, f, nv / 8, nullptr, fr); });
+            if (iid_step(v)) bench(nm, "identity inv h=2^14", nv, [&] { for (V* f : {va, va + h}) iid_asm(v, f, nv / 8, nullptr, fir); });
+            alignas(32) U sc[16] = {}; sc[1] = 12345; sc[9] = U((uint64_t(12345) << 32) / P);
+            std::snprintf(nm, sizeof nm, "sc%d", v);
+            if (scale_step(v)) bench(nm, "final scale per vector", nv, [&] { scale_asm(v, va, h, nullptr, sc); });
+        }
         bench("cxx", "nontrivial fwd h=2^12 a+b", nv, [&] { for (int g = 0; g < 8; ++g) k.template group<false>(va + g * nv / 8, vb + g * nv / 8, nv / 32, 5 + g); });
         SCALE = saved_scale;
         std::free(fa); std::free(fb); std::free(fr); std::free(fir);
