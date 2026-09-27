@@ -22,8 +22,8 @@ if sanitize:
 cmd = [compiler,*flags,'work/ntt/solve_wrapper/bench.cpp','-o',str(out/'bench')]
 (dest/'command.txt').write_text(' '.join(cmd)+'\n')
 subprocess.run(cmd,check=True)
-metadata = [platform.platform(), subprocess.check_output([compiler,'--version'],text=True),
-            os.environ.get('GITHUB_SHA',subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip())]
+revision = os.environ.get('GITHUB_SHA') or subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+metadata = [platform.platform(), subprocess.check_output([compiler,'--version'],text=True), revision]
 if not mac: metadata.append(subprocess.check_output(['lscpu'],text=True))
 (dest/'environment.txt').write_text('\n'.join(metadata))
 paths = sorted(Path('work/ntt/solve_wrapper').glob('*')) + [out/'bench']
