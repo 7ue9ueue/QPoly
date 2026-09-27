@@ -1,4 +1,4 @@
-name: NTT uop exploration (round 7)
+name: NTT uop exploration (round 7, Library Checker target)
 on:
   push:
     branches: [claude/ntt-uop-explore]
@@ -14,12 +14,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sample: [1, 2, 3, 4]
+        sample: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v4
       - name: Tools
         run: apt-get update -qq && apt-get install -y -qq util-linux > /dev/null
-      - name: Correctness and timing (GCC 15.2, AtCoder flags)
+      - name: Correctness and timing (GCC 15.2, Library Checker flags)
         run: |
           test "$(g++ -dumpfullversion)" = 15.2.0
           echo "$GITHUB_SHA" > commit.txt
@@ -29,29 +29,5 @@ jobs:
         if: always()
         with:
           name: gcc-${{ matrix.sample }}
-          path: results/
-          retention-days: 7
-  clang:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        sample: [1, 2, 3]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Clang 21 (apt.llvm.org)
-        run: |
-          wget -q https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 21 > /dev/null
-          clang++-21 --version
-      - name: Correctness and timing (Clang 21, AtCoder flags)
-        run: |
-          echo "$GITHUB_SHA" > commit.txt
-          bash work/ntt/uop_explore/run.sh clang++-21 results
-          cp commit.txt results/
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: clang-${{ matrix.sample }}
           path: results/
           retention-days: 7

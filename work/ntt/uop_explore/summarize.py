@@ -14,7 +14,7 @@ for job in sorted(p for p in run.iterdir() if p.is_dir()):
     env = (job / 'environment.txt').read_text() if (job / 'environment.txt').exists() else ''
     m = re.search(r'Model name:\s*(.+)', env); cpu = m.group(1).strip() if m else '?'
     comp = 'clang' if 'clang' in env.lower() else 'gcc'
-    for prof in ['native', 'avx2']:
+    for prof in ['lc', 'znver3', 'native', 'avx2']:
         med = {}
         for f in sorted(job.glob(f'time-{prof}-*.csv')):
             for r in csv.reader(l for l in f.read_text().splitlines() if l and not l.startswith('#')):
