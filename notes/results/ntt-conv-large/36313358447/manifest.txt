@@ -1,0 +1,5 @@
+variant b0zs flags -DQL_MODE=2
+variant b0 flags -DQL_MODE=0
+build/conv_large/src/sub_b0zs.cpp 164585 bytes, SHA256 b8dfa3e93fde84695ed44d50e952e26043c611a7a74404f4a56565479f0d1ba8
+reference ref403499 https://judge.yosupo.jp/submission/403499 sha256 ddc397e7dab383e354fbc6948d87a630d9d5beb5908855ad9d8bf1b81564c52b
+reference ref303498 https://judge.yosupo.jp/submission/303498 sha256 9dd14356684f6cfed1d738aaea8ae056b8e632e71911847476180aca7f12e732

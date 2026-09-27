@@ -1,0 +1,41 @@
+ws-equal (not byte-exact) case random_02 variant ref303498
+stderr ref303498 random_02: 178.011ms 
+ws-equal (not byte-exact) case max_random_00 variant ref303498
+stderr ref303498 max_random_00: 177.227ms 
+ws-equal (not byte-exact) case fft_killer_00 variant ref303498
+stderr ref303498 fft_killer_00: 176.366ms 
+ws-equal (not byte-exact) case max_ans_zero_00 variant ref303498
+stderr ref303498 max_ans_zero_00: 171.458ms 
+ws-equal (not byte-exact) case small_and_large_00 variant ref303498
+stderr ref303498 small_and_large_00: 170.932ms 
+ws-equal (not byte-exact) case all_same_00 variant ref303498
+stderr ref303498 all_same_00: 171.144ms 
+PASS 7 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+ws-equal (not byte-exact) case random_02 variant ref303498
+stderr ref303498 random_02: 173.882ms 
+ws-equal (not byte-exact) case max_random_00 variant ref303498
+stderr ref303498 max_random_00: 173.953ms 
+ws-equal (not byte-exact) case fft_killer_00 variant ref303498
+stderr ref303498 fft_killer_00: 176.019ms 
+ws-equal (not byte-exact) case max_ans_zero_00 variant ref303498
+stderr ref303498 max_ans_zero_00: 174.411ms 
+ws-equal (not byte-exact) case small_and_large_00 variant ref303498
+stderr ref303498 small_and_large_00: 178.044ms 
+ws-equal (not byte-exact) case all_same_00 variant ref303498
+stderr ref303498 all_same_00: 174.191ms 
+PASS 5 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0
+PASS 2 variants x 6 cases x 3 measured (+1 warmup) runs: exact output, exit 0
+ws-equal (not byte-exact) case random_02 variant ref303498
+stderr ref303498 random_02: 171.321ms 
+ws-equal (not byte-exact) case max_random_00 variant ref303498
+stderr ref303498 max_random_00: 172.56ms 
+ws-equal (not byte-exact) case fft_killer_00 variant ref303498
+stderr ref303498 fft_killer_00: 172.022ms 
+ws-equal (not byte-exact) case max_ans_zero_00 variant ref303498
+stderr ref303498 max_ans_zero_00: 171.292ms 
+ws-equal (not byte-exact) case small_and_large_00 variant ref303498
+stderr ref303498 small_and_large_00: 171.894ms 
+ws-equal (not byte-exact) case all_same_00 variant ref303498
+stderr ref303498 all_same_00: 172.013ms 
+PASS 5 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0
+PASS 2 variants x 6 cases x 3 measured (+1 warmup) runs: exact output, exit 0

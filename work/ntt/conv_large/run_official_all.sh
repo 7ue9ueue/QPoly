@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every official convolution_mod_large case, one at a time (they do not fit in tmpfs together):
+# Every official convolution_mod_large case (54), one at a time (they do not fit in tmpfs together):
 # generate with the official generator and seed, require the .in SHA256 from hash.json, run each
 # program under the judge's container limits via the library-checker-init equivalent, require the
 # SHA256 of its output to equal hash.json's .out entry (byte-exact), log wall time, delete.
@@ -52,6 +52,7 @@ while read -r gen stem i; do
     code=$?
     set -e
     t1=$(date +%s%N)
+    sudo chmod 644 "$CASES/out/actual.out" 2>/dev/null || true   # created with mode 0, like the judge
     got=$(sha256sum "$CASES/out/actual.out" 2>/dev/null | cut -c1-64 || true)
     ok=0; [ "$got" = "$want" ] && [ "$code" = 0 ] && ok=1
     [ "$ok" = 1 ] || { fails=$((fails+1)); echo "FAIL $case $name exit=$code"; }

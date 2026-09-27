@@ -1,0 +1,22 @@
+== timing-madvise.csv: median wall ms (min-max), per case
+case,b0zs,lazy,ref403499
+all_same_00,402.7 (398.3-405.7),397.6 (395.9-400.6),582.3 (577.8-584.4)
+fft_killer_00,456.0 (455.2-457.8),450.3 (448.7-451.8),609.9 (608.2-612.5)
+max_ans_zero_00,455.8 (454.4-456.8),450.0 (449.3-451.4),636.9 (635.8-639.0)
+max_random_00,456.2 (454.4-464.7),450.8 (447.8-452.1),637.4 (636.6-639.9)
+random_02,401.8 (400.4-404.1),398.2 (397.0-401.5),575.9 (570.8-576.7)
+small_and_large_00,326.5 (321.9-328.8),321.7 (316.9-323.9),493.2 (487.6-494.5)
+max_over_cases,456.2,450.8,637.4
+== phases-madvise.csv: median ms spawn->main, map, parse(+arena), ntt, format+write, exit; minor faults
+all_same_00,b0zs_phases,1.4,0.0,57.4,184.2,155.4,2.7,1351.0
+all_same_00,lazy_phases,1.4,0.0,51.6,187.5,152.9,2.8,1353.0
+fft_killer_00,b0zs_phases,1.5,0.1,78.2,184.7,181.2,9.0,5447.0
+fft_killer_00,lazy_phases,1.5,0.0,71.8,187.8,180.4,9.1,5448.0
+max_ans_zero_00,b0zs_phases,1.5,0.1,78.1,184.4,182.1,8.9,5389.0
+max_ans_zero_00,lazy_phases,1.4,0.0,71.7,187.6,180.1,8.9,5389.0
+max_random_00,b0zs_phases,1.5,0.1,77.8,184.4,181.3,9.0,5391.0
+max_random_00,lazy_phases,1.6,0.1,71.4,187.8,182.3,9.0,5389.0
+random_02,b0zs_phases,1.5,0.0,64.1,184.7,144.8,7.3,4351.0
+random_02,lazy_phases,1.5,0.0,56.9,188.5,143.5,7.3,4361.0
+small_and_large_00,b0zs_phases,1.4,0.0,43.8,183.4,92.2,5.1,2861.0
+small_and_large_00,lazy_phases,1.4,0.0,35.1,188.4,88.9,5.0,2891.0

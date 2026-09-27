@@ -1,0 +1,42 @@
+# CPU: Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+# compiler: 15.2.0
+# tmpfs dir: /dev/shm
+bw_read_512MiB,40.795,13.16 GB/s
+bw_write_512MiB,50.309,10.67 GB/s
+bw_write_nt_512MiB,22.449,23.92 GB/s
+bw_copy_256MiB,23.806,22.55 GB/s
+bw_copy_nt_256MiB,25.263,21.25 GB/s
+bw_rmw_512MiB,46.183,23.25 GB/s
+fault_256MiB_4k_touch,85.018,retouch 0.872590 ms, munmap 7.760585 ms
+fault_256MiB_4k_touch,85.047,retouch 0.880082 ms, munmap 8.011771 ms
+fault_256MiB_4k_populate,56.325,retouch 0.841978 ms, munmap 7.816940 ms
+fault_256MiB_4k_populate,56.287,retouch 0.853443 ms, munmap 7.565714 ms
+fault_256MiB_thp_touch,34.022,retouch 0.891759 ms, munmap 0.608812 ms
+fault_256MiB_thp_touch,34.583,retouch 0.799233 ms, munmap 0.603969 ms
+fault_256MiB_thp_populate,33.314,retouch 0.865770 ms, munmap 0.597369 ms
+fault_256MiB_thp_populate,34.270,retouch 0.867567 ms, munmap 0.618000 ms
+parse_flat_2^25_random,87.151,2.597297 ns/token, consumed 331199093 of 331199093
+parse_flat_2^25_random,86.803,2.586942 ns/token, consumed 331199093 of 331199093
+parse_flat_2^25_random,86.722,2.584515 ns/token, consumed 331199093 of 331199093
+format_table_2^25_nowrite,87.797,2.616545 ns/value
+format_table_2^25_nowrite,87.548,2.609142 ns/value
+format_table_2^25_nowrite,87.568,2.609718 ns/value
+format_table_2^25_write_tmpfs,172.790,5.149530 ns/value, file 331199093 bytes
+format_table_2^25_write_tmpfs,173.252,5.163302 ns/value, file 331199093 bytes
+tmpfs_write_64KiB_calls,114.604,2.89 GB/s, close 0.005367 ms, unlink 17.900430 ms
+tmpfs_write_1MiB_calls,114.667,2.89 GB/s, close 0.004987 ms, unlink 17.834637 ms
+tmpfs_mmap_lazy_copy,195.884,setup+populate 0.035142 ms, copy 195.848455 ms, unmap+close 6.100124 ms
+tmpfs_mmap_populate_then_copy,137.174,setup+populate 108.712430 ms, copy 28.461348 ms, unmap+close 5.985258 ms
+tmpfs_write_64KiB_calls,115.368,2.87 GB/s, close 0.004619 ms, unlink 17.610456 ms
+tmpfs_write_1MiB_calls,114.256,2.90 GB/s, close 0.004799 ms, unlink 17.781883 ms
+tmpfs_mmap_lazy_copy,197.461,setup+populate 0.028125 ms, copy 197.432855 ms, unmap+close 5.855261 ms
+tmpfs_mmap_populate_then_copy,137.768,setup+populate 108.656709 ms, copy 29.111738 ms, unmap+close 6.026377 ms
+tmpfs_read_mmap_lazy_touch,10.497,map 0.026225 ms, touch 10.470918 ms, unmap 5.630406 ms
+tmpfs_read_mmap_populate_touch,10.547,map 9.742269 ms, touch 0.805141 ms, unmap 5.255927 ms
+tmpfs_read_mmap_willneed_touch,10.219,map 0.294193 ms, touch 9.924825 ms, unmap 5.155853 ms
+tmpfs_read_64KiB_read_calls,41.305,8.02 GB/s
+tmpfs_read_mmap_lazy_touch,10.417,map 0.021909 ms, touch 10.394643 ms, unmap 4.453849 ms
+tmpfs_read_mmap_populate_touch,10.415,map 9.521297 ms, touch 0.893577 ms, unmap 4.336785 ms
+tmpfs_read_mmap_willneed_touch,10.055,map 0.303756 ms, touch 9.751103 ms, unmap 4.094597 ms
+tmpfs_read_64KiB_read_calls,41.086,8.06 GB/s
+# done

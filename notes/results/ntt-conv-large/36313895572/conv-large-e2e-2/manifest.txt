@@ -1,0 +1,4 @@
+variant b0zs flags -DQL_MODE=2
+variant fuse4k flags -DQL_MODE=2 -DQL_FUSE=1 -DQL_CHUNK=4096
+variant fuse16k flags -DQL_MODE=2 -DQL_FUSE=1 -DQL_CHUNK=16384
+reference ref403499 https://judge.yosupo.jp/submission/403499 sha256 ddc397e7dab383e354fbc6948d87a630d9d5beb5908855ad9d8bf1b81564c52b

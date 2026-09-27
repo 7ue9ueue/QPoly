@@ -1,0 +1,3 @@
+variant b0zs flags -DQL_MODE=2
+variant lazy flags -DQL_MODE=2 -DQL_LAZY_ARENA=1
+reference ref403499 https://judge.yosupo.jp/submission/403499 sha256 ddc397e7dab383e354fbc6948d87a630d9d5beb5908855ad9d8bf1b81564c52b
