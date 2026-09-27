@@ -54,3 +54,26 @@ jobs:
           name: yosupo-${{ matrix.sample }}
           path: results-yosupo/
           retention-days: 7
+  standalone:
+    runs-on: ubuntu-24.04
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq bc util-linux > /dev/null
+      - name: Standalone benchmark (exact judge flags)
+        run: |
+          echo "$GITHUB_SHA" > commit.txt
+          bash work/ntt/asm_explore/run_standalone.sh results-standalone
+          cp commit.txt results-standalone/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: standalone-${{ matrix.sample }}
+          path: results-standalone/
+          retention-days: 7
