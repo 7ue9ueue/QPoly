@@ -1,0 +1,33 @@
+name: NTT asm exploration (exploration 009, Library Checker target)
+on:
+  push:
+    branches: [claude/ntt-asm-explore]
+    paths: [work/ntt/asm_explore/**, .github/workflows/ntt-asm.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gcc:
+    runs-on: ubuntu-24.04
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq util-linux > /dev/null
+      - name: Unit, correctness and timing (GCC 15.2, Library Checker flags)
+        run: |
+          test "$(g++ -dumpfullversion)" = 15.2.0
+          echo "$GITHUB_SHA" > commit.txt
+          bash work/ntt/asm_explore/run.sh g++ results
+          cp commit.txt results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gcc-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
