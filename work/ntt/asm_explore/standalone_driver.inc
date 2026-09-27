@@ -8,13 +8,18 @@
 // Timed region: one convolution call with fresh roots (root generation included);
 // input copies are outside the timer. KACTL receives its vectors by move, so
 // only its own work (incl. its internal allocations) is timed. Median of
-// adaptive repetitions after one warmup.
+// adaptive repetitions after one warmup (for KACTL, one NTT of the same size,
+// which builds its static root table without a full convolution).
+// Time guard: a measurement whose predicted cost would end after 80% of
+// TIME_LIMIT_S is skipped and shown as "-" (the report is only written at exit,
+// so a TLE would lose it). Set TIME_LIMIT_S to the problem's limit.
 // ============================================================================
 namespace bench {
+constexpr double TIME_LIMIT_S = 5.0;   // e.g. 10.0 on a problem with a 10 s limit
 using U = uint32_t;
 constexpr U P = 998244353;
 #ifndef QPOLY_BENCH_MAX_LOG
-#define QPOLY_BENCH_MAX_LOG 20
+#define QPOLY_BENCH_MAX_LOG 22
 #endif
 constexpr int MIN_LOG = 10, MAX_LOG = QPOLY_BENCH_MAX_LOG, STEP = 2;
 constexpr int NIMPL = 4;
@@ -70,12 +75,13 @@ double once(int impl, int n, const U* x, const U* y, U* out, Work& w) {
     }
     return t1 - t0;
 }
-// Median of adaptive repetitions: at least 3, until `budget` ms are spent, at most 15.
-double measure(int impl, int n, const U* x, const U* y, U* out, Work& w, double budget) {
-    once(impl, n, x, y, out, w);
+// Median of adaptive repetitions: at least min_reps, until `budget` ms are spent, at most 15.
+double measure(int impl, int n, const U* x, const U* y, U* out, Work& w, double budget, int min_reps) {
+    if (impl == 0) { std::vector<int> z(n); KACTL::ntt(z); }   // KACTL warmup: static roots, caches
+    else once(impl, n, x, y, out, w);
     double t[15], total = 0;
     int k = 0;
-    while (k < 15 && (k < 3 || total < budget)) { t[k] = once(impl, n, x, y, out, w); total += t[k++]; }
+    while (k < 15 && (k < min_reps || total < budget)) { t[k] = once(impl, n, x, y, out, w); total += t[k++]; }
     std::sort(t, t + k);
     return k % 2 ? t[k / 2] : (t[k / 2 - 1] + t[k / 2]) / 2;
 }
@@ -102,6 +108,7 @@ void add(std::string& s, const char* fmt, ...) {
     s += buf;
 }
 int run() {
+    const double start = now_ms();
     const double f = ghz();   // also warms the core up before timing
     Work w(1 << MAX_LOG);
     std::mt19937 rng(20260927);
@@ -120,12 +127,23 @@ int run() {
     }
     const int rows = (MAX_LOG - MIN_LOG) / STEP + 1;
     std::vector<std::array<double, NIMPL>> ms(rows);
+    double deadline = start + 800.0 * TIME_LIMIT_S;
+    int checked_lg = 0;   // largest size at which at least two implementations were compared
     for (int row = 0; row < rows; ++row) {
         const int lg = MIN_LOG + STEP * row, n = 1 << lg;
         for (int i = 0; i < n; ++i) { x[i] = rng() % P; y[i] = rng() % P; }
+        bool have_ref = false;
         for (int m = 0; m < NIMPL; ++m) {
-            ms[row][m] = measure(m, n, x.data(), y.data(), m ? out.data() : ref.data(), w, m ? 30.0 : 60.0);
-            if (m && std::memcmp(out.data(), ref.data(), size_t(n) * 4)) add(fails, " %s@2^%d", NAMES[m], lg);
+            const int min_reps = m == 0 && lg >= 21 ? 2 : 3;
+            // predicted cost: previous row's time x (size ratio x 1.6 for log n and cache effects), warmup + reps
+            const double guess = row ? ms[row - 1][m] * (1 << STEP) * 1.6 * (min_reps + 1) : 0;
+            if (row && (ms[row - 1][m] < 0 || now_ms() + guess > deadline)) { ms[row][m] = -1; continue; }
+            ms[row][m] = measure(m, n, x.data(), y.data(), have_ref ? out.data() : ref.data(), w, m ? 30.0 : 60.0, min_reps);
+            if (!have_ref) have_ref = true;   // first measured implementation is the reference
+            else {
+                checked_lg = lg;
+                if (std::memcmp(out.data(), ref.data(), size_t(n) * 4)) add(fails, " %s@2^%d", NAMES[m], lg);
+            }
         }
     }
     std::string s;
@@ -134,19 +152,35 @@ int run() {
     add(s, "median ms (fresh roots)\n    n     kactl   simd-v0    406403    406478\n");
     for (int row = 0; row < rows; ++row) {
         add(s, " 2^%-2d", MIN_LOG + STEP * row);
-        for (int m = 0; m < NIMPL; ++m) add(s, ms[row][m] < 10 ? " %9.4f" : " %9.3f", ms[row][m]);
+        for (int m = 0; m < NIMPL; ++m) {
+            if (ms[row][m] < 0) add(s, " %9s", "-");
+            else add(s, ms[row][m] < 10 ? " %9.4f" : ms[row][m] < 100 ? " %9.3f" : " %9.2f", ms[row][m]);
+        }
         s += '\n';
     }
-    const auto& last = ms[rows - 1];
-    add(s, "speedup vs kactl at 2^%d (# = 1x)\n", MAX_LOG);
+    int top = rows - 1;   // largest size with every implementation measured
+    while (top > 0 && std::any_of(ms[top].begin(), ms[top].end(), [](double v) { return v < 0; })) --top;
+    const auto& last = ms[top];
+    const int top_lg = MIN_LOG + STEP * top;
+    add(s, "speedup vs kactl at 2^%d (# = 1x)\n", top_lg);
     for (int m = 0; m < NIMPL; ++m) {
         const double sp = last[0] / last[m];
         add(s, " %-7s %5.1fx |%s\n", NAMES[m], sp, std::string(std::min(40, std::max(1, int(sp + 0.5))), '#').c_str());
     }
+    if (top > 0) {
+        const auto& prev = ms[top - 1];
+        add(s, "at 2^%d: simd-v0 %.1fx, 406403 %.1fx, 406478 %.1fx\n", top_lg - STEP,
+            prev[0] / prev[1], prev[0] / prev[2], prev[0] / prev[3]);
+    }
     add(s, "406478 vs 406403 time:");
-    for (int row = 0; row < rows; ++row) add(s, " %.3f", ms[row][3] / ms[row][2]);
-    add(s, "\n406478 vs simd-v0: %.2fx faster at 2^%d\n", last[1] / last[3], MAX_LOG);
-    add(s, "check (brute 2^8, all sizes agree): %s\n", fails.empty() ? "PASS" : ("FAIL" + fails).c_str());
+    for (int row = 0; row < rows; ++row) {
+        if (ms[row][2] > 0 && ms[row][3] > 0) add(s, " %.3f", ms[row][3] / ms[row][2]);
+        else add(s, " -");
+    }
+    add(s, "\n406478 vs simd-v0: %.2fx faster at 2^%d; total %.1f s\n", last[1] / last[3], top_lg,
+        (now_ms() - start) / 1000);
+    add(s, "check: brute 2^8, agree 2^%d..2^%d: %s\n", MIN_LOG, checked_lg,
+        fails.empty() ? "PASS" : ("FAIL" + fails).c_str());
     if (s.size() > 1000) s = s.substr(0, 990) + "\n[cut]\n";
     std::fwrite(s.data(), 1, s.size(), stderr);
     std::fflush(stderr);

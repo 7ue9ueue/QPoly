@@ -40,7 +40,8 @@ def main():
 // (e.g. convolution_mod). It ignores stdin, prints nothing to stdout (expect WA),
 // and writes a speed table plus an acceleration chart to std::cerr; open a test
 // case's row on the submission page to see "Stderr" (the judge keeps 1 KiB).
-// Every test case reruns it (about 0.5 s each). Exit status 1 (RE) = check failed.
+// Every test case reruns it (~3 s each on Zen 3). Exit status 1 (RE) = check failed.
+// Sizes 2^10..2^22; set bench::TIME_LIMIT_S (default 5) to the problem's time limit.
 // Implementations (cyclic convolution mod 998244353, n = 2^k):
 //   kactl   KACTL NTT (kactl.github.io, CC0) as in kactl_bench.cpp
 //   simd-v0 the original AVX2 Montgomery NTT from kactl_bench.cpp
@@ -48,7 +49,7 @@ def main():
 //   406478  the same kernel with generated inline assembly (submission 406478)
 // Sources: kactl_bench.cpp SHA256 {sha(kb_path)[:16]}..., {sub_path.relative_to(root)}
 // SHA256 {sha(sub_path)[:16]}..., standalone_driver.inc SHA256 {sha(here / "standalone_driver.inc")[:16]}...
-// -DQPOLY_BENCH_MAX_LOG=22 extends the sizes (output may then exceed 1 KiB).
+// -DQPOLY_BENCH_MAX_LOG=20 stops at 2^20 (faster).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
 #endif
