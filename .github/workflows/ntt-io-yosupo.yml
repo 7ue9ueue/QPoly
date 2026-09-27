@@ -1,0 +1,43 @@
+name: NTT I/O judge-like (Library Checker)
+on:
+  push:
+    branches: [claude/ntt-io-yosupo]
+    paths: [work/ntt/io_yosupo/**, work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io393435.cpp,
+            work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io_sse.cpp,
+            work/ntt/verify_yosupo_convolution.py, work/ntt/yosupo_scalar_reference.cpp,
+            .github/workflows/ntt-io-yosupo.yml]
+permissions:
+  contents: read
+jobs:
+  judge-like:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Correctness, timing and judge replica
+        run: bash work/ntt/io_yosupo/run.sh results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: io-yosupo-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
+  sanitize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: ASan/UBSan on official cases and edge-case suite
+        env:
+          SANITIZE: '1'
+        run: bash work/ntt/io_yosupo/run.sh results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: io-yosupo-sanitize
+          path: results/
+          retention-days: 7
