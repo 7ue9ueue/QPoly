@@ -74,6 +74,7 @@ int main(int argc,char** argv) {
             }
         }
     }
-    std::cerr<<"PASS "<<checked<<" values per variant; 9 variants; independent decimal strings, "
+    std::cerr<<"PASS "<<checked<<" values per variant; "<<sizeof(entries)/sizeof(entries[0])
+             <<" variants; independent decimal strings, "
                 "alignment, zero padding, guards, 1-9 digits and coefficient boundaries\n";
 }

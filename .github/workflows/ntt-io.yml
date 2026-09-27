@@ -5,6 +5,8 @@ on:
     paths: [work/ntt/io_explore/**, work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io393435.cpp, work/ntt/verify_yosupo_convolution.py, work/ntt/yosupo_scalar_reference.cpp, .github/workflows/ntt-io.yml]
 permissions:
   contents: read
+env:
+  SELECT_IO_VARIANTS: baseline,lut8,sse,sse_lut8,sse_short_lut8
 jobs:
   compare:
     runs-on: ubuntu-24.04

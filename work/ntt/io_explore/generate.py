@@ -3,6 +3,7 @@
 from pathlib import Path
 import hashlib
 import json
+import os
 
 root = Path(__file__).resolve().parents[3]
 here = Path(__file__).resolve().parent
@@ -25,7 +26,12 @@ variants = {
     'lut8_split': ('base', 'split', True),
     'swar_split': ('swar', 'split', False),
     'swar_two_digits': ('swar', 'two_digits', False),
+    'sse_lut8': ('sse', 'base', True),
+    'sse_short_lut8': ('sse_short', 'base', True),
 }
+selected=os.getenv('SELECT_IO_VARIANTS')
+if selected:
+    variants={name: variants[name] for name in selected.split(',')}
 includes = '''#include <array>
 #include <cerrno>
 #include <immintrin.h>

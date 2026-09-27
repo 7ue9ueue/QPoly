@@ -36,6 +36,15 @@ __attribute__((always_inline)) inline uint32_t read_sse(char*& p) {
     }
     return read_mod998_u32(p);
 }
+__attribute__((always_inline)) inline uint32_t read_sse_short(char*& p) {
+    while (*p && *p <= ' ') ++p;
+    if (p[1] <= ' ') {
+        uint32_t value=uint32_t(p[0]-'0');
+        p+=2;
+        return value;
+    }
+    return read_sse(p);
+}
 // Expose independent divisions by constants instead of a remainder dependency.
 __attribute__((always_inline)) inline void write_split(
     fastio_unsafe_impl::output& sink, char*& p, char* end, uint32_t x) {
