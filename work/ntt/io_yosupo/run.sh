@@ -44,7 +44,7 @@ docker run --rm -v "$BUILD":/build -v "$ROOT/work/ntt":/ntt:ro -e FLAGS="$FLAGS"
     name=$(basename "$src" .cpp); mkdir -p judge/$name; cp "$src" judge/$name/main.cpp
     (cd judge/$name && g++ $FLAGS -o main main.cpp -I /opt/ac-library) && cp judge/$name/main bin/$name
     # The Shoup file prints compute_ms to stderr; the edge suite needs a silent build.
-    case $name in shoup*) g++ $FLAGS -DQPOLY_QUIET -o bin/${name}_quiet judge/$name/main.cpp;; esac
+    case $name in *shoup*) g++ $FLAGS -DQPOLY_QUIET -o bin/${name}_quiet judge/$name/main.cpp;; esac
   done
   ldd "$(ls -d judge/*/main | head -1)" >> bin/compiler.txt
   if [ -e bin/final_shoup ] && [ -e bin/shoup_fl_ob64k ]; then
