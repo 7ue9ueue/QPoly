@@ -91,8 +91,17 @@ void e_top(int lg, U* a, U* b, long nza, long nzb) {
 // Round 1 entries (kept for reference): TOP(2,2,4) TOPNT(2,2,4) TOP(3,2,4) TOPNT(3,2,4)
 // TOP(4,2,4) TOPNT(4,2,4) TOPNT(5,2,4) TOPNT(3,4,2) TOPNT(4,4,2).
 void e_final(int lg, U* a, U* b, long nza, long nzb) { qlarge::Core<qlarge::Sel>::run(lg, a, b, work().T, nza, nzb); }
+// Exploration-009 runner-up assembly selections (its round-10 entries), rechecked at 2^25:
+// forward loop F (h >= 16), h=4 forward F4, inverse I, fused bottom B, identity Id, scale Sc.
+template<int F, int F4, int I, int B, int Id, int Sc>
+void e_core(int lg, U* a, U* b, long nza, long nzb) {
+    using C = qasm::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, F, I, 0, 4, B, 0, Id, Sc, F4>;
+    qlarge::Core<C>::run(lg, a, b, work().T, nza, nzb);
+}
+#define CORE(F, F4, I, B, Id, Sc) {"c_f" #F "i" #I "b" #B "id" #Id, e_core<F, F4, I, B, Id, Sc>}
 const Entry ENTRIES[] = {
-    {"final", e_final}, {"b0zs", e_b0<true, true>}, {"b0", e_b0<false>, false}, {"b0zs_t1024", e_b0zs_t1024}, {"b0zs_keep", e_b0zs_keep},
+    {"final", e_final}, {"b0zs", e_b0<true, true>},
+    CORE(265, 104, 71, 23, 2, 2), CORE(11, 104, 282, 23, 2, 2), CORE(11, 104, 71, 67, 2, 2), CORE(11, 104, 71, 23, 4, 4), {"b0", e_b0<false>, false}, {"b0zs_t1024", e_b0zs_t1024}, {"b0zs_keep", e_b0zs_keep},
 };
 // Round 3 entries (run 36313058400): {"b0z", e_b0<true>}, {"b0zsn", e_b0<true, true, true>} (NT top,
 // +14 ms), TOP(2, 8, 1), TOP(3, 32, 1), TOP(4, 16, 1).
@@ -247,7 +256,7 @@ void timing(int lg, int reps, bool full, bool phases) {
     std::vector<std::vector<std::array<double, 3>>> ph(count);
     uint64_t expected = 0; bool have = false;
     if (phases) { qlarge::phase_hook = hook; qlarge::depth_clock = now_ms; }
-    std::vector<std::array<double, 8>> depth_sum(count);
+    std::vector<std::array<double, 16>> depth_sum(count);
     std::vector<int> depth_runs(count);
     for (int rep = -2; rep < reps; ++rep) for (int pos = 0; pos < count; ++pos) {
         int j = (pos + rep + 2) % count; if (rep & 1) j = count - 1 - j;
@@ -259,7 +268,7 @@ void timing(int lg, int reps, bool full, bool phases) {
         const double t0 = now_ms();
         e.fn(lg, a.p, b.p, long(len), long(len));
         const double t1 = now_ms();
-        if (phases && rep >= 0) { for (int q = 0; q < 8; ++q) depth_sum[j][q] += qlarge::depth_ms[q / 4][q % 4]; ++depth_runs[j]; }
+        if (phases && rep >= 0) { for (int q = 0; q < 16; ++q) depth_sum[j][q] += qlarge::depth_ms[q / 8][q % 8]; ++depth_runs[j]; }
         uint64_t h = 0; for (size_t i = 0; i < n; ++i) h = h * 31 + a.p[i];
         if (have && h != expected) fail(std::string("checksum mismatch ") + e.name);
         expected = h; have = true;
@@ -277,8 +286,8 @@ void timing(int lg, int reps, bool full, bool phases) {
         for (size_t k = 0; k < samples[j].size(); ++k) std::cout << (k ? ";" : "") << samples[j][k];
         if (phases && !ph[j].empty()) {
             for (int q = 0; q < 3; ++q) { std::vector<double> v; for (auto& t : ph[j]) v.push_back(t[q]); std::cout << ",phase" << q << '=' << median(v); }
-            if (depth_runs[j]) for (int q = 0; q < 8; ++q) if (depth_sum[j][q] > 0)
-                std::cout << (q < 4 ? ",fwd_d" : ",inv_d") << (q % 4) << '=' << depth_sum[j][q] / depth_runs[j];
+            if (depth_runs[j]) for (int q = 0; q < 16; ++q) if (depth_sum[j][q] > 0)
+                std::cout << (q < 8 ? ",fwd_d" : ",inv_d") << (q % 8) << '=' << depth_sum[j][q] / depth_runs[j];
         }
         std::cout << '\n';
     }

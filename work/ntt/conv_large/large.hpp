@@ -44,7 +44,7 @@ QA_AI void top4_zero_body_nt(V* f, long h, long j, const Fixed& z) {
 }
 
 // Optional per-depth timers for the recursion's large groups (bench "phases" mode).
-inline double depth_ms[2][4];   // [forward/inverse][depth 0..3]
+inline double depth_ms[2][8];   // [forward/inverse][depth 0..7]
 inline double (*depth_clock)() = nullptr;
 
 // Experimental drivers (exploration 010 rounds 1-5); the final path is Core<C>::run.
@@ -73,9 +73,9 @@ struct Drivers : Core<C> {
         V *a = (V*)aa, *b = (V*)bb;
         for (int t = 0; t < 4; ++t) job.visit(a + size_t(t) * h, b + size_t(t) * h, h, t);
     }
-    // Kernel::visit with timers around the forward/inverse groups at depths < 4.
+    // Kernel::visit with timers around the forward/inverse groups at depths < 7 (above the tiles).
     static void visit_timed(K& job, V* a, V* b, int nv, int k, int depth) {
-        if (!depth_clock || depth >= 4 || nv <= K::Tile) { job.visit(a, b, nv, k); return; }
+        if (!depth_clock || depth >= 7 || nv <= K::Tile) { job.visit(a, b, nv, k); return; }
         const int h = nv / 4;
         double t0 = depth_clock();
         job.template group<false>(a, b, h, k);

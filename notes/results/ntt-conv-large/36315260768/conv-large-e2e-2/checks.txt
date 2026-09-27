@@ -1,0 +1,2 @@
+PASS 3 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+PASS 3 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0
