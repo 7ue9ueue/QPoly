@@ -126,7 +126,8 @@ struct Constants {
 inline constexpr Constants constants{};
 
 // Leaf: 0 plain (unroll 2); 1 odd-lane reuse, peeled first step + unroll 1; 2 reuse, full unroll;
-// 3 register reuse of the previous window load, one leaf at a time.
+// 3 register reuse of the previous window load, one leaf at a time; 4/5 the same
+// with 2/4 leaves interleaved.
 // Shuf: odd-lane extraction with vpshufd (shuffle port) instead of vpsrlq.
 // Mul: 0 Montgomery, 1 Montgomery+vpmulld quotient, 2 Shoup (needs Pair, no Flip).
 // Leaf accumulators are always reduced with Montgomery.
@@ -222,6 +223,28 @@ QF_AI void leaf_build(const V* a, const V* b, const U* weights, const U* weights
 template<class C>
 QF_AI void leaf_mac(V* a, const LeafBuf& L) {
     const auto& window = L.window; const auto& coeff = L.coeff;
+    if constexpr (C::Leaf == 4 || C::Leaf == 5) {
+        // Register reuse as in Leaf 3, with G leaves interleaved for parallelism.
+        constexpr int G = C::Leaf == 4 ? 2 : 4;
+        for (int t0 = 0; t0 < 4; t0 += G) {
+            V e[G], o[G], prev[G];
+            for (int g = 0; g < G; ++g) {
+                prev[g] = _mm256_loadu_si256((const V*)(window[t0 + g] + 8));
+                V y = splat(coeff[t0 + g][0]);
+                e[g] = _mm256_mul_epu32(prev[g], y); o[g] = _mm256_mul_epu32(odd(prev[g]), y);
+            }
+#pragma GCC unroll 7
+            for (int i = 1; i < 8; ++i)
+                for (int g = 0; g < G; ++g) {
+                    V x = _mm256_loadu_si256((const V*)(window[t0 + g] + 8 - i)), y = splat(coeff[t0 + g][i]);
+                    e[g] = _mm256_add_epi64(e[g], _mm256_mul_epu32(x, y));
+                    o[g] = _mm256_add_epi64(o[g], _mm256_mul_epu32(prev[g], y));
+                    prev[g] = x;
+                }
+            for (int g = 0; g < G; ++g) a[t0 + g] = low(reduce<C::Flip>(e[g], o[g]));
+        }
+        return;
+    }
     if constexpr (C::Leaf == 3) {
         // One leaf at a time; the odd lanes of window load i are the even lanes of
         // window load i-1, which is still in a register (no shift, no extra load).
