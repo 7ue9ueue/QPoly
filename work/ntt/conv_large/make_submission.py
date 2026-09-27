@@ -46,6 +46,7 @@ def main():
     args = ap.parse_args()
     main_src = (here / args.source).read_text()
     io = (here / 'io007.hpp').read_text().replace('#pragma once\n', '')
+    io_sse = (here / 'io007_sse.hpp').read_text().replace('#pragma once\n', '')
     core = (here / 'large_core.hpp').read_text().replace('#pragma once\n', '')
     large = (here / 'large.hpp').read_text().replace('#pragma once\n', '')
     kernel = (here.parent / 'asm_explore/kernels/qasm.hpp').read_text().replace('#pragma once\n', '')
@@ -58,6 +59,8 @@ def main():
     if '#include "large.hpp"\n' in main_src:   # experiment program: large.hpp includes the core
         large = large.replace('#include "large_core.hpp"\n', core)
         parts = (('io007.hpp', io), ('large.hpp', large))
+    elif '#include "io007_sse.hpp"\n' in main_src:   # final_main_sse.cpp (406478's SSE I/O)
+        parts = (('io007_sse.hpp', io_sse), ('large_core.hpp', core))
     else:
         parts = (('io007.hpp', io), ('large_core.hpp', core))
     for name, body in parts:
