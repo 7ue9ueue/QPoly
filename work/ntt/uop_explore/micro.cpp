@@ -20,6 +20,8 @@ using namespace qflip;
 using Best = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true>;   // s_ns_olb
 using MontFlip = Cfg<0, true, true, 0, false, 256, true, false, true>;       // f_fp_nml
 using BestPipe = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true>;
+using Leaf3Pipe = Cfg<2, false, true, 3, false, 256, true, true, true, 1, true, true>;
+using Leaf3 = Cfg<2, false, true, 3, false, 256, true, true, true, 1, true, false>;
 
 static double now_ns() { return std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 static double cycle_ns() {   // dependent integer adds: one per cycle
@@ -74,5 +76,7 @@ int main(int argc, char** argv) {
     std::printf("units: fwd4/inv4 = one radix-4 butterfly (4 vectors); leaf/bottom/tile = one vector\n");
     run<Best>("shoup", cyc, scale);
     run<BestPipe>("shoup_pipe", cyc, scale);
+    run<Leaf3>("leaf3", cyc, scale);
+    run<Leaf3Pipe>("leaf3_pipe", cyc, scale);
     run<MontFlip>("montflip", cyc, scale);
 }

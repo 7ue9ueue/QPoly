@@ -125,7 +125,8 @@ struct Constants {
 };
 inline constexpr Constants constants{};
 
-// Leaf: 0 plain (unroll 2); 1 odd-lane reuse, peeled first step + unroll 1; 2 reuse, full unroll.
+// Leaf: 0 plain (unroll 2); 1 odd-lane reuse, peeled first step + unroll 1; 2 reuse, full unroll;
+// 3 register reuse of the previous window load, one leaf at a time.
 // Shuf: odd-lane extraction with vpshufd (shuffle port) instead of vpsrlq.
 // Mul: 0 Montgomery, 1 Montgomery+vpmulld quotient, 2 Shoup (needs Pair, no Flip).
 // Leaf accumulators are always reduced with Montgomery.
@@ -221,6 +222,24 @@ QF_AI void leaf_build(const V* a, const V* b, const U* weights, const U* weights
 template<class C>
 QF_AI void leaf_mac(V* a, const LeafBuf& L) {
     const auto& window = L.window; const auto& coeff = L.coeff;
+    if constexpr (C::Leaf == 3) {
+        // One leaf at a time; the odd lanes of window load i are the even lanes of
+        // window load i-1, which is still in a register (no shift, no extra load).
+        for (int t = 0; t < 4; ++t) {
+            V prev = _mm256_loadu_si256((const V*)(window[t] + 8)), y = splat(coeff[t][0]);
+            V e = _mm256_mul_epu32(prev, y), o = _mm256_mul_epu32(odd(prev), y);
+#pragma GCC unroll 7
+            for (int i = 1; i < 8; ++i) {
+                V x = _mm256_loadu_si256((const V*)(window[t] + 8 - i));
+                y = splat(coeff[t][i]);
+                e = _mm256_add_epi64(e, _mm256_mul_epu32(x, y));
+                o = _mm256_add_epi64(o, _mm256_mul_epu32(prev, y));
+                prev = x;
+            }
+            a[t] = low(reduce<C::Flip>(e, o));
+        }
+        return;
+    }
     V e[4], o[4];
     for (int t = 0; t < 4; ++t) e[t] = o[t] = _mm256_setzero_si256();
     auto step = [&](int i, auto reuse) __attribute__((always_inline)) {
