@@ -58,6 +58,9 @@ QF_AI V canonical(V x) { return shrink(low(x), P); }
 QF_AI V diff(V x, V y) { return minus(plus(x, splat(P2)), y); }
 QF_AI V odd(V x) { return _mm256_srli_epi64(x, 32); }
 QF_AI V sigma(V x) { return _mm256_shuffle_epi32(x, 0xD8); }  // lanes 1<->2 in each half
+// Empty asm: materializes x so GCC cannot re-associate x into neighbouring
+// additions (it turned A +/- (xw - qP) into 5 ops instead of 4 for Shoup).
+QF_AI V opaque(V x) { asm("" : "+x"(x)); return x; }
 template<bool Shuf> QF_AI V odd_of(V x) { if constexpr (Shuf) return _mm256_shuffle_epi32(x, 0xF5); else return odd(x); }
 
 // e,o: 64-bit sums whose high words are the results of lanes (0,2,4,6)/(1,3,5,7).
@@ -83,17 +86,23 @@ struct Fixed {
     QF_AI static Fixed vec(V x) { return Fixed(x, _mm256_mullo_epi32(x, splat(NI))); }
     // x < 2^32 -> x*(twiddle value) mod P, in [0,2P). Mul: 0 Montgomery with
     // vpmuludq quotients, 1 Montgomery with one vpmulld quotient, 2 Shoup.
-    template<int Mul, bool Flip, bool Shuf = false> QF_AI V mul(V x) const {
+    template<int Mul, bool Flip, bool Shuf = false, bool Opq = false> QF_AI V mul(V x) const {
+        return mul2<Mul, Flip, Opq>(x, odd_of<Shuf>(x));
+    }
+    // xo: any vector whose even lanes hold the odd lanes of x (e.g. an unaligned
+    // load of the same data one element later).
+    template<int Mul, bool Flip, bool Opq = false> QF_AI V mul2(V x, V xo) const {
         const V p = splat(P);
-        V xo = odd_of<Shuf>(x), e, o;
+        V e, o;
         if constexpr (Mul == 2) {
             static_assert(!Flip, "Shoup results are already packed");
             V q = _mm256_blend_epi32(odd(_mm256_mul_epu32(x, wi)), _mm256_mul_epu32(xo, wi), 0xAA);
-            return _mm256_sub_epi32(_mm256_mullo_epi32(x, w), _mm256_mullo_epi32(q, p));
+            V r = _mm256_sub_epi32(_mm256_mullo_epi32(x, w), _mm256_mullo_epi32(q, p));
+            return Opq ? opaque(r) : r;
         } else if constexpr (Mul == 1) {
             V q = _mm256_mullo_epi32(x, wi);
             e = _mm256_add_epi64(_mm256_mul_epu32(x, w), _mm256_mul_epu32(q, p));
-            o = _mm256_add_epi64(_mm256_mul_epu32(xo, w), _mm256_mul_epu32(odd_of<Shuf>(q), p));
+            o = _mm256_add_epi64(_mm256_mul_epu32(xo, w), _mm256_mul_epu32(odd(q), p));
         } else {
             e = _mm256_add_epi64(_mm256_mul_epu32(x, w), _mm256_mul_epu32(_mm256_mul_epu32(x, wi), p));
             o = _mm256_add_epi64(_mm256_mul_epu32(xo, w), _mm256_mul_epu32(_mm256_mul_epu32(xo, wi), p));
@@ -122,8 +131,13 @@ inline constexpr Constants constants{};
 // Leaf accumulators are always reduced with Montgomery.
 // With Shoup, the leaf's w*a multiply and the final scale also use Shoup.
 // Aux=false keeps Montgomery (vpmulld) for those two multiplies even with Shoup.
-template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true>
+// Opq: opaque() barrier on multiply results. LdOdd: odd lanes of the forward
+// butterfly's loaded c,d inputs come from unaligned loads (needs 4 readable
+// bytes past the end of the array).
+template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true,
+         bool Opq_ = false, bool LdOdd_ = false>
 struct Cfg {
+    static constexpr bool Opq = Opq_, LdOdd = LdOdd_;
     static constexpr int Mul = Mul_, MontMul = Mul_ == 0 ? 0 : 1, Leaf = Leaf_, Tile = Tile_;
     static constexpr bool ShoupAux = Mul_ == 2 && Aux_;
     static constexpr int LeafMul = ShoupAux ? 2 : MontMul;
@@ -138,18 +152,22 @@ struct Twiddle { Fixed x, y, z; };
 // Flip layout: perms a:p b:~p c:~p d:p -> all outputs p.
 template<class C, bool Identity>
 QF_AI void fwd4(V* f, int h, const Twiddle& t) {
-    constexpr int M = C::Mul; constexpr bool F = C::Flip, S = C::Shuf;
+    constexpr int M = C::Mul; constexpr bool F = C::Flip, S = C::Shuf, O = C::Opq;
     for (int j = 0; j < h; ++j) {
         V a = low(f[j]), b = low(f[j + h]), c = f[j + 2 * h], d = f[j + 3 * h];
         if constexpr (Identity) {
             c = low(c); d = low(d);
             if constexpr (F) { c = sigma(c); d = sigma(d); }
-        } else { c = t.x.mul<M, F, S>(c); d = t.x.mul<M, F, S>(d); }
+        } else if constexpr (C::LdOdd) {
+            const U* fc = (const U*)(f + j + 2 * h);
+            c = t.x.mul2<M, F, O>(c, _mm256_loadu_si256((const V*)(fc + 1)));
+            d = t.x.mul2<M, F, O>(d, _mm256_loadu_si256((const V*)(fc + 8 * h + 1)));
+        } else { c = t.x.mul<M, F, S, O>(c); d = t.x.mul<M, F, S, O>(d); }
         V ac = low(plus(a, c)), amc = low(diff(a, c));
         V bd = plus(b, d), bmd = diff(b, d);
         if constexpr (Identity) { bd = low(bd); if constexpr (F) bd = sigma(bd); }
-        else bd = t.y.mul<M, F, S>(bd);
-        bmd = t.z.mul<M, F, S>(bmd);
+        else bd = t.y.mul<M, F, S, O>(bd);
+        bmd = t.z.mul<M, F, S, O>(bmd);
         f[j] = plus(ac, bd); f[j + h] = diff(ac, bd); f[j + 2 * h] = plus(amc, bmd); f[j + 3 * h] = diff(amc, bmd);
     }
 }
@@ -157,18 +175,18 @@ QF_AI void fwd4(V* f, int h, const Twiddle& t) {
 // Flip layout: inputs all q -> outputs q,~q,~q,q.
 template<class C, bool Identity>
 QF_AI void inv4(V* f, int h, const Twiddle& t) {
-    constexpr int M = C::Mul; constexpr bool F = C::Flip, S = C::Shuf;
+    constexpr int M = C::Mul; constexpr bool F = C::Flip, S = C::Shuf, O = C::Opq;
     for (int j = 0; j < h; ++j) {
         V a = f[j], b = f[j + h], c = f[j + 2 * h], d = f[j + 3 * h];
         V ab = low(plus(a, b)), cd = low(plus(c, d)), amb = diff(a, b), cmd = diff(c, d);
         if constexpr (Identity) { amb = low(amb); if constexpr (F) amb = sigma(amb); }
-        else amb = t.y.mul<M, F, S>(amb);
-        cmd = t.z.mul<M, F, S>(cmd);
+        else amb = t.y.mul<M, F, S, O>(amb);
+        cmd = t.z.mul<M, F, S, O>(cmd);
         V o0 = low(plus(ab, cd)), o1 = low(plus(amb, cmd)), o2 = diff(ab, cd), o3 = diff(amb, cmd);
         if constexpr (Identity) {
             o2 = low(o2); o3 = low(o3);
             if constexpr (F) { o2 = sigma(o2); o3 = sigma(o3); }
-        } else { o2 = t.x.mul<M, F, S>(o2); o3 = t.x.mul<M, F, S>(o3); }
+        } else { o2 = t.x.mul<M, F, S, O>(o2); o3 = t.x.mul<M, F, S, O>(o3); }
         f[j] = o0; f[j + h] = o1; f[j + 2 * h] = o2; f[j + 3 * h] = o3;
     }
 }
@@ -183,7 +201,7 @@ QF_AI void leaf4(V* a, V* b, const U* weights, const U* weights_ni) {
     for (int t = 0; t < 4; ++t) {
         V x = canonical(a[t]);
         const Fixed wt = weights_ni ? Fixed(splat(weights[t]), splat(weights_ni[t])) : Fixed::scalar(weights[t]);
-        _mm256_store_si256((V*)window[t], shrink(wt.mul<C::LeafMul, false, C::Shuf>(x), P));
+        _mm256_store_si256((V*)window[t], shrink(wt.mul<C::LeafMul, false, C::Shuf, C::Opq>(x), P));
         _mm256_store_si256((V*)(window[t] + 8), x);
         _mm256_store_si256((V*)coeff[t], canonical(b[t]));
         e[t] = o[t] = _mm256_setzero_si256();
@@ -369,13 +387,13 @@ struct Kernel {
             // Values < 2P; sums/differences < 4P are valid multiply inputs.
             for (int i = 0; i < h; ++i) {
                 V x = a[i], y = a[i + h];
-                a[i] = seed(shrink(scale.mul<SM, F, C::Shuf>(plus(x, y)), P), i);
-                a[i + h] = seed(shrink(scale.mul<SM, F, C::Shuf>(diff(x, y)), P), i);
+                a[i] = seed(shrink(scale.mul<SM, F, C::Shuf, C::Opq>(plus(x, y)), P), i);
+                a[i + h] = seed(shrink(scale.mul<SM, F, C::Shuf, C::Opq>(diff(x, y)), P), i);
             }
         } else {
             if constexpr (F) for (int i = 0; i < nv; ++i) { a[i] = seed(a[i], i); b[i] = seed(b[i], i); }
             job.visit(a, b, nv, 0);
-            for (int i = 0; i < nv; ++i) a[i] = seed(shrink(scale.mul<SM, F, C::Shuf>(a[i]), P), i);
+            for (int i = 0; i < nv; ++i) a[i] = seed(shrink(scale.mul<SM, F, C::Shuf, C::Opq>(a[i]), P), i);
         }
     }
 };

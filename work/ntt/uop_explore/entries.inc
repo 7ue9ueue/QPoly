@@ -11,7 +11,6 @@ struct Entry { const char* name; Fn fn; };
 
 const Entry ENTRIES[] = {
     {"h14", ll_inline_h14::invoke},
-    {"mullo_bottom", h14_mullo_bottom::invoke},
     {"asm_large_fixed", asm_radix4_pair_large_fixed::invoke},
     {"ref_yosupo", ref_yosupo::invoke},
     CANDIDATE_ENTRIES
