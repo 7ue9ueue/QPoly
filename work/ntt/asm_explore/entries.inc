@@ -25,10 +25,10 @@ using Q = qasm::Kernel<qasm::Cfg<2, false, true, 0, false, 256, true, true, true
 #define QE(F, I, L, M) {"q_f" #F "i" #I "l" #L "m" #M, cand::invoke<cand::Q<F, I, L, M>>}
 #ifndef ENTRY_LIST
 #define ENTRY_LIST                                                                         \
-    QE(0, 0, 0, 4), QE(0, 0, 5, 4), QE(0, 0, 6, 4),                                        \
-    QE(2, 3, 0, 16), QE(5, 5, 0, 16), QE(2, 3, 0, 4),                                      \
-    QE(2, 3, 5, 4), QE(2, 3, 5, 16), QE(5, 5, 5, 16), QE(5, 5, 6, 16), QE(2, 5, 5, 16),    \
-    QE(5, 3, 5, 16), QE(2, 3, 6, 16)
+    QE(0, 0, 0, 4), QE(5, 5, 5, 16), QE(2, 5, 5, 16),                                      \
+    QE(11, 71, 5, 16), QE(11, 71, 5, 4), QE(11, 63, 5, 16), QE(65, 66, 5, 16),             \
+    QE(11, 71, 0, 16), QE(5, 71, 5, 16), QE(11, 5, 5, 16),                                 \
+    QE(122, 71, 5, 4), QE(122, 71, 5, 16), QE(106, 71, 5, 4)
 #endif
 const Entry ENTRIES[] = {
     {"live", cand::invoke<cand::Live>},

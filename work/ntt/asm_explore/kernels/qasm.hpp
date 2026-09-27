@@ -455,7 +455,7 @@ struct Kernel {
                 const U* t = Inv ? irt : rt;
                 const U *px = t + blk(k), *py = t + blk(2 * k);
                 if constexpr (Inv) inv_asm(C::AsmI, a, h, px, py);
-                else { fwd_asm(C::AsmF, a, h, px, py); fwd_asm(C::AsmF, b, h, px, py); }
+                else fwd2_asm(C::AsmF, a, b, h, px, py);
                 return;
             }
         }

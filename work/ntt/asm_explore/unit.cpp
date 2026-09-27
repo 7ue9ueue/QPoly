@@ -36,10 +36,10 @@ int main(int argc, char** argv) {
     alignas(64) static U T[1 << 12], IT[1 << 12];
     int size = 0;
     K::tables(1 << 11, T, IT, size, true);
-    alignas(64) static U x[4 * 64 * 8 + 64], y[4 * 64 * 8 + 64];
+    alignas(64) static U x[2 * (4 * 64 * 8 + 64)], y[2 * (4 * 64 * 8 + 64)];
     long checks = 0;
     for (int kind = 0; kind < 2; ++kind) {
-        for (int v = 1; v < 100; ++v) {
+        for (int v = 1; v < 1000; ++v) {
             char key[8]; std::snprintf(key, sizeof key, " %d ", v);   // generated (not skipped) variants
             if (!std::strstr(kind ? ASM_INV_IDS : ASM_FWD_IDS, key)) continue;
             for (int h : {1, 2, 4, 8, 16, 64}) {
@@ -54,6 +54,12 @@ int main(int argc, char** argv) {
                     const Twiddle tw{Fixed(splat(px[0]), splat(px[8])), Fixed(splat(py[0]), splat(py[8])),
                                      Fixed(splat(py[1]), splat(py[9]))};
                     if (kind) { inv4<C, false>((V*)x, h, tw); inv_asm(v, (V*)y, h, px, py); }
+                    else if (asm_is_ab(v)) {   // second array right after the first (plus padding)
+                        V *x2 = (V*)x + 4 * h + 1, *y2 = (V*)y + 4 * h + 1;
+                        for (int i = 0; i < 8 * (4 * h) + 8; ++i) ((U*)x2)[i] = ((U*)y2)[i] = pick(4 * P);
+                        fwd4<C, false>((V*)x, h, tw); fwd4<C, false>(x2, h, tw); fwd2_asm(v, (V*)y, y2, h, px, py);
+                        for (int i = 0; i < 8 * (4 * h) + 8; ++i) if (((U*)x2)[i] != ((U*)y2)[i]) fail("fwd2", v, h, i);
+                    }
                     else { fwd4<C, false>((V*)x, h, tw); fwd_asm(v, (V*)y, h, px, py); }
                     for (int i = 0; i < n + 16; ++i) if (x[i] != y[i]) fail(kind ? "inv" : "fwd", v, h, i);
                     ++checks;

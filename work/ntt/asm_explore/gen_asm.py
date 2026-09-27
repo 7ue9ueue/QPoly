@@ -80,8 +80,9 @@ class Op:
 
 
 class Builder:
-    def __init__(self, consts, fold, tag, disp):
+    def __init__(self, consts, fold, tag, disp, bank=0):
         self.ops, self.c, self.fold, self.tag, self.disp = [], consts, fold, tag, disp
+        self.bank = bank   # 0: array at %[p], 1: array at %[q] (forward "ab" variants)
         self.loaded = {}   # data mem Val id -> register Val
 
     def materialize(self, v):
@@ -95,7 +96,7 @@ class Builder:
         return self.loaded[v.id]
 
     def mem(self, name, slot, extra=0):
-        v = Val('mem', f'{name}{self.tag}', mem=(slot, self.disp + extra))
+        v = Val('mem', f'{name}{self.tag}', mem=(4 * self.bank + slot, self.disp + extra))
         return v if self.fold else self.materialize(v)
 
     def op(self, mn, name, *srcs, imm=None):
@@ -112,7 +113,7 @@ class Builder:
         return d
 
     def store(self, v, slot):
-        self.ops.append(Op('vmovdqa', None, [v], store=(slot, self.disp)))
+        self.ops.append(Op('vmovdqa', None, [v], store=(4 * self.bank + slot, self.disp)))
 
     def low(self, x, name):          # min(x, x - 2P)
         return self.op('vpminud', name, x, self.op('vpsubd', name + 't', x, self.c['P2']))
@@ -192,11 +193,16 @@ def constants(twmem):
     return c, reserved
 
 
-def butterflies(kind, count, fold, twmem, tag, disp0=0):
+def butterflies(kind, count, fold, twmem, tag, disp0=0, ab=False):
+    """count butterflies per step; ab: alternate arrays a (%[p]) and b (%[q]),
+    i.e. butterfly j of a and of b share the step (forward only)."""
     c, reserved = constants(twmem)
     ops, carried = [], []
     for k in range(count):
-        b = Builder(c, fold, f'_{tag}{k}', disp0 + 32 * k)
+        if ab:
+            b = Builder(c, fold, f'_{tag}{k}', disp0 + 32 * (k // 2), bank=k % 2)
+        else:
+            b = Builder(c, fold, f'_{tag}{k}', disp0 + 32 * k)
         carried += GRAPHS[kind](b)
         ops += b.ops
     return ops, carried, reserved
@@ -393,7 +399,8 @@ def allocate(seq, reserved, pinned=None, live_in=(), live_out=()):
 
 
 # ------------------------------------------------------------------ emitter
-SLOT = {0: '(%[p])', 1: '(%[p],%[H])', 2: '(%[p],%[H],2)', 3: '(%[p],%[H3])'}
+SLOT = {0: '(%[p])', 1: '(%[p],%[H])', 2: '(%[p],%[H],2)', 3: '(%[p],%[H3])',
+        4: '(%[q])', 5: '(%[q],%[H])', 6: '(%[q],%[H],2)', 7: '(%[q],%[H3])'}
 
 
 def operand(v, assign):
@@ -425,11 +432,11 @@ def emit(o, assign):
 
 
 # ----------------------------------------------------------------- variants
-def gen_simple(kind, count, fold, twmem, schedule):
-    ops, _, reserved = butterflies(kind, count, fold, twmem, 's')
+def gen_simple(kind, count, fold, twmem, schedule, ab=False):
+    ops, _, reserved = butterflies(kind, count, fold, twmem, 's', ab=ab)
     seq = list_schedule(ops, budget=16 - len(reserved)) if schedule else ops
     assign = allocate(seq, reserved)
-    return {'body': [emit(o, assign) for o in seq], 'step': count}
+    return {'body': [emit(o, assign) for o in seq], 'step': count // 2 if ab else count, 'ab': ab}
 
 
 def gen_pipelined(kind, count, fold, twmem):
@@ -488,7 +495,9 @@ AUTOTUNE = []
 _r = _random.Random(2026)
 # (a three-butterfly family was dropped: its step does not divide power-of-two h)
 for _base, (_strategy, _count, _fold, _twmem) in ((20, ('ls', 1, True, False)), (40, ('ls', 2, True, True)),
-                                                 (60, ('ls', 2, True, 'half')), (80, ('sp', 1, True, True))):
+                                                 (60, ('ls', 2, True, 'half')), (80, ('sp', 1, True, True)),
+                                                 (100, ('ab', 2, True, 'half')), (120, ('ab', 2, True, True)),
+                                                 (140, ('ab', 4, True, 'half'))):
     for _k in range(12):
         AUTOTUNE.append((_base + _k, _strategy, _count, _fold, _twmem,
                          (1 + _k * 7 + _base, _r.choice([0, 1, 2, 3, 4]), _r.choice([0.0, 2.0, 4.0, 8.0]),
@@ -499,7 +508,10 @@ def generate_fixed(kind, strategy, count, fold, twmem, knobs):
     seed, margin, noise, lat, lpc = knobs
     SEARCH.update(rng=_random.Random(seed), margin=margin, noise=noise, load_lat=lat, lpc=lpc)
     try:
-        g = gen_pipelined(kind, count, fold, twmem) if strategy == 'sp' else gen_simple(kind, count, fold, twmem, True)
+        if strategy == 'sp':
+            g = gen_pipelined(kind, count, fold, twmem)
+        else:
+            g = gen_simple(kind, count, fold, twmem, True, ab=strategy == 'ab')
     finally:
         SEARCH.update(rng=None, margin=0, noise=0.0, load_lat=LOAD_LAT, lpc=2)
     g.update(strategy=strategy, fold=fold, twmem=twmem, search=knobs)
@@ -552,18 +564,21 @@ def asm_function(name, kind, g):
         body += g['pre'] + ['cmp %[last], %[p]', 'je 2f', '.p2align 5', '1:'] + g['body']
         body += [f'add ${32 * step}, %[p]', 'cmp %[last], %[p]', 'jne 1b', '2:'] + g['post']
     else:
-        body += ['.p2align 5', '1:'] + g['body'] + [f'add ${32 * step}, %[p]', 'cmp %[end], %[p]', 'jne 1b']
+        inc = [f'add ${32 * step}, %[q]'] if g.get('ab') else []
+        body += ['.p2align 5', '1:'] + g['body'] + inc + [f'add ${32 * step}, %[p]', 'cmp %[end], %[p]', 'jne 1b']
     L = [f'// {name}: strategy={g["strategy"]} step={step} fold={int(g["fold"])} twmem={twmem}; '
          f'{len(g["body"])} loop instructions; search (seed, margin, jitter) = {g.get("search")}; '
          f'llvm-mca znver3 {g.get("mca") or 0:.2f} cycles/butterfly',
-         f'QA_AI void {name}(V* f, long h, const U* px, const U* py) {{',
+         (f'QA_AI void {name}(V* f, V* g, long h, const U* px, const U* py) {{' if g.get('ab') else
+          f'QA_AI void {name}(V* f, long h, const U* px, const U* py) {{'),
          '    alignas(32) V tw[6];' if twmem else '    V* tw = nullptr;',   # half: w at even slots
          '    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;',
+         '    char* q = (char*)g;' if g.get('ab') else '    char* q = nullptr;',
          f'    char* const end = p + H; char* const last = end - {32 * step};',
          '    (void)last; (void)end;',
          '    asm volatile(']
     L += [f'        "{x}\\n\\t"' for x in body]
-    L += ['        : [p] "+r"(p)',
+    L += ['        : [p] "+r"(p), [q] "+r"(q)',
           '        : [end] "r"(end), [last] "r"(last), [H] "r"(H), [H3] "r"(H3), [px] "r"(px), [py] "r"(py),',
           '          [tw] "r"(tw), [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2)',
           '        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",',
@@ -576,7 +591,7 @@ def mca(lines, cpu='znver3'):
     exe = '/opt/homebrew/opt/llvm/bin/llvm-mca'
     if not os.path.exists(exe):
         return None
-    sub = {'%[p]': '%rdi', '%[H3]': '%rcx', '%[H]': '%rsi', '%[tw]': '%rdx', '%%': '%'}
+    sub = {'%[p]': '%rdi', '%[q]': '%r8', '%[H3]': '%rcx', '%[H]': '%rsi', '%[tw]': '%rdx', '%%': '%'}
     txt = []
     for x in lines:
         for k, v in sub.items():
@@ -693,7 +708,7 @@ def leaf_function(vid, form, bc, group):
     return '\n'.join(L), body
 
 
-STEPS = {}
+STEPS, AB = {}, set()
 
 
 def main():
@@ -708,6 +723,8 @@ def main():
     for kind in ('fwd', 'inv'):
         for vid, strategy, count, fold, twmem, knobs in AUTOTUNE:
             name = f'{kind}_at{vid}'
+            if strategy == 'ab' and kind == 'inv':
+                continue
             try:
                 g = generate_fixed(kind, strategy, count, fold, twmem, knobs)
             except AllocError as e:
@@ -720,7 +737,9 @@ def main():
                       file=sys.stderr)
             out += [asm_function(name, kind, g), '']
             cases[kind].append((vid, name))
-            STEPS[vid] = count
+            STEPS[vid] = g['step']
+            if g.get('ab'):
+                AB.add(vid)
     for kind in ('fwd', 'inv'):
         for vid, (suffix, strategy, count, fold, twmem) in enumerate(VARIANTS, start=1):
             name = f'{kind}_{suffix}'
@@ -739,22 +758,31 @@ def main():
     for kind in ('fwd', 'inv'):
         out.append(f'#define ASM_{kind.upper()}_IDS " ' + ' '.join(str(v) for v, _ in cases[kind]) + ' "')
     out.append('constexpr int asm_step(int kind, int v) {   // butterflies per loop step (kind 0 fwd, 1 inv)')
-    out.append('    switch (kind * 100 + v) {')
+    out.append('    switch (kind * 1000 + v) {')
     for kind_i, kind in enumerate(('fwd', 'inv')):
         for vid, name in cases[kind]:
-            out.append(f'    case {kind_i * 100 + vid}: return {STEPS.get(vid) or VARIANTS[vid - 1][2]};')
+            out.append(f'    case {kind_i * 1000 + vid}: return {STEPS.get(vid) or VARIANTS[vid - 1][2]};')
     out += ['    }', '    return 1;', '}', '#define ASM_STEP(k, v) asm_step(k, v)']
     out.append('constexpr bool asm_has(int kind, int v) {   // variant generated (not skipped)')
-    out.append('    switch (kind * 100 + v) {')
+    out.append('    switch (kind * 1000 + v) {')
     for kind_i, kind in enumerate(('fwd', 'inv')):
-        out += [f'    case {kind_i * 100 + vid}:' for vid, _ in cases[kind]]
+        out += [f'    case {kind_i * 1000 + vid}:' for vid, _ in cases[kind]]
     out += ['        return true;', '    }', '    return false;', '}', '']
     for kind in ('fwd', 'inv'):
         out.append(f'// {kind}_asm(v, ...): variant v of VARIANTS in gen_asm.py (1-based).')
         out.append(f'QA_AI void {kind}_asm(int v, V* f, long h, const U* px, const U* py) {{')
         out.append('    switch (v) {')
-        out += [f'    case {vid}: {name}(f, h, px, py); break;' for vid, name in cases[kind]]
+        out += [f'    case {vid}: {name}(f, h, px, py); break;' for vid, name in cases[kind] if vid not in AB]
         out += ['    default: __builtin_unreachable();', '    }', '}', '']
+    out.append('// fwd2_asm(v, a, b, ...): forward loops over a and b with the same twiddles;')
+    out.append('// "ab" variants interleave the two arrays, others run fwd_asm twice.')
+    out.append('QA_AI void fwd2_asm(int v, V* a, V* b, long h, const U* px, const U* py) {')
+    out.append('    switch (v) {')
+    out += [f'    case {vid}: {name}(a, b, h, px, py); break;' for vid, name in cases['fwd'] if vid in AB]
+    out += ['    default: fwd_asm(v, a, h, px, py); fwd_asm(v, b, h, px, py);', '    }', '}',
+            'constexpr bool asm_is_ab(int v) {', '    switch (v) {']
+    out += [f'    case {vid}:' for vid in sorted(AB)]
+    out += ['        return true;', '    }', '    return false;', '}', '']
     open(os.path.join(args.out, 'asm_bfly.inc'), 'w').write('\n'.join(out))
     out = list(head)
     for vid, form, bc, group in LEAF_VARIANTS:

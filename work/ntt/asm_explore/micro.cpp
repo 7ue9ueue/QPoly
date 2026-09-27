@@ -83,17 +83,28 @@ int main(int argc, char** argv) {
     bench("cxx", "inv4 h=64 per bfly", 64, [&] { inv4<C0, false>(a, 64, itw); });
     bench("cxx", "fwd4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) fwd4<C0, false>(a + 64 * g, 16, tw); });
     bench("cxx", "inv4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) inv4<C0, false>(a + 64 * g, 16, itw); });
+    bench("cxx", "fwd4 h=4 per bfly", 64, [&] { for (int g = 0; g < 16; ++g) fwd4<C0, false>(a + 16 * g, 4, tw); });
+    bench("cxx", "inv4 h=4 per bfly", 64, [&] { for (int g = 0; g < 16; ++g) inv4<C0, false>(a + 16 * g, 4, itw); });
     char key[8], nm[16];
-    for (int v = 1; v < 100; ++v) {
+    for (int v = 1; v < 1000; ++v) {
         std::snprintf(key, sizeof key, " %d ", v);
         std::snprintf(nm, sizeof nm, "asm%d", v);
-        if (16 % ASM_STEP(0, v) == 0 && std::strstr(ASM_FWD_IDS, key)) {
+        if (asm_is_ab(v) && std::strstr(ASM_FWD_IDS, key)) {   // a and b together: 2x the butterflies
+            V* b = (V*)B;
+            bench(nm, "fwd4 h=64 per bfly", 128, [&] { fwd2_asm(v, a, b, 64, px, py); });
+            bench(nm, "fwd4 h=16 per bfly", 128, [&] { for (int g = 0; g < 4; ++g) fwd2_asm(v, a + 64 * g, b + 64 * g, 16, px, py); });
+            if (4 % ASM_STEP(0, v) == 0)
+                bench(nm, "fwd4 h=4 per bfly", 128, [&] { for (int g = 0; g < 16; ++g) fwd2_asm(v, a + 16 * g, b + 16 * g, 4, px, py); });
+        } else if (16 % ASM_STEP(0, v) == 0 && std::strstr(ASM_FWD_IDS, key)) {
             bench(nm, "fwd4 h=64 per bfly", 64, [&] { fwd_asm(v, a, 64, px, py); });
             bench(nm, "fwd4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) fwd_asm(v, a + 64 * g, 16, px, py); });
+            bench(nm, "fwd4 h=4 per bfly", 64, [&] { for (int g = 0; g < 16; ++g) fwd_asm(v, a + 16 * g, 4, px, py); });
         }
         if (16 % ASM_STEP(1, v) == 0 && std::strstr(ASM_INV_IDS, key)) {
             bench(nm, "inv4 h=64 per bfly", 64, [&] { inv_asm(v, a, 64, ipx, ipy); });
             bench(nm, "inv4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) inv_asm(v, a + 64 * g, 16, ipx, ipy); });
+            if (4 % ASM_STEP(1, v) == 0)
+                bench(nm, "inv4 h=4 per bfly", 64, [&] { for (int g = 0; g < 16; ++g) inv_asm(v, a + 16 * g, 4, ipx, ipy); });
         }
     }
     // leaf multiply-accumulate (+ reduce) on built buffers, 64 batches of 4 leaves
@@ -112,7 +123,7 @@ int main(int argc, char** argv) {
         }
     }
     phases<Q<0, 0, 0>>("q_f0i0l0");
-    phases<Q<0, 0, 5>>("q_f0i0l5");
-    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 2, 3, 5, 16>>("q_f2i3l5m16");
-    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 5, 5, 5, 16>>("q_f5i5l5m16");
+    phases<Q<5, 5, 5, 16>>("q_f5i5l5m16");
+    phases<Q<11, 71, 5, 16>>("q_f11i71l5m16");
+    phases<Q<11, 71, 5, 4>>("q_f11i71l5m4");
 }
