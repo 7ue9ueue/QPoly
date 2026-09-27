@@ -1,0 +1,30 @@
+# CPU: AMD EPYC 9V74 80-Core Processor                
+# compiler: 15.2.0
+parse,sse,random,95.19,2.837 ns/token
+parse,flat,random,50.76,1.513 ns/token
+parse,tail,random,50.84,1.515 ns/token
+parse,tail8,random,55.69,1.660 ns/token
+parse,sse,nine_digit,55.96,1.668 ns/token
+parse,flat,nine_digit,50.59,1.508 ns/token
+parse,tail,nine_digit,50.82,1.515 ns/token
+parse,tail8,nine_digit,55.13,1.643 ns/token
+parse,sse,single_digit,34.74,1.035 ns/token
+parse,flat,single_digit,42.60,1.270 ns/token
+parse,tail,single_digit,42.92,1.279 ns/token
+parse,tail8,single_digit,47.66,1.420 ns/token
+format,table,random,72.13,2.150 ns/value (sink 0)
+format,fixed_table,random,84.65,2.523 ns/value (sink 0)
+format,fixed_avx2,random,42.76,1.274 ns/value (sink 0)
+format,fixed_v2g1,random,40.43,1.205 ns/value (sink 0)
+format,fixed_v2g2,random,37.59,1.120 ns/value (sink 0)
+format_write,table,random,192.78,5.745 ns/value (331199356 bytes)
+format_write,fixed_avx2,random,144.50,4.307 ns/value (335544320 bytes)
+format_write,fixed_v2g2,random,137.04,4.084 ns/value (335544320 bytes)
+format,table,small,69.69,2.077 ns/value (sink 0)
+format,fixed_table,small,83.57,2.491 ns/value (sink 0)
+format,fixed_avx2,small,42.74,1.274 ns/value (sink 0)
+format,fixed_v2g1,small,40.41,1.204 ns/value (sink 0)
+format,fixed_v2g2,small,37.58,1.120 ns/value (sink 0)
+format_write,table,small,151.32,4.510 ns/value (279769320 bytes)
+format_write,fixed_avx2,small,151.50,4.515 ns/value (335544320 bytes)
+format_write,fixed_v2g2,small,143.76,4.284 ns/value (335544320 bytes)

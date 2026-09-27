@@ -1,0 +1,74 @@
+ws-equal (not byte-exact) case random_02 variant fmt1
+ws-equal (not byte-exact) case random_02 variant fmt2
+ws-equal (not byte-exact) case random_02 variant fmt3
+ws-equal (not byte-exact) case random_02 variant t8f3
+ws-equal (not byte-exact) case random_02 variant fmt3_probe
+stderr fmt3_probe random_02: map 0.0 parse 82.8 ntt 326.0 out 109.6 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case max_random_00 variant fmt1
+ws-equal (not byte-exact) case max_random_00 variant fmt2
+ws-equal (not byte-exact) case max_random_00 variant fmt3
+ws-equal (not byte-exact) case max_random_00 variant t8f3
+ws-equal (not byte-exact) case max_random_00 variant fmt3_probe
+stderr fmt3_probe max_random_00: map 0.0 parse 100.6 ntt 380.8 out 141.8 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case fft_killer_00 variant fmt1
+ws-equal (not byte-exact) case fft_killer_00 variant fmt2
+ws-equal (not byte-exact) case fft_killer_00 variant fmt3
+ws-equal (not byte-exact) case fft_killer_00 variant t8f3
+ws-equal (not byte-exact) case fft_killer_00 variant fmt3_probe
+stderr fmt3_probe fft_killer_00: map 0.0 parse 104.1 ntt 332.2 out 141.2 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt1
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt2
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt3
+ws-equal (not byte-exact) case max_ans_zero_00 variant t8f3
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt3_probe
+stderr fmt3_probe max_ans_zero_00: map 0.0 parse 105.0 ntt 339.3 out 141.6 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case small_and_large_00 variant fmt1
+ws-equal (not byte-exact) case small_and_large_00 variant fmt2
+ws-equal (not byte-exact) case small_and_large_00 variant fmt3
+ws-equal (not byte-exact) case small_and_large_00 variant t8f3
+ws-equal (not byte-exact) case small_and_large_00 variant fmt3_probe
+stderr fmt3_probe small_and_large_00: map 0.0 parse 51.9 ntt 340.0 out 68.9 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case all_same_00 variant fmt1
+ws-equal (not byte-exact) case all_same_00 variant fmt2
+ws-equal (not byte-exact) case all_same_00 variant fmt3
+ws-equal (not byte-exact) case all_same_00 variant t8f3
+ws-equal (not byte-exact) case all_same_00 variant fmt3_probe
+stderr fmt3_probe all_same_00: map 0.0 parse 66.0 ntt 333.8 out 139.2 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+PASS 7 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+ws-equal (not byte-exact) case random_02 variant fmt3_probe
+stderr fmt3_probe random_02: map 0.0 parse 82.7 ntt 331.0 out 109.6 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case random_02 variant t8f3
+ws-equal (not byte-exact) case random_02 variant fmt3
+ws-equal (not byte-exact) case random_02 variant fmt2
+ws-equal (not byte-exact) case random_02 variant fmt1
+ws-equal (not byte-exact) case max_random_00 variant fmt3_probe
+stderr fmt3_probe max_random_00: map 0.0 parse 103.4 ntt 337.6 out 141.6 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case max_random_00 variant t8f3
+ws-equal (not byte-exact) case max_random_00 variant fmt3
+ws-equal (not byte-exact) case max_random_00 variant fmt2
+ws-equal (not byte-exact) case max_random_00 variant fmt1
+ws-equal (not byte-exact) case fft_killer_00 variant fmt3_probe
+stderr fmt3_probe fft_killer_00: map 0.0 parse 104.6 ntt 337.5 out 141.0 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case fft_killer_00 variant t8f3
+ws-equal (not byte-exact) case fft_killer_00 variant fmt3
+ws-equal (not byte-exact) case fft_killer_00 variant fmt2
+ws-equal (not byte-exact) case fft_killer_00 variant fmt1
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt3_probe
+stderr fmt3_probe max_ans_zero_00: map 0.0 parse 106.5 ntt 334.6 out 138.4 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case max_ans_zero_00 variant t8f3
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt3
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt2
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt1
+ws-equal (not byte-exact) case small_and_large_00 variant fmt3_probe
+stderr fmt3_probe small_and_large_00: map 0.0 parse 50.9 ntt 344.8 out 70.8 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case small_and_large_00 variant t8f3
+ws-equal (not byte-exact) case small_and_large_00 variant fmt3
+ws-equal (not byte-exact) case small_and_large_00 variant fmt2
+ws-equal (not byte-exact) case small_and_large_00 variant fmt1
+ws-equal (not byte-exact) case all_same_00 variant fmt3_probe
+stderr fmt3_probe all_same_00: map 0.0 parse 65.9 ntt 334.1 out 138.5 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case all_same_00 variant t8f3
+ws-equal (not byte-exact) case all_same_00 variant fmt3
+ws-equal (not byte-exact) case all_same_00 variant fmt2
+ws-equal (not byte-exact) case all_same_00 variant fmt1
+PASS 7 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0

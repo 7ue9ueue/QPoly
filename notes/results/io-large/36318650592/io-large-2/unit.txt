@@ -1,0 +1,5 @@
+# CPU: AMD EPYC 9V45 96-Core Processor                
+# compiler: 15.2.0
+PASS parsers: 756 runs (random, 9-digit, single-digit, uniform length, small, edges, 40 short streams; single spaces and mixed whitespace; resumed calls; fixed-width round trip)
+PASS formatters: 1000000000 values below 1000000000 (avx2 == table everywhere, table == digit loop on [0, 2e7) and every 4096th), 49 edge values
+ALL IO UNIT CHECKS PASSED

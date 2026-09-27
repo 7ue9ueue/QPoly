@@ -7,6 +7,8 @@
 //   QI_FMT    0: exploration-007 table writer (variable width, 64 KiB buffer)
 //             1: fixed-width AVX2 writer (fmt_fixed.inc eight(): 10 bytes per value, space padded)
 //             2: fmt_fixed.inc blocks<1> (a from x directly)   3: blocks<2> (two blocks interleaved)
+//             4: blocks<4> (four blocks interleaved)
+//   QI_OBUF   output buffer bytes for the fixed writers (default 64000; a multiple of 80 * G)
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
@@ -26,6 +28,9 @@
 #endif
 #ifndef QI_FMT
 #define QI_FMT 1
+#endif
+#ifndef QI_OBUF
+#define QI_OBUF 64000
 #endif
 
 #ifdef QPOLY_PROBE
@@ -155,24 +160,30 @@ int main() {
     }
     QP_MARK(3);
 #if QI_FMT
-    alignas(64) static char obuf[64000 + 256];
+    alignas(4096) static char obuf[QI_OBUF + 512];
     char* c = obuf;
     unsigned i = 0;
-#if QI_FMT == 3
-    for (; i + 16 <= count; i += 16) {   // 64000 = 400 * 160 bytes
+#if QI_FMT == 4
+    for (; i + 32 <= count; i += 32) {   // a[] has 16 padding words: never reads past them
+        qp_fixed::blocks<4>(a + i, c);
+        c += 320;
+        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
+    }
+#elif QI_FMT == 3
+    for (; i + 16 <= count; i += 16) {
         qp_fixed::blocks<2>(a + i, c);
         c += 160;
-        if (c >= obuf + 64000) { write_all(obuf, size_t(c - obuf)); c = obuf; }
+        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }
 #endif
-    for (; i + 8 <= count; i += 8) {   // a[] has 16 padding words; a block reads 8 values
+    for (; i + 8 <= count; i += 8) {   // a block reads 8 values
 #if QI_FMT == 1
         qp_fixed::eight(a + i, c);
 #else
         qp_fixed::blocks<1>(a + i, c);
 #endif
         c += 80;
-        if (c >= obuf + 64000) { write_all(obuf, size_t(c - obuf)); c = obuf; }
+        if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }
     for (; i < count; ++i, c += 10) qp_fixed::one_table(a[i], c);
     c[-1] = '\n';

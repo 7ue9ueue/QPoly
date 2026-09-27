@@ -83,6 +83,15 @@ void unit_format(uint64_t limit) {
         }
         checked += 8;
     }
+    {   // blocks<4> on random values and a dense range
+        std::mt19937 rng(5); alignas(32) uint32_t w[32]; char c4[400], d4[400];
+        for (int t = 0; t < 1000000; ++t) {
+            for (int i = 0; i < 32; ++i) w[i] = t < 500000 ? uint32_t(t * 32 % 1000000000 + i) : rng() % 1000000000u;
+            qp_fixed::blocks<4>(w, c4);
+            for (int i = 0; i < 32; ++i) qp_fixed::one_table(w[i], d4 + 10 * i);
+            if (std::memcmp(c4, d4, 320) != 0) fail("blocks<4> vs fixed_table");
+        }
+    }
     {   // blocks<2> on random values and on a dense prefix
         std::mt19937 rng(3); alignas(32) uint32_t w[16]; char c2[256], d2[256];
         for (int t = 0; t < 4000000; ++t) {
@@ -182,10 +191,11 @@ void time_all(int reps) {
     static fastio_unsafe_impl::output ob;
     const char* fkind_name[] = {"random", "", "", "", "small"};
     for (int kind : {0, 4}) {
-        auto v = values(n + 8, kind, 9);
+        auto v = values(n + 32, kind, 9);
         alignas(64) static char buf[(1 << 16) + 256];
-        for (int f = 0; f < 5; ++f) {
-            const char* name = f == 0 ? "table" : f == 1 ? "fixed_table" : f == 2 ? "fixed_avx2" : f == 3 ? "fixed_v2g1" : "fixed_v2g2";
+        for (int f = 0; f < 7; ++f) {
+            const char* name = f == 0 ? "table" : f == 1 ? "fixed_table" : f == 2 ? "fixed_avx2" : f == 3 ? "fixed_v2g1"
+                             : f == 4 ? "fixed_v2g2" : f == 5 ? "fixed_v2g3" : "fixed_v2g4";
             std::vector<double> s; uint64_t sink = 0;
             for (int r = 0; r < reps + 1; ++r) {
                 const double t0 = now_ms();
@@ -207,7 +217,9 @@ void time_all(int reps) {
                     if (f == 1) for (size_t i = 0; i < n; ++i) { if (__builtin_expect(c + 10 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::one_table(v[i], c); c += 10; }
                     else if (f == 2) for (size_t i = 0; i < n; i += 8) { if (__builtin_expect(c + 86 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::eight(v.data() + i, c); c += 80; }
                     else if (f == 3) for (size_t i = 0; i < n; i += 8) { if (__builtin_expect(c + 86 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::blocks<1>(v.data() + i, c); c += 80; }
-                    else for (size_t i = 0; i < n; i += 16) { if (__builtin_expect(c + 166 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::blocks<2>(v.data() + i, c); c += 160; }
+                    else if (f == 4) for (size_t i = 0; i < n; i += 16) { if (__builtin_expect(c + 166 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::blocks<2>(v.data() + i, c); c += 160; }
+                    else if (f == 5) for (size_t i = 0; i + 24 <= n; i += 24) { if (__builtin_expect(c + 246 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::blocks<3>(v.data() + i, c); c += 240; }
+                    else for (size_t i = 0; i < n; i += 32) { if (__builtin_expect(c + 326 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::blocks<4>(v.data() + i, c); c += 320; }
                     sink += uint64_t(c - buf) + uint8_t(buf[5]);
                 }
                 const double t1 = now_ms();

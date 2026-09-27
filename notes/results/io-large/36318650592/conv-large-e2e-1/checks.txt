@@ -1,0 +1,74 @@
+ws-equal (not byte-exact) case random_02 variant fmt1
+ws-equal (not byte-exact) case random_02 variant fmt2
+ws-equal (not byte-exact) case random_02 variant fmt3
+ws-equal (not byte-exact) case random_02 variant t8f3
+ws-equal (not byte-exact) case random_02 variant fmt3_probe
+stderr fmt3_probe random_02: map 0.0 parse 72.9 ntt 220.5 out 134.4 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_random_00 variant fmt1
+ws-equal (not byte-exact) case max_random_00 variant fmt2
+ws-equal (not byte-exact) case max_random_00 variant fmt3
+ws-equal (not byte-exact) case max_random_00 variant t8f3
+ws-equal (not byte-exact) case max_random_00 variant fmt3_probe
+stderr fmt3_probe max_random_00: map 0.0 parse 90.9 ntt 219.8 out 170.3 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case fft_killer_00 variant fmt1
+ws-equal (not byte-exact) case fft_killer_00 variant fmt2
+ws-equal (not byte-exact) case fft_killer_00 variant fmt3
+ws-equal (not byte-exact) case fft_killer_00 variant t8f3
+ws-equal (not byte-exact) case fft_killer_00 variant fmt3_probe
+stderr fmt3_probe fft_killer_00: map 0.0 parse 91.0 ntt 219.2 out 171.2 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt1
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt2
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt3
+ws-equal (not byte-exact) case max_ans_zero_00 variant t8f3
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt3_probe
+stderr fmt3_probe max_ans_zero_00: map 0.0 parse 91.9 ntt 219.6 out 170.7 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case small_and_large_00 variant fmt1
+ws-equal (not byte-exact) case small_and_large_00 variant fmt2
+ws-equal (not byte-exact) case small_and_large_00 variant fmt3
+ws-equal (not byte-exact) case small_and_large_00 variant t8f3
+ws-equal (not byte-exact) case small_and_large_00 variant fmt3_probe
+stderr fmt3_probe small_and_large_00: map 0.0 parse 45.8 ntt 220.1 out 84.7 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case all_same_00 variant fmt1
+ws-equal (not byte-exact) case all_same_00 variant fmt2
+ws-equal (not byte-exact) case all_same_00 variant fmt3
+ws-equal (not byte-exact) case all_same_00 variant t8f3
+ws-equal (not byte-exact) case all_same_00 variant fmt3_probe
+stderr fmt3_probe all_same_00: map 0.0 parse 70.4 ntt 218.7 out 169.8 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+PASS 7 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+ws-equal (not byte-exact) case random_02 variant fmt3_probe
+stderr fmt3_probe random_02: map 0.0 parse 71.8 ntt 220.8 out 135.5 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case random_02 variant t8f3
+ws-equal (not byte-exact) case random_02 variant fmt3
+ws-equal (not byte-exact) case random_02 variant fmt2
+ws-equal (not byte-exact) case random_02 variant fmt1
+ws-equal (not byte-exact) case max_random_00 variant fmt3_probe
+stderr fmt3_probe max_random_00: map 0.1 parse 89.7 ntt 218.6 out 169.8 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_random_00 variant t8f3
+ws-equal (not byte-exact) case max_random_00 variant fmt3
+ws-equal (not byte-exact) case max_random_00 variant fmt2
+ws-equal (not byte-exact) case max_random_00 variant fmt1
+ws-equal (not byte-exact) case fft_killer_00 variant fmt3_probe
+stderr fmt3_probe fft_killer_00: map 0.1 parse 89.7 ntt 218.2 out 170.6 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case fft_killer_00 variant t8f3
+ws-equal (not byte-exact) case fft_killer_00 variant fmt3
+ws-equal (not byte-exact) case fft_killer_00 variant fmt2
+ws-equal (not byte-exact) case fft_killer_00 variant fmt1
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt3_probe
+stderr fmt3_probe max_ans_zero_00: map 0.1 parse 90.7 ntt 219.4 out 169.2 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_ans_zero_00 variant t8f3
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt3
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt2
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt1
+ws-equal (not byte-exact) case small_and_large_00 variant fmt3_probe
+stderr fmt3_probe small_and_large_00: map 0.0 parse 45.9 ntt 221.7 out 84.9 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case small_and_large_00 variant t8f3
+ws-equal (not byte-exact) case small_and_large_00 variant fmt3
+ws-equal (not byte-exact) case small_and_large_00 variant fmt2
+ws-equal (not byte-exact) case small_and_large_00 variant fmt1
+ws-equal (not byte-exact) case all_same_00 variant fmt3_probe
+stderr fmt3_probe all_same_00: map 0.0 parse 71.7 ntt 219.9 out 170.2 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case all_same_00 variant t8f3
+ws-equal (not byte-exact) case all_same_00 variant fmt3
+ws-equal (not byte-exact) case all_same_00 variant fmt2
+ws-equal (not byte-exact) case all_same_00 variant fmt1
+PASS 7 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0
