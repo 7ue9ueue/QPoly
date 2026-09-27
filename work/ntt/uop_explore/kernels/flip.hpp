@@ -135,9 +135,13 @@ inline constexpr Constants constants{};
 // butterfly's loaded c,d inputs come from unaligned loads (needs 4 readable
 // bytes past the end of the array).
 template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true,
-         bool Opq_ = false, bool LdOdd_ = false>
+         bool Opq_ = false, bool LdOdd_ = false, int Il_ = 1, bool Blk_ = false>
 struct Cfg {
-    static constexpr bool Opq = Opq_, LdOdd = LdOdd_;
+    // Blk (Shoup only): table in blocks of 8 values then their 8 quotients, built
+    // with 8-lane Shoup products instead of 4-pair Montgomery products.
+    static constexpr bool Opq = Opq_, LdOdd = LdOdd_, Blk = Blk_;
+    static_assert(!Blk_ || Mul_ == 2);
+    static constexpr int Il = Il_;   // butterflies per loop iteration (2: interleaved pair)
     static constexpr int Mul = Mul_, MontMul = Mul_ == 0 ? 0 : 1, Leaf = Leaf_, Tile = Tile_;
     static constexpr bool ShoupAux = Mul_ == 2 && Aux_;
     static constexpr int LeafMul = ShoupAux ? 2 : MontMul;
@@ -153,7 +157,7 @@ struct Twiddle { Fixed x, y, z; };
 template<class C, bool Identity>
 QF_AI void fwd4(V* f, int h, const Twiddle& t) {
     constexpr int M = C::Mul; constexpr bool F = C::Flip, S = C::Shuf, O = C::Opq;
-    for (int j = 0; j < h; ++j) {
+    auto body = [&](int j) __attribute__((always_inline)) {
         V a = low(f[j]), b = low(f[j + h]), c = f[j + 2 * h], d = f[j + 3 * h];
         if constexpr (Identity) {
             c = low(c); d = low(d);
@@ -169,14 +173,16 @@ QF_AI void fwd4(V* f, int h, const Twiddle& t) {
         else bd = t.y.mul<M, F, S, O>(bd);
         bmd = t.z.mul<M, F, S, O>(bmd);
         f[j] = plus(ac, bd); f[j + h] = diff(ac, bd); f[j + 2 * h] = plus(amc, bmd); f[j + 3 * h] = diff(amc, bmd);
-    }
+    };
+    if (C::Il == 2 && h >= 2) for (int j = 0; j < h; j += 2) { body(j); body(j + 1); }
+    else for (int j = 0; j < h; ++j) body(j);
 }
 // Inverse Gentleman-Sande radix-4 (inputs/outputs < 2P).
 // Flip layout: inputs all q -> outputs q,~q,~q,q.
 template<class C, bool Identity>
 QF_AI void inv4(V* f, int h, const Twiddle& t) {
     constexpr int M = C::Mul; constexpr bool F = C::Flip, S = C::Shuf, O = C::Opq;
-    for (int j = 0; j < h; ++j) {
+    auto body = [&](int j) __attribute__((always_inline)) {
         V a = f[j], b = f[j + h], c = f[j + 2 * h], d = f[j + 3 * h];
         V ab = low(plus(a, b)), cd = low(plus(c, d)), amb = diff(a, b), cmd = diff(c, d);
         if constexpr (Identity) { amb = low(amb); if constexpr (F) amb = sigma(amb); }
@@ -188,7 +194,9 @@ QF_AI void inv4(V* f, int h, const Twiddle& t) {
             if constexpr (F) { o2 = sigma(o2); o3 = sigma(o3); }
         } else { o2 = t.x.mul<M, F, S, O>(o2); o3 = t.x.mul<M, F, S, O>(o3); }
         f[j] = o0; f[j + h] = o1; f[j + 2 * h] = o2; f[j + 3 * h] = o3;
-    }
+    };
+    if (C::Il == 2 && h >= 2) for (int j = 0; j < h; j += 2) { body(j); body(j + 1); }
+    else for (int j = 0; j < h; ++j) body(j);
 }
 
 // Direct product of 4 leaves: a[t] = a[t]*b[t] mod (x^8 - w[t]) (times R^-1 scale
@@ -241,7 +249,31 @@ struct Kernel {
 
     // Plain: r[k]. Pair: r[2k]=w_k, r[2k+1]=w_k*NI (Montgomery) or (normal w_k,
     // floor(w_k*2^32/P)) for Shoup. Doubling from the valid prefix.
+    static QF_AI int blk(int k) { return ((k >> 3) << 4) | (k & 7); }
     static void tables(int count, U* r, U* ir, int& size, bool fresh) {
+        if constexpr (C::Blk) {
+            if (fresh || size == 0) { r[0] = ir[0] = 1; r[8] = ir[8] = U((W(1) << 32) / P); size = 1; }
+            constexpr U RMODP = U((W(1) << 32) % P);   // normal value whose Montgomery form is R2
+            for (int h = size; h < count; h *= 2) {
+                int s = __builtin_ctz(unsigned(h));
+                for (int dir = 0; dir < 2; ++dir) {
+                    U* t = dir ? ir : r; U qs = dir ? constants.iq[s] : constants.q[s];
+                    if (h >= 8) {
+                        const Fixed fq(splat(muls(qs, 1)), splat(qs * NI)), fc(splat(RMODP), splat(R2 * NI));
+                        for (int j = 0; j < h; j += 8) {
+                            V z = shrink(fq.mul<2, false, false, true>(_mm256_load_si256((const V*)(t + 2 * j))), P);
+                            V zm = shrink(fc.mul<2, false, false, true>(z), P);   // mont(z)
+                            _mm256_store_si256((V*)(t + 2 * (h + j)), z);
+                            _mm256_store_si256((V*)(t + 2 * (h + j) + 8), _mm256_mullo_epi32(zm, splat(NI)));
+                        }
+                    } else for (int j = 0; j < h; ++j) {
+                        U v = muls(t[blk(j)], qs); t[blk(h + j)] = v; t[blk(h + j) + 8] = muls(v, R2) * NI;
+                    }
+                }
+            }
+            size = std::max(size, count);
+            return;
+        }
         if (fresh || size == 0) {
             if constexpr (C::Mul == 2) { r[0] = ir[0] = 1; r[1] = ir[1] = U((W(1) << 32) / P); }
             else if constexpr (C::Pair) { r[0] = ir[0] = ONE; r[1] = ir[1] = ONE * NI; }
@@ -286,7 +318,8 @@ struct Kernel {
     }
     template<bool Inv> QF_AI Fixed fixed_at(int k) const {
         const U* t = Inv ? irt : rt;
-        if constexpr (C::Pair) return Fixed(splat(t[2 * k]), splat(t[2 * k + 1]));
+        if constexpr (C::Blk) { const int i = blk(k); return Fixed(splat(t[i]), splat(t[i + 8])); }
+        else if constexpr (C::Pair) return Fixed(splat(t[2 * k]), splat(t[2 * k + 1]));
         else return C::Mul == 1 ? Fixed::vec(splat(t[k])) : Fixed::scalar(t[k]);
     }
     template<bool Inv> QF_AI Twiddle twiddle(int k) const { return Twiddle{fixed_at<Inv>(k), fixed_at<Inv>(2 * k), fixed_at<Inv>(2 * k + 1)}; }

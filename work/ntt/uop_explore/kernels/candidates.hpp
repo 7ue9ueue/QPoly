@@ -8,21 +8,19 @@ template<class C> void flip_invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r,
     qflip::Kernel<C>::run(n, a, b, r, ir, s, fresh);
 }
 // Mul: 0 Montgomery, 1 Montgomery+vpmulld, 2 Shoup.
-//                      Mul  Flip   Pair  Leaf Shuf   Tile Aux   Opq    LdOdd
-using F_fp_nm  = qflip::Cfg<0, true,  true,  0>;                                   // Intel best so far
-using F_fp_nml = qflip::Cfg<0, true,  true,  0, false, 256, true, false, true>;
-using S_sh     = qflip::Cfg<2, false, true,  0, true,  256, true>;                 // Zen3 best so far
-using S_sh_o   = qflip::Cfg<2, false, true,  0, true,  256, true, true,  false>;
-using S_sh_ol  = qflip::Cfg<2, false, true,  0, true,  256, true, true,  true>;
-using S_ns_o   = qflip::Cfg<2, false, true,  0, false, 256, true, true,  false>;
-using S_ns_ol  = qflip::Cfg<2, false, true,  0, false, 256, true, true,  true>;
+//                      Mul  Flip   Pair  Leaf Shuf   Tile Aux   Opq   LdOdd Il Blk
+using F_fp_nml = qflip::Cfg<0, true,  true,  0, false, 256, true, false, true>;        // Intel best
+using S_ns_ol  = qflip::Cfg<2, false, true,  0, false, 256, true, true,  true>;        // Zen3 best
+using S_ns_oli = qflip::Cfg<2, false, true,  0, false, 256, true, true,  true, 2>;
+using S_ns_olb = qflip::Cfg<2, false, true,  0, false, 256, true, true,  true, 1, true>;
+using S_sh_olb = qflip::Cfg<2, false, true,  0, true,  256, true, true,  true, 1, true>;
+using S_ns_olb1k = qflip::Cfg<2, false, true, 0, false, 1024, true, true, true, 1, true>;
 }  // namespace cand
 
 #define CANDIDATE_ENTRIES \
-    {"f_fp_nm", cand::flip_invoke<cand::F_fp_nm>}, \
     {"f_fp_nml", cand::flip_invoke<cand::F_fp_nml>}, \
-    {"s_sh", cand::flip_invoke<cand::S_sh>}, \
-    {"s_sh_o", cand::flip_invoke<cand::S_sh_o>}, \
-    {"s_sh_ol", cand::flip_invoke<cand::S_sh_ol>}, \
-    {"s_ns_o", cand::flip_invoke<cand::S_ns_o>}, \
-    {"s_ns_ol", cand::flip_invoke<cand::S_ns_ol>},
+    {"s_ns_ol", cand::flip_invoke<cand::S_ns_ol>}, \
+    {"s_ns_oli", cand::flip_invoke<cand::S_ns_oli>}, \
+    {"s_ns_olb", cand::flip_invoke<cand::S_ns_olb>}, \
+    {"s_sh_olb", cand::flip_invoke<cand::S_sh_olb>}, \
+    {"s_ns_olb1k", cand::flip_invoke<cand::S_ns_olb1k>},
