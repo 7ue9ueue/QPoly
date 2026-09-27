@@ -1,0 +1,35 @@
+name: NTT large convolution (exploration 010, convolution_mod_large)
+on:
+  push:
+    branches: [claude/ntt-conv-large]
+    paths: [work/ntt/conv_large/**, .github/workflows/ntt-conv-large.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  kernel:
+    runs-on: ubuntu-24.04
+    container:
+      image: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+      options: --shm-size=4g
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq util-linux > /dev/null
+      - name: Correctness, calibration and timing (GCC 15.2, Library Checker flags)
+        run: |
+          test "$(g++ -dumpfullversion)" = 15.2.0
+          echo "$GITHUB_SHA" > commit.txt
+          bash work/ntt/conv_large/run.sh results
+          cp commit.txt results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conv-large-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
