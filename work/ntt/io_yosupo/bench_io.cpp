@@ -26,6 +26,7 @@
 #include "parse_gen4.inc"
 #include "format_avx2.inc"
 #include "format_avx2x.inc"
+#include "parse_flat.inc"
 
 static std::string slurp(const std::string& path) {
     FILE* f = std::fopen(path.c_str(), "rb");
@@ -71,8 +72,9 @@ int main(int argc, char** argv) {
                                for (unsigned i = 0; i < m; ++i) b[i] = read_sse_short(p); };
         auto parse_quad = [&] { qp_parse::parse_tokens(qp_parse::parse_tokens(body, a, n), b, m); };
         auto parse_gen4 = [&] { qp_parse4::parse_tokens(qp_parse4::parse_tokens(body, a, n), b, m); };
+        auto parse_flat = [&] { qp_parse_flat::parse_tokens(qp_parse_flat::parse_tokens(body, a, n), b, m); };
         const std::vector<std::pair<const char*, std::function<void()>>> parsers = {
-            {"sse_short", parse_sse}, {"quad", parse_quad}, {"gen4", parse_gen4}};
+            {"sse_short", parse_sse}, {"quad", parse_quad}, {"gen4", parse_gen4}, {"flat", parse_flat}};
         static Discard discard;
         static fastio_unsafe_impl::output table_out;
         auto fmt_table = [&] { char* p = table_out.begin(); char* e = table_out.end();
@@ -119,5 +121,5 @@ int main(int argc, char** argv) {
         }
     }
     std::fclose(csv);
-    std::fprintf(stderr, "PASS bench_io correctness (3 parsers, 3 new formatters)\n");
+    std::fprintf(stderr, "PASS bench_io correctness (4 parsers, 3 new formatters)\n");
 }

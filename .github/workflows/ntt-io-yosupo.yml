@@ -4,12 +4,13 @@ on:
     branches: [claude/ntt-io-yosupo]
     paths: [work/ntt/io_yosupo/**, work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io393435.cpp,
             work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io_sse.cpp,
-            work/ntt/yosupo_convolution_shoup.cpp, work/ntt/verify_yosupo_convolution.py, work/ntt/yosupo_scalar_reference.cpp,
+            work/ntt/yosupo_convolution_shoup.cpp, work/ntt/yosupo_convolution_shoup_avx2_io.cpp,
+            work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_avx2_io.cpp, work/ntt/verify_yosupo_convolution.py, work/ntt/yosupo_scalar_reference.cpp,
             .github/workflows/ntt-io-yosupo.yml]
 permissions:
   contents: read
 env:
-  VARIANTS: base,sse_short,sse_short_arena,arena_ob64k,g4_arena_ob64k,g4_fx2_arena_ob64k,g4_swar_arena_ob64k,shoup,shoup_ob64k,shoup_g4_ob64k,shoup_g4_fx2_ob64k,shoup_g4_swar_ob64k
+  VARIANTS: base,sse_short,shoup,shoup_g4_ob64k,shoup_fl_ob64k,shoup_fl_ob64k_falloc,g4_arena_ob64k,fl_arena_ob64k,fl_arena_ob64k_falloc,final_asm,final_shoup
 jobs:
   judge-like:
     runs-on: ubuntu-24.04
@@ -50,8 +51,8 @@ jobs:
       - name: Judge-method polling replica
         env:
           PASSES: correctness replica
-          VARIANTS: base,shoup,shoup_g4_ob64k,g4_arena_ob64k
-          REPLICA_VARIANTS: base,shoup,shoup_g4_ob64k,g4_arena_ob64k
+          VARIANTS: base,shoup,final_shoup,final_asm
+          REPLICA_VARIANTS: base,shoup,final_shoup,final_asm
         run: bash work/ntt/io_yosupo/run.sh results
       - uses: actions/upload-artifact@v4
         if: always()

@@ -1,7 +1,7 @@
-# Rounds 2-3, executed inside variants.py (shares its helpers, VARIANTS, PHASES).
+# Rounds 2-4, executed inside variants.py (shares its helpers, VARIANTS, PHASES).
 # Parser/formatter code comes verbatim from the .inc files the unit test compiles.
 INC = {name: (here / name).read_text() for name in
-       ('parse_quad.inc', 'parse_gen4.inc', 'format_avx2.inc', 'format_avx2x.inc')}
+       ('parse_quad.inc', 'parse_gen4.inc', 'parse_flat.inc', 'format_avx2.inc', 'format_avx2x.inc')}
 MAIN = 'int main() {'
 READS = ('    for (unsigned i = 0; i < n; ++i) a[i] = read_sse_short(input_cursor);\n'
          '    for (unsigned i = 0; i < m; ++i) b[i] = read_sse_short(input_cursor);\n')
@@ -49,8 +49,16 @@ static uint32_t* arena(size_t words) {
     return sub(s, CHECK, CHECK + TRANSFORM_LENGTH + '      a = arena(2 * size_t(len)); b = a + len; }\n')
 
 
+def falloc(s):
+    """Pre-allocate the output file's tmpfs pages in one call (size unchanged)."""
+    s = sub(s, '#include <unistd.h>\n', '#include <unistd.h>\n#include <fcntl.h>\n')
+    return sub(s, '    const unsigned count = n + m - 1;\n', '    const unsigned count = n + m - 1;\n'
+               '    (void)::fallocate(1, FALLOC_FL_KEEP_SIZE, 0, off_t(count) * 10 + 16);\n')
+
+
 QUAD = parser('parse_quad.inc', 'qp_parse')
 GEN4 = parser('parse_gen4.inc', 'qp_parse4')
+FLAT = parser('parse_flat.inc', 'qp_parse_flat')
 AVX = formatter('format_avx2.inc', 'qp_format::format_values')
 AVX_X = formatter('format_avx2x.inc', 'qp_format2::format_values')
 SWAR = formatter('format_avx2x.inc', 'qp_format2::format_scalar')
@@ -76,5 +84,19 @@ VARIANTS.update({
     'shoup_g4_ob64k': ('shoup', [OB64, GEN4]),
     'shoup_g4_fx2_ob64k': ('shoup', [OB64, GEN4, AVX_X]),
     'shoup_g4_swar_ob64k': ('shoup', [OB64, GEN4, SWAR]),
+    # Round 4.
+    'fl_arena_ob64k': ('sse_short', [arena, OB64, FLAT]),
+    'fl_arena_ob64k_falloc': ('sse_short', [arena, OB64, FLAT, falloc]),
+    'shoup_fl_ob64k': ('shoup', [OB64, FLAT]),
+    'shoup_fl_ob64k_falloc': ('shoup', [OB64, FLAT, falloc]),
 })
-PHASES += ['io_all', 'io_all_thp', 'sse_short_arena', 'g4_arena_ob64k', 'g4_fx2_arena_ob64k']
+# Exact submission files written by make_deliverables.py, timed as delivered.
+for key, file, origin in (('final_asm', 'yosupo_convolution_asm_radix4_pair_large_fixed_avx2_io.cpp', 'sse_short'),
+                          ('final_shoup', 'yosupo_convolution_shoup_avx2_io.cpp', 'shoup')):
+    path = root / 'work/ntt' / file
+    if path.exists():
+        text[key] = path.read_text()
+        assert kernel(text[key]) == kernel(text[origin]), key
+        VARIANTS[key] = (key, [])
+PHASES += ['io_all', 'io_all_thp', 'sse_short_arena', 'g4_arena_ob64k', 'g4_fx2_arena_ob64k',
+           'fl_arena_ob64k', 'fl_arena_ob64k_falloc']

@@ -16,6 +16,7 @@
 #include "format_avx2.inc"
 #include "parse_gen4.inc"
 #include "format_avx2x.inc"
+#include "parse_flat.inc"
 
 static void require(bool ok, const char* what, size_t detail) {
     if (!ok) { std::fprintf(stderr, "FAIL %s %zu\n", what, detail); std::exit(1); }
@@ -39,7 +40,7 @@ using Format = char* (*)(Sink&, char*, char*, const uint32_t*, size_t);
 static const Format formats[] = {qp_format::format_values<Sink>, qp_format2::format_values<Sink>,
                                  qp_format2::format_scalar<Sink>};
 using Parse = char* (*)(char*, uint32_t*, size_t);
-static const Parse parsers[] = {qp_parse::parse_tokens, qp_parse4::parse_tokens};
+static const Parse parsers[] = {qp_parse::parse_tokens, qp_parse4::parse_tokens, qp_parse_flat::parse_tokens};
 static void check_format(const std::vector<uint32_t>& values, size_t buffer) {
   for (Format format : formats) {
     std::string want;
@@ -118,6 +119,11 @@ int main() {
     }
     std::vector<uint32_t> nines(4096);
     for (auto& v : nines) v = 100000000u + uint32_t(rng() % (P - 100000000u));
+    for (size_t len : {size_t(300), size_t(1000), size_t(4000)})
+        for (int style = 0; style < 2; ++style) {
+            std::vector<uint32_t> s(all.begin() + 2000000, all.begin() + 2000000 + len);
+            check_parse(s, rng, style, true);
+        }
     for (size_t len = 0; len <= 64; ++len)
         for (int style = 0; style < 2; ++style)
             for (int split = 0; split < 2; ++split) {
