@@ -18,3 +18,4 @@ Timing CSV columns are documented in `bench_large.cpp` and `launcher_large.c`.
 | [36314686184](https://github.com/7ue9ueue/QPoly/actions/runs/36314686184) | 5 | lazy arena confirmation (madvise and always); all 54 official cases pass |
 | [36315260768](https://github.com/7ue9ueue/QPoly/actions/runs/36315260768) | final | final file and probe: 54/54 official (108 runs); final vs exp vs 403499 e2e; the verified sources are in `conv-large-official/` |
 | [36315509924](https://github.com/7ue9ueue/QPoly/actions/runs/36315509924) | recheck | exploration-009 asm alternatives at 2^25; per-depth timers d1–d6 |
+| [36316258590](https://github.com/7ue9ueue/QPoly/actions/runs/36316258590) | I/O check | 007 I/O variants at 2^25: parse_flat + 64 KiB (deliverable) vs per-token SSE + 512 KiB (judge 406478's); SSE twin 54/54 official |

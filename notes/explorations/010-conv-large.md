@@ -123,6 +123,29 @@ locally (Rosetta) including file and pipe input; 6 large-path inputs byte-identi
 build and passing an independent 8-point checker. Untested: the real judge; THP `never` (fault cost
 would rise ~75 ms for everyone); Intel (the kernel is Zen-tuned; 8370C NTT 303 ms).
 
+## I/O variant check (run 36316258590)
+
+The deliverable uses the exploration-007 *continuation* I/O (`io007.hpp` from
+`yosupo_convolution_shoup_avx2_io.cpp`: two-stage AVX2 `qp_parse_flat`, 64 KiB output buffer; as in
+judge 406412, 17 ms on convolution_mod). The fastest convolution_mod submission, 406478 (16 ms), is
+`yosupo_convolution_asm_shoup_io_sse.cpp` with the other 007 I/O (per-token `read_sse_short`,
+512 KiB buffer). `final_main_sse.cpp` swaps in that I/O verbatim (`io007_sse.hpp`), same kernel;
+passes all 54 official cases. EPYC 7763 ×3 jobs, madvise, median wall ms:
+
+| Case | parse_flat + 64 KiB (deliverable) | SSE + 512 KiB (406478's I/O) |
+| --- | ---: | ---: |
+| max_random_00 | 523.7–530.3 | 560.1–567.7 |
+| max_ans_zero_00 | 524.4–532.1 | 559.8–568.0 |
+| fft_killer_00 (all 9-digit) | 522.1–530.4 | 517.7–525.2 |
+| all_same_00 (all "1") | 481.4–486.6 | 458.3–464.9 |
+| max over the 6 cases | **524.4–532.1** | 560.1–568.0 |
+
+Probe phases (max_random): parse 90.5–92.1 vs 130.6–131.5 ms, format+write 208–210 vs 216–218 ms.
+On random residues ~10% of tokens are shorter than 9 digits and the per-token SSE fast path
+mispredicts; the SSE reader wins only where every token has one length (all_same: early single-digit
+return, −18 ms parse; fft_killer: ≈ equal), and neither is the slowest case. On convolution_mod
+(2^20 tokens) the two are within judge noise (406412 17 ms, 406478 16 ms).
+
 ## Decision and next steps
 
 Keep `Core<Sel>::run` + lazy arena + 007 I/O (deliverable above). The NTT is ~205 ms on Zen 3:

@@ -1,0 +1,26 @@
+stderr final_probe random_02: map 0.0 parse 71.7 ntt 217.1 out 166.3 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe random_02: map 0.0 parse 103.4 ntt 216.6 out 171.0 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe max_random_00: map 0.0 parse 90.5 ntt 217.4 out 209.8 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe max_random_00: map 0.0 parse 130.6 ntt 216.8 out 218.4 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe fft_killer_00: map 0.0 parse 90.2 ntt 217.0 out 210.3 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe fft_killer_00: map 0.0 parse 88.2 ntt 215.0 out 216.1 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe max_ans_zero_00: map 0.0 parse 89.9 ntt 216.5 out 209.8 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe max_ans_zero_00: map 0.0 parse 130.2 ntt 216.2 out 216.8 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe small_and_large_00: map 0.0 parse 46.5 ntt 220.5 out 105.4 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe small_and_large_00: map 0.0 parse 65.6 ntt 218.5 out 107.7 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe all_same_00: map 0.0 parse 70.3 ntt 216.6 out 190.9 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe all_same_00: map 0.0 parse 52.1 ntt 214.7 out 182.4 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+PASS 5 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+stderr final_sse_probe random_02: map 0.0 parse 103.9 ntt 216.6 out 171.7 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe random_02: map 0.0 parse 72.5 ntt 216.7 out 166.0 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe max_random_00: map 0.0 parse 130.6 ntt 216.2 out 216.3 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe max_random_00: map 0.0 parse 90.4 ntt 216.0 out 208.0 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe fft_killer_00: map 0.0 parse 88.2 ntt 215.0 out 216.4 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe fft_killer_00: map 0.0 parse 89.2 ntt 216.8 out 208.7 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe max_ans_zero_00: map 0.0 parse 130.1 ntt 215.6 out 216.6 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe max_ans_zero_00: map 0.0 parse 90.4 ntt 217.4 out 209.1 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe small_and_large_00: map 0.0 parse 65.3 ntt 217.9 out 108.2 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe small_and_large_00: map 0.0 parse 44.8 ntt 219.0 out 105.0 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_sse_probe all_same_00: map 0.0 parse 54.1 ntt 217.1 out 183.4 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe all_same_00: map 0.0 parse 71.4 ntt 218.0 out 191.3 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+PASS 5 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0
