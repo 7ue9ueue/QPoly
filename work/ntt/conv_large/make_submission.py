@@ -15,7 +15,10 @@ import argparse
 import hashlib
 import importlib.util
 import re
+import sys
 from pathlib import Path
+
+sys.dont_write_bytecode = True   # importing asm_explore/make_yosupo_asm.py must not leave __pycache__
 
 here = Path(__file__).resolve().parent
 root = here.parents[2]
