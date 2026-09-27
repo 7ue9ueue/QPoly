@@ -1,0 +1,50 @@
+ws-equal (not byte-exact) case random_02 variant io
+ws-equal (not byte-exact) case random_02 variant io_probe
+stderr io_probe random_02: map 0.0 parse 56.8 ntt 309.9 out 96.3 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case random_02 variant m2X3
+ws-equal (not byte-exact) case max_random_00 variant io
+ws-equal (not byte-exact) case max_random_00 variant io_probe
+stderr io_probe max_random_00: map 0.0 parse 71.5 ntt 303.4 out 120.5 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case max_random_00 variant m2X3
+ws-equal (not byte-exact) case fft_killer_00 variant io
+ws-equal (not byte-exact) case fft_killer_00 variant io_probe
+stderr io_probe fft_killer_00: map 0.0 parse 71.4 ntt 299.9 out 119.7 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case fft_killer_00 variant m2X3
+ws-equal (not byte-exact) case max_ans_zero_00 variant io
+ws-equal (not byte-exact) case max_ans_zero_00 variant io_probe
+stderr io_probe max_ans_zero_00: map 0.0 parse 71.4 ntt 306.5 out 120.6 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case max_ans_zero_00 variant m2X3
+ws-equal (not byte-exact) case small_and_large_00 variant io
+ws-equal (not byte-exact) case small_and_large_00 variant io_probe
+stderr io_probe small_and_large_00: map 0.0 parse 36.9 ntt 312.6 out 61.1 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case small_and_large_00 variant m2X3
+ws-equal (not byte-exact) case all_same_00 variant io
+ws-equal (not byte-exact) case all_same_00 variant io_probe
+stderr io_probe all_same_00: map 0.0 parse 58.2 ntt 302.9 out 120.4 ms (from main) | thp [always] madvise never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case all_same_00 variant m2X3
+PASS 5 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+ws-equal (not byte-exact) case random_02 variant m2X3
+ws-equal (not byte-exact) case random_02 variant io_probe
+stderr io_probe random_02: map 0.0 parse 56.7 ntt 303.9 out 96.0 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case random_02 variant io
+ws-equal (not byte-exact) case max_random_00 variant m2X3
+ws-equal (not byte-exact) case max_random_00 variant io_probe
+stderr io_probe max_random_00: map 0.0 parse 71.3 ntt 302.7 out 142.2 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case max_random_00 variant io
+ws-equal (not byte-exact) case fft_killer_00 variant m2X3
+ws-equal (not byte-exact) case fft_killer_00 variant io_probe
+stderr io_probe fft_killer_00: map 0.0 parse 71.7 ntt 308.0 out 121.3 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case fft_killer_00 variant io
+ws-equal (not byte-exact) case max_ans_zero_00 variant m2X3
+ws-equal (not byte-exact) case max_ans_zero_00 variant io_probe
+stderr io_probe max_ans_zero_00: map 0.0 parse 72.2 ntt 303.5 out 120.3 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case max_ans_zero_00 variant io
+ws-equal (not byte-exact) case small_and_large_00 variant m2X3
+ws-equal (not byte-exact) case small_and_large_00 variant io_probe
+stderr io_probe small_and_large_00: map 0.0 parse 37.0 ntt 311.5 out 60.7 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case small_and_large_00 variant io
+ws-equal (not byte-exact) case all_same_00 variant m2X3
+ws-equal (not byte-exact) case all_same_00 variant io_probe
+stderr io_probe all_same_00: map 0.0 parse 59.0 ntt 299.2 out 120.6 ms (from main) | thp always [madvise] never | INTEL(R) XEON(R) PLATINUM 8573C 
+ws-equal (not byte-exact) case all_same_00 variant io
+PASS 5 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0

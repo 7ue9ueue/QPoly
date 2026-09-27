@@ -51,3 +51,11 @@ runner. [yosupo_convolution_mod_large_probe.cpp](yosupo_convolution_mod_large_pr
 prints a one-line phase/THP/CPU report to stderr.
 [yosupo_convolution_mod_large_sse.cpp](yosupo_convolution_mod_large_sse.cpp) is the same program with the
 per-token SSE I/O of convolution_mod submission 406478 (54/54 official; ~35 ms slower on the max cases).
+
+The [convolution_mod_large I/O exploration](io_large/README.md) (011) replaces that I/O:
+a multi-stream parser (four lockstep streams, two tokens per step, 68 → 47 ms at 2^25 tokens) and
+fixed-width SWAR/AVX2 output (84 → 37 ms; space-padded fields, accepted by the wcmp checker).
+[yosupo_convolution_mod_large_io.cpp](yosupo_convolution_mod_large_io.cpp) passes all 54 official
+cases; 455 ms vs 526 ms (010) and 751 ms (leader) on the same EPYC 7763 runner.
+[yosupo_convolution_mod_large_io_probe.cpp](yosupo_convolution_mod_large_io_probe.cpp) adds the
+stderr phase report.
