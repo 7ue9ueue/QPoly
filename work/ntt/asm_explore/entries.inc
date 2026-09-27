@@ -17,8 +17,8 @@ template<class K> void invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint
 using Live = qflip::Kernel<qflip::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true>>;
 // AsmF / AsmI: gen_asm.py VARIANTS id (1 df, 2 ls, 3 lsnf, 5 ls2t, 7 spt); AsmLeaf: 1 = C++ with
 // 64-byte aligned leaf buffer, >= 2 LEAF_VARIANTS id.
-template<int F, int I, int L, int M, int B = 0, int T = 0, int Id = 0, int Sc = 0>
-using Q = qasm::Kernel<qasm::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, F, I, L, M, B, T, Id, Sc>>;
+template<int F, int I, int L, int M, int B = 0, int T = 0, int Id = 0, int Sc = 0, int F4 = 0>
+using Q = qasm::Kernel<qasm::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, F, I, L, M, B, T, Id, Sc, F4>>;
 // Library Checker path: the judge wrapper knows N and M, i.e. which upper halves are zero.
 template<class K> void lc_invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint32_t* ir, int& s, bool fresh) {
     auto nz = [n](const uint32_t* f) { int k = n; while (k > 0 && f[k - 1] == 0) --k; return k; };
@@ -36,10 +36,12 @@ template<class K> void lc_invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, u
 #define LLIVE {"lc_live", cand::lc_invoke<cand::Live>}
 // QX(B, Id, Sc): f11/i71 at every h, fused bottom B, identity-group loop Id, scale loop Sc.
 #define QX(B, Id, Sc) {"q_f11i71b" #B "id" #Id "sc" #Sc, cand::invoke<cand::Q<11, 71, 0, 4, B, 0, Id, Sc>>}
+// QY(F, F4, I, B, Id, Sc): forward F (h >= 16) and F4 (h = 4), inverse I at every h.
+#define QY(F, F4, I, B, Id, Sc) {"q_f" #F "f4_" #F4 "i" #I "b" #B "id" #Id "sc" #Sc, cand::invoke<cand::Q<F, I, 0, 4, B, 0, Id, Sc, F4>>}
 #ifndef ENTRY_LIST
 #define ENTRY_LIST                                                                         \
-    QE(0, 0, 0, 4), QX(23, 0, 0), QX(27, 0, 0),                                             \
-    QX(23, 1, 0), QX(23, 2, 0), QX(23, 4, 0), QX(23, 0, 2), QX(23, 0, 4), QX(23, 2, 2), QX(23, 4, 4)
+    QE(0, 0, 0, 4), QX(23, 2, 2), QY(11, 104, 71, 23, 2, 2), QY(265, 104, 71, 23, 2, 2),    \
+    QY(11, 104, 282, 23, 2, 2), QY(11, 104, 71, 67, 2, 2), QY(11, 104, 71, 23, 4, 4)
 #endif
 const Entry ENTRIES[] = {
     {"live", cand::invoke<cand::Live>},

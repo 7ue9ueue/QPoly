@@ -146,8 +146,10 @@ inline constexpr Constants constants{};
 template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true,
          bool Opq_ = false, bool LdOdd_ = false, int Il_ = 1, bool Blk_ = false, bool Pipe_ = false,
          int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0, int AsmMinH_ = 4, int AsmBottom_ = 0, int AsmTop_ = 0,
-         int AsmId_ = 0, int AsmScale_ = 0>
+         int AsmId_ = 0, int AsmScale_ = 0, int AsmF4_ = 0>
 struct Cfg {
+    // Forward loop variant used for h = 4 groups instead of AsmF (0 = AsmF).
+    static constexpr int AsmF4 = AsmF4_ ? AsmF4_ : AsmF_;
     // Generated identity-group (k = 0) loops and final radix-2 + scale loop (0 = C++).
     static constexpr int AsmId = AsmId_, AsmScale = AsmScale_;
     static_assert((AsmId_ == 0 && AsmScale_ == 0) || (Mul_ == 2 && Blk_ && Aux_ && !Flip_));
@@ -461,6 +463,8 @@ struct Kernel {
         const int h = H ? H : h_;
         static_assert(C::AsmF == 0 || asm_has(0, C::AsmF), "forward asm variant not generated");
         static_assert(C::AsmI == 0 || asm_has(1, C::AsmI), "inverse asm variant not generated");
+        static_assert(C::AsmF4 == 0 || asm_has(0, C::AsmF4), "h=4 forward asm variant not generated");
+        static_assert(4 % asm_step(0, C::AsmF4) == 0, "h=4 forward asm step must divide 4");
         static_assert(C::AsmMinH % asm_step(0, C::AsmF) == 0 && C::AsmMinH % asm_step(1, C::AsmI) == 0,
                       "asm loop step must divide every h it is used for");
         if constexpr (C::AsmId != 0 && (H == 0 || H >= 4)) {
@@ -476,6 +480,7 @@ struct Kernel {
                 const U* t = Inv ? irt : rt;
                 const U *px = t + blk(k), *py = t + blk(2 * k);
                 if constexpr (Inv) inv_asm(C::AsmI, a, h, px, py);
+                else if constexpr (H == 4) fwd2_asm(C::AsmF4, a, b, h, px, py);
                 else fwd2_asm(C::AsmF, a, b, h, px, py);
                 return;
             }
