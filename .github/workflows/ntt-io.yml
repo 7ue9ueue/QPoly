@@ -1,0 +1,55 @@
+name: NTT I/O exploration
+on:
+  push:
+    branches: [codex/ntt-io-explore]
+    paths: [work/ntt/io_explore/**, work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io393435.cpp, work/ntt/verify_yosupo_convolution.py, work/ntt/yosupo_scalar_reference.cpp, .github/workflows/ntt-io.yml]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools and environment
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq python3
+          mkdir -p results
+          lscpu > results/cpu.txt
+      - name: Correctness and timing
+        env:
+          RESULT_DIR: results
+        run: python3 work/ntt/io_explore/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: io-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
+  sanitize:
+    runs-on: ubuntu-24.04
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq python3
+      - name: Sanitizers
+        env:
+          RESULT_DIR: results
+          SANITIZE: '1'
+        run: python3 work/ntt/io_explore/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: io-sanitize
+          path: results/
+          retention-days: 7
