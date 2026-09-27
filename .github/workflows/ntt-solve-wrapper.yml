@@ -1,0 +1,29 @@
+name: NTT solve wrapper comparison
+on:
+  push:
+    branches: [codex/solve-wrapper]
+    paths: [work/ntt/solve_wrapper/**, .github/workflows/ntt-solve-wrapper.yml]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, sanitize]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update -qq && apt-get install -y -qq python3
+      - name: Correctness and wrapper timing
+        env:
+          SANITIZE: ${{ matrix.sample == 'sanitize' && '1' || '0' }}
+        run: python3 work/ntt/solve_wrapper/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wrapper-${{ matrix.sample }}
+          path: results/
+          retention-days: 7
