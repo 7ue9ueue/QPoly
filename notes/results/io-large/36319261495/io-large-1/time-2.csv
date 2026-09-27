@@ -1,0 +1,34 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+parse,sse,random,112.11,3.341 ns/token
+parse,flat,random,68.46,2.040 ns/token
+parse,tail,random,70.88,2.112 ns/token
+parse,tail8,random,73.53,2.191 ns/token
+parse,sse,nine_digit,63.31,1.887 ns/token
+parse,flat,nine_digit,68.22,2.033 ns/token
+parse,tail,nine_digit,70.70,2.107 ns/token
+parse,tail8,nine_digit,73.44,2.189 ns/token
+parse,sse,single_digit,42.00,1.252 ns/token
+parse,flat,single_digit,60.35,1.799 ns/token
+parse,tail,single_digit,62.29,1.856 ns/token
+parse,tail8,single_digit,64.51,1.923 ns/token
+format,table,random,84.27,2.511 ns/value (sink 0)
+format,fixed_table,random,103.92,3.097 ns/value (sink 0)
+format,fixed_avx2,random,53.42,1.592 ns/value (sink 0)
+format,fixed_v2g1,random,46.24,1.378 ns/value (sink 0)
+format,fixed_v2g2,random,40.88,1.218 ns/value (sink 0)
+format,fixed_v2g3,random,40.54,1.208 ns/value (sink 0)
+format,fixed_v2g4,random,40.93,1.220 ns/value (sink 0)
+format_write,table,random,214.58,6.395 ns/value (331199356 bytes)
+format_write,fixed_avx2,random,184.61,5.502 ns/value (335544320 bytes)
+format_write,fixed_v2g2,random,166.53,4.963 ns/value (335544320 bytes)
+format,table,small,81.24,2.421 ns/value (sink 0)
+format,fixed_table,small,101.93,3.038 ns/value (sink 0)
+format,fixed_avx2,small,53.42,1.592 ns/value (sink 0)
+format,fixed_v2g1,small,46.20,1.377 ns/value (sink 0)
+format,fixed_v2g2,small,40.77,1.215 ns/value (sink 0)
+format,fixed_v2g3,small,40.49,1.207 ns/value (sink 0)
+format,fixed_v2g4,small,40.99,1.222 ns/value (sink 0)
+format_write,table,small,192.08,5.725 ns/value (279769320 bytes)
+format_write,fixed_avx2,small,183.92,5.481 ns/value (335544320 bytes)
+format_write,fixed_v2g2,small,167.42,4.989 ns/value (335544320 bytes)

@@ -1,0 +1,7 @@
+case random_02: n=11063384 m=15586699 in=263534491 out=263532565
+case max_random_00: n=16777216 m=16777216 in=331807520 out=331808526
+case fft_killer_00: n=16777216 m=16777216 in=335544338 out=331811821
+case max_ans_zero_00: n=16777216 m=16777216 in=331807520 out=331808156
+case small_and_large_00: n=100 m=16777216 in=165905312 out=165907211
+case all_same_00: n=16777216 m=16777216 in=67108882 out=279767673
+PASS 6 official cases: .in and model .out match hash.json at 1814c4e5205517e368bb57a8d1127eb961cfeaae

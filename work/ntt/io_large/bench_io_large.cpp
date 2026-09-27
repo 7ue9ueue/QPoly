@@ -12,6 +12,7 @@
 #pragma GCC target("avx2,bmi,bmi2")
 #include "../conv_large/io007.hpp"
 #include "parse_tail.inc"
+#include "parse_ms.inc"
 #include "fmt_fixed.inc"
 #include <algorithm>
 #include <chrono>
@@ -49,7 +50,11 @@ using ParseFn = char* (*)(char*, uint32_t*, size_t);
 char* parse_sse(char* p, uint32_t* dst, size_t n) { for (size_t i = 0; i < n; ++i) dst[i] = read_sse_short(p); return p; }
 struct NamedParser { const char* name; ParseFn fn; };
 const NamedParser PARSERS[] = {{"sse", parse_sse}, {"flat", qp_parse_flat::parse_tokens}, {"tail", qp_parse_tail::parse_tokens},
-                               {"tail8", qp_parse_tail8::parse_tokens}};
+                               {"tail8", qp_parse_tail8::parse_tokens},
+                               {"ms4", qp_parse_ms::parse_tokens<4, 32768, qp_parse_flat::parse_tokens>},
+                               {"ms8", qp_parse_ms::parse_tokens<8, 32768, qp_parse_flat::parse_tokens>},
+                               {"ms8s", qp_parse_ms::parse_tokens<8, 16384, qp_parse_flat::parse_tokens>},
+                               {"ms8l", qp_parse_ms::parse_tokens<8, 65536, qp_parse_flat::parse_tokens>}};
 
 std::vector<uint32_t> values(size_t n, int kind, uint32_t seed) {
     std::mt19937 rng(seed); std::vector<uint32_t> v(n);
@@ -121,6 +126,7 @@ void unit_format(uint64_t limit) {
 void unit_parse() {
     std::vector<std::vector<uint32_t>> sets;
     for (int kind = 0; kind <= 4; ++kind) sets.push_back(values(200000 + kind, kind, 11 + kind));
+    sets.push_back(values(123457, 3, 99));   // uniform digit counts: sub-chunk imbalance
     std::vector<uint32_t> edge = {0, 1, 9, 10, 99, 100, 999, 1000, 9999, 10000, 99999, 100000, 999999, 1000000,
                                   9999999, 10000000, 99999999, 100000000, P - 1, 5, 0, 0};
     sets.push_back(edge);
@@ -228,9 +234,11 @@ void time_all(int reps) {
             std::printf("format,%s,%s,%.2f,%.3f ns/value (sink %llu)\n", name, fkind_name[kind], median(s), median(s) * 1e6 / double(n), (unsigned long long)(sink & 1));
         }
         // With write() into a fresh tmpfs file (the judge's output is a new tmpfs file).
-        for (int f = 0; f < 4; ++f) {
-            if (f == 1) continue;
-            const char* name = f == 0 ? "table" : f == 2 ? "fixed_avx2" : "fixed_v2g2";
+        // f >= 2: blocks<4> with output buffers of 64000 B .. 1.25 MiB (write() call sizes).
+        alignas(4096) static char wbuf[1310720 + 512];
+        const size_t wsize[] = {0, 64000, 64000, 163840, 327680, 1310720};
+        for (int f = 0; f < 6; ++f) {
+            const char* name = f == 0 ? "table" : f == 1 ? "fixed_v2g2" : f == 2 ? "g4_64000" : f == 3 ? "g4_163840" : f == 4 ? "g4_327680" : "g4_1310720";
             std::vector<double> s; size_t bytes = 0;
             for (int r = 0; r < std::min(reps, 3) + 1; ++r) {
                 unlink("/dev/shm/qpoly_io_out");
@@ -251,14 +259,14 @@ void time_all(int reps) {
                         } else fastio_unsafe_impl::emit_u32_unchecked(c, value);
                     }
                     put(ob.begin(), size_t(c - ob.begin()));
-                } else if (f == 2) {
-                    char* c = buf; char* const e = buf + 64000;
-                    for (size_t i = 0; i < n; i += 8) { qp_fixed::eight(v.data() + i, c); c += 80; if (c >= e) { put(buf, size_t(c - buf)); c = buf; } }
-                    put(buf, size_t(c - buf));
-                } else {
+                } else if (f == 1) {
                     char* c = buf; char* const e = buf + 64000;
                     for (size_t i = 0; i < n; i += 16) { qp_fixed::blocks<2>(v.data() + i, c); c += 160; if (c >= e) { put(buf, size_t(c - buf)); c = buf; } }
                     put(buf, size_t(c - buf));
+                } else {
+                    char* c = wbuf; char* const e = wbuf + wsize[f];
+                    for (size_t i = 0; i < n; i += 32) { qp_fixed::blocks<4>(v.data() + i, c); c += 320; if (c >= e) { put(wbuf, size_t(c - wbuf)); c = wbuf; } }
+                    put(wbuf, size_t(c - wbuf));
                 }
                 const double t1 = now_ms();
                 close(fd);
