@@ -47,7 +47,7 @@ jobs:
         run: |
           echo "$GITHUB_SHA" > commit.txt
           bash work/ntt/uop_explore/run_yosupo.sh results-yosupo
-          cp commit.txt results-yosupo/ && rm -f results-yosupo/max.txt results-yosupo/shoup results-yosupo/record results-yosupo/user_asm results-yosupo/reference
+          cp commit.txt results-yosupo/ && find results-yosupo -maxdepth 1 -type f -perm -u+x -delete; rm -f results-yosupo/max.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
