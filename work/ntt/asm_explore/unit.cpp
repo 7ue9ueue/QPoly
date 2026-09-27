@@ -82,6 +82,27 @@ int main(int argc, char** argv) {
         }
         std::printf("PASS %s variants %s\n", kind ? "inv" : "fwd", kind ? ASM_INV_IDS : ASM_FWD_IDS);
     }
+    // copy-free top level: fwd_src_asm(v, dst, src) == copy src -> dst, then fwd4 on dst
+    for (int v = 1; v <= 2; ++v) {
+        for (int h : {2, 4, 16, 64}) {
+            if (h % asm_src_step(v)) continue;
+            for (int it = 0; it < iters; ++it) {
+                const int k = 1 + int(rng() % 500), n = 4 * h * 8;
+                U* src = y + n + 64;   // disjoint source region (plus 4-byte overread room)
+                for (int i = 0; i < n + 16; ++i) src[i] = pick(4 * P);
+                std::memcpy(x, src, sizeof(U) * n);
+                std::memset(y, 0, sizeof(U) * n);
+                const U *px = T + K::blk(k), *py = T + K::blk(2 * k);
+                const Twiddle tw{Fixed(splat(px[0]), splat(px[8])), Fixed(splat(py[0]), splat(py[8])),
+                                 Fixed(splat(py[1]), splat(py[9]))};
+                fwd4<C, false>((V*)x, h, tw);
+                fwd_src_asm(v, (V*)y, (const V*)src, h, px, py);
+                for (int i = 0; i < n; ++i) if (x[i] != y[i]) fail("fwd_src", v, h, i);
+                ++checks;
+            }
+        }
+        std::printf("PASS fwd_src variant %d\n", v);
+    }
     // leaf MAC variants against the C++ MAC on identical buffers
     for (int v = 2; v <= ASM_LEAF_MAX; ++v) {
         for (int it = 0; it < iters * 20; ++it) {

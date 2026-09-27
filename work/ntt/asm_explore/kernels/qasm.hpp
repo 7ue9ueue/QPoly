@@ -145,8 +145,12 @@ inline constexpr Constants constants{};
 // bytes past the end of the array).
 template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true,
          bool Opq_ = false, bool LdOdd_ = false, int Il_ = 1, bool Blk_ = false, bool Pipe_ = false,
-         int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0, int AsmMinH_ = 4, int AsmBottom_ = 0>
+         int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0, int AsmMinH_ = 4, int AsmBottom_ = 0, int AsmTop_ = 0>
 struct Cfg {
+    // Copy-free top level (generated fwd_src variant; 0 = copy): with both upper halves
+    // zero, the first radix-4 group of the upper half reads the untouched lower half.
+    static constexpr int AsmTop = AsmTop_;
+    static_assert(AsmTop_ == 0 || (Mul_ == 2 && Blk_ && LdOdd_ && !Flip_));
     // Fused assembly bottom stage (kernels/asm_bottom.inc, gen_asm.py BOTTOM_VARIANTS; 0 = C++):
     // forward h=1 butterflies + leaf build of batch j+1 with leaf products + inverse h=1 of batch j.
     static constexpr int AsmBottom = AsmBottom_;
@@ -564,6 +568,12 @@ struct Kernel {
         leaves(a, b, NV, k * NV);
         tile_inverse<NV, 4>(a, k);
     }
+    // visit() without its first forward group (already done by the caller).
+    void visit_rest(V* a, V* b, int nv, int k) {
+        int h = nv / 4;
+        for (int t = 0; t < 4; ++t) visit(a + t * h, b + t * h, h, 4 * k + t);
+        group<true>(a, nullptr, h, k);
+    }
     void visit(V* a, V* b, int nv, int k) {
         if (nv <= Tile) {
             if (nv == 4) fixed_tile<4>(a, b, k);
@@ -611,8 +621,20 @@ struct Kernel {
                     f[i] = seed(low(plus(x, y)), i); f[i + h] = seed(low(diff(x, y)), i);
                 }
             };
+            if constexpr (C::AsmTop != 0) {
+                if (nza <= n / 2 && nzb <= n / 2 && h > Tile && (h / 4) % asm_src_step(C::AsmTop) == 0) {
+                    // Both halves of each array equal the (canonical) input; the upper half's first
+                    // radix-4 level (group k = 1, size h/4) reads the lower half before it changes.
+                    const U *px = r + blk(1), *py = r + blk(2);
+                    fwd_src_asm(C::AsmTop, a + h, a, h / 4, px, py);
+                    fwd_src_asm(C::AsmTop, b + h, b, h / 4, px, py);
+                    job.visit(a, b, h, 0); job.visit_rest(a + h, b + h, h, 1);
+                    goto scale;
+                }
+            }
             top(a, nza <= n / 2); top(b, nzb <= n / 2);
             job.visit(a, b, h, 0); job.visit(a + h, b + h, h, 1);
+        scale:
             // Values < 2P; sums/differences < 4P are valid multiply inputs.
             for (int i = 0; i < h; ++i) {
                 V x = a[i], y = a[i + h];

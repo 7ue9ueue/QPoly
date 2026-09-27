@@ -26,7 +26,7 @@ def blocks(text):
     return out
 
 
-def trimmed(fwd, inv, leaf, bottom):
+def trimmed(fwd, inv, leaf, bottom, top=0):
     bfly = (here / 'kernels/asm_bfly.inc').read_text()
     leafs = (here / 'kernels/asm_leaf.inc').read_text()
     bot = (here / 'kernels/asm_bottom.inc').read_text()
@@ -35,8 +35,9 @@ def trimmed(fwd, inv, leaf, bottom):
     case = lambda text, fn, v: re.search(rf'QA_AI void {fn}\(.*?case {v}: (\w+)\(', text, re.S).group(1)
     L = ['// Selected generated assembly (work/ntt/asm_explore/gen_asm.py output, trimmed).']
     names = {}
+    ab = bool(re.search(rf'constexpr bool asm_is_ab\(int v\).*?case {fwd}:', bfly, re.S)) if fwd else False
     if fwd:
-        names['fwd'] = case(bfly, 'fwd_asm', fwd)
+        names['fwd'] = case(bfly, 'fwd2_asm' if ab else 'fwd_asm', fwd)
         L.append(fb[names['fwd']])
     if inv:
         names['inv'] = case(bfly, 'inv_asm', inv)
@@ -46,13 +47,13 @@ def trimmed(fwd, inv, leaf, bottom):
     L.append('constexpr int asm_step(int kind, int v) { return kind == 0 ? '
              f'(v == {fwd} ? {step(0, fwd)} : 1) : (v == {inv} ? {step(1, inv)} : 1); }}')
     L.append(f'constexpr bool asm_has(int kind, int v) {{ return kind == 0 ? v == {fwd} : v == {inv}; }}')
-    L.append('constexpr bool asm_is_ab(int) { return false; }')
+    L.append(f'constexpr bool asm_is_ab(int) {{ return {"true" if ab else "false"}; }}')
     L.append('QA_AI void fwd_asm(int, V* f, long h, const U* px, const U* py) { '
-             + (f'{names["fwd"]}(f, h, px, py); ' if fwd else '__builtin_unreachable(); ') + '}')
+             + (f'{names["fwd"]}(f, h, px, py); ' if fwd and not ab else '__builtin_unreachable(); ') + '}')
     L.append('QA_AI void inv_asm(int, V* f, long h, const U* px, const U* py) { '
              + (f'{names["inv"]}(f, h, px, py); ' if inv else '__builtin_unreachable(); ') + '}')
     L.append('QA_AI void fwd2_asm(int v, V* a, V* b, long h, const U* px, const U* py) '
-             '{ fwd_asm(v, a, h, px, py); fwd_asm(v, b, h, px, py); }')
+             + (f'{{ {names["fwd"]}(a, b, h, px, py); }}' if ab else '{ fwd_asm(v, a, h, px, py); fwd_asm(v, b, h, px, py); }'))
     if leaf >= 2:
         L.append(lb[f'leaf_mac_asm{leaf}'])
         L.append(f'QA_AI void leaf_mac_asm(int, V* a, const void* L) {{ leaf_mac_asm{leaf}(a, L); }}')
@@ -68,6 +69,15 @@ def trimmed(fwd, inv, leaf, bottom):
             L.append(f'QA_AI void bottom_{part}(int, {decl}) {{ bottom{bottom}_{part}({a}); }}')
         else:
             L.append(f'QA_AI void bottom_{part}(int, {decl}) {{ __builtin_unreachable(); }}')
+    if top:
+        L.append(fb[f'fwd_src{top}'])
+        L.append(f'QA_AI void fwd_src_asm(int, V* f, const V* src, long h, const U* px, const U* py) '
+                 f'{{ fwd_src{top}(f, src, h, px, py); }}')
+        st = re.search(rf'constexpr int asm_src_step\(int v\).*?case {top}: return (\d+);', bfly).group(1)
+        L.append(f'constexpr int asm_src_step(int) {{ return {st}; }}')
+    else:
+        L.append('QA_AI void fwd_src_asm(int, V*, const V*, long, const U*, const U*) { __builtin_unreachable(); }')
+        L.append('constexpr int asm_src_step(int) { return 1; }')
     L.append(f'#define ASM_BOTTOM_IDS " {bottom} "')
     L.append(f'constexpr bool asm_bottom_has(int v) {{ return v == {bottom}; }}')
     return '\n'.join(L) + '\n'
@@ -80,6 +90,7 @@ def main():
     ap.add_argument('--leaf', type=int, default=0)
     ap.add_argument('--minh', type=int, default=4)
     ap.add_argument('--bottom', type=int, default=0)
+    ap.add_argument('--top', type=int, default=0)
     ap.add_argument('--out', default=str(root / 'work/ntt/yosupo_convolution_asm_shoup.cpp'))
     args = ap.parse_args()
     base_path = root / 'work/ntt/yosupo_convolution_shoup.cpp'
@@ -87,14 +98,14 @@ def main():
     kernel = (here / 'kernels/qasm.hpp').read_text()
     kernel = kernel.replace('#pragma once\n', '')
     kernel = re.sub(r'#include <[a-z_]+(\.h)?>\n', '', kernel)
-    sel = trimmed(args.fwd, args.inv, args.leaf, args.bottom)
+    sel = trimmed(args.fwd, args.inv, args.leaf, args.bottom, args.top)
     kernel = kernel.replace('#include "asm_bfly.inc"\n#include "asm_leaf.inc"\n#include "asm_bottom.inc"\n', sel)
     assert '#include "' not in kernel
     start = base.index('// Round-7 kernel family "flip"')
     end = base.index('}  // namespace qflip') + len('}  // namespace qflip')
     cfg_old = 'qflip::Kernel<qflip::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true>>'
     cfg_new = (f'qasm::Kernel<qasm::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, '
-               f'{args.fwd}, {args.inv}, {args.leaf}, {args.minh}, {args.bottom}>>')
+               f'{args.fwd}, {args.inv}, {args.leaf}, {args.minh}, {args.bottom}, {args.top}>>')
     assert base.count(cfg_old) == 1
     src = base[:start] + kernel + base[end:]
     src = src.replace(cfg_old, cfg_new)
@@ -105,7 +116,7 @@ def main():
                 f'// (SHA256 {hashlib.sha256(base.encode()).hexdigest()}, the submission-406403 kernel)\n'
                 f'// with the kernel replaced by kernels/qasm.hpp (SHA256 {khash}) and generated\n'
                 f'// inline assembly: forward loop {args.fwd}, inverse loop {args.inv} (h >= {args.minh}), '
-                f'leaf {args.leaf}, fused bottom {args.bottom}.\n'
+                f'leaf {args.leaf}, fused bottom {args.bottom}, copy-free top {args.top}.\n'
                 '// Arithmetic, ranges, memory layout, I/O and main() are those of the base file:\n'
                 + ''.join('// ' + l[3:] + '\n' for l in head_old.splitlines()[7:] if l.startswith('// ')))
     src = head_new + src[len(head_old):]
