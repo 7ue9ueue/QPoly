@@ -17,6 +17,7 @@ the exploration-009 kernel `run()` unchanged; 2^23–2^25 use `qlarge::Core<Sel>
 touch. Prints nothing. [Probe twin](../../work/ntt/yosupo_convolution_mod_large_probe.cpp)
 (SHA256 `2693f337…`) prints one stderr line (phase ms, THP mode, CPU), since the judge displays
 stderr; both pass all 54 official cases. Not submitted (the user runs the judge).
+SSE-I/O twin (judge 406478's I/O, `python3 make_submission.py --source final_main_sse.cpp`): [yosupo_convolution_mod_large_sse.cpp](../../work/ntt/yosupo_convolution_mod_large_sse.cpp), SHA256 `cb3bcf56cc48e627b8c7a3fa554b1b70c604f5d7bcc0137fd4288f52ba162c7a`, 148,850 bytes; 54/54 official cases (run 36316258590); ~35 ms slower on the max cases (see the I/O variant check).
 
 ## Target and constraints
 

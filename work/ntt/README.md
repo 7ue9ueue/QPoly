@@ -49,3 +49,5 @@ level, the final scale fused into the last inverse level and a lazily faulted TH
 passes all 54 official cases; 528 ms vs 758 ms for the current leader on the same EPYC 7763
 runner. [yosupo_convolution_mod_large_probe.cpp](yosupo_convolution_mod_large_probe.cpp) also
 prints a one-line phase/THP/CPU report to stderr.
+[yosupo_convolution_mod_large_sse.cpp](yosupo_convolution_mod_large_sse.cpp) is the same program with the
+per-token SSE I/O of convolution_mod submission 406478 (54/54 official; ~35 ms slower on the max cases).
