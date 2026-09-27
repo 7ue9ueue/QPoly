@@ -1,0 +1,4 @@
+644e9f3ed8bdf0c008e9415d72426c0c66e8e73baf79283216031a3a7fb2cfe9  /__w/QPoly/QPoly/work/ntt/yosupo_convolution_shoup.cpp
+e7ff3a76339ffd3bc36c58f14ad9bcbca43c8392561e40a9b6a37fed15137e24  /__w/QPoly/QPoly/study/fast_ntt_v2.cpp
+de08a922f644e74e7ee223b2a4d77700b033cc2afa6e57b284e051cd040903f5  /__w/QPoly/QPoly/work/ntt/uop_explore/generated/yosupo_shoup_basicio.cpp
+d2d02e0fd47c3c510ae62ddb23a91174c29643dc932f69a9aed912450b598304  /__w/QPoly/QPoly/work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io_sse.cpp

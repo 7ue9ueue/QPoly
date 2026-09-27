@@ -82,8 +82,8 @@ the pipelined leaf helps there (−2.5% on 9V45). On Intel (8573C, 8370C, 6973P)
 vpmulld is expensive: mullo kernels are 6–9% slower than h14, Shoup loses, and the
 best is Montgomery + flip + pair + LdOdd (`f_fp_nml`, 0.935–0.948).
 
-Submission (N=M=2^19, judge command; runs 36283674322 and 36284690367, the latter
-for the final file, SHA256 bcaf4be7…, 176/176 checks on EPYC 7763, 8370C, 8573C):
+Submission (N=M=2^19, judge command; runs 36283674322, 36284690367 and 36285476294, the last
+for the final file, SHA256 644e9f3e…, 176/176 checks on EPYC 7763, 8370C, 8573C):
 with arrays pre-faulted before the timer (as the record holder does), stderr
 compute time is 5.58–5.69 ms vs 6.30–6.42 ms for the record holder. The first
 version without pre-faulting reported 6.62 ms: ~1,300 page faults (zero upper

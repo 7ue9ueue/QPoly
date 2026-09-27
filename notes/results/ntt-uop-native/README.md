@@ -21,9 +21,10 @@ per-phase cycles and `max-timing.txt` (N=M=2^19 compute/wall). Summaries:
 | 36283878352 | f5ce4f5 | pipelined leaf windows |
 | 36284102216 | aa9fe30 | leaf register reuse |
 | 36284307810 | 2ad60df | interleaved leaf register reuse |
-| 36284690367 | 3687d37 | final submission (SHA256 bcaf4be7…) validation |
+| 36284690367 | 3687d37 | submission (SHA256 bcaf4be7…) validation |
 | 36285017214 | 164cf52 | register-built leaf windows (negative) |
 | 36285228524 | 50dff22 | optimization-pragma variants (`opt-*.csv`; summarize_opt.py) |
+| 36285476294 | 8c8fd4d | final submission (SHA256 644e9f3e…) validation |
 
 Earlier runs of the first rounds used the AtCoder GCC flag set (`native`/`avx2`
 profiles); from 36282232212 on, `lc` is the exact Library Checker command and
