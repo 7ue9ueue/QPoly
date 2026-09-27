@@ -70,21 +70,25 @@ Work& work() { static Work w; return w; }
 using Fn = void (*)(int lg, U* a, U* b, long nza, long nzb);
 struct Entry { const char* name; Fn fn; bool shortcut = true; };   // shortcut: never reads above nz <= n/2
 using D = qlarge::Drivers<qlarge::Sel>;
-template<bool Z> void e_b0(int lg, U* a, U* b, long nza, long nzb) { D::run_b0(lg, a, b, work().T, nza, nzb, Z); }
-template<int L, int Wd, int Dist, bool Nt>
+template<bool Z, bool S = false> void e_b0(int lg, U* a, U* b, long nza, long nzb) { D::run_b0(lg, a, b, work().T, nza, nzb, Z, S); }
+template<int L, int Wd, int Dist, bool Nt, bool Pair = true>
 void e_top(int lg, U* a, U* b, long nza, long nzb) {
     const int nv = (1 << lg) / 8, lgv = __builtin_ctz(unsigned(nv)), odd = lgv & 1;
     int l = L; while (l > 1 && lgv - odd - 2 * l < 2) --l;   // rows must keep >= 4 vectors
     if (lgv - odd - 2 * l < 2 || lg < 9) { D::run_b0(lg, a, b, work().T, nza, nzb, true); return; }
-    D::TopOpt o; o.w = Wd; o.dist = Dist; o.nt = Nt;
+    D::TopOpt o; o.w = Wd; o.dist = Dist; o.nt = Nt; o.pair = Pair;
     D::run_top(lg, a, b, work().T, nza, nzb, l, o, work().buf);
 }
 #define TOP(L, W, DI) {"t" #L "w" #W "d" #DI, e_top<L, W, DI, false>}
 #define TOPNT(L, W, DI) {"t" #L "w" #W "d" #DI "nt", e_top<L, W, DI, true>}
+#define TOPS(L, W, DI) {"t" #L "w" #W "d" #DI "s", e_top<L, W, DI, false, false>}
+// Round 1 entries (kept for reference): TOP(2,2,4) TOPNT(2,2,4) TOP(3,2,4) TOPNT(3,2,4)
+// TOP(4,2,4) TOPNT(4,2,4) TOPNT(5,2,4) TOPNT(3,4,2) TOPNT(4,4,2).
 const Entry ENTRIES[] = {
-    {"b0", e_b0<false>, false}, {"b0z", e_b0<true>},
-    TOP(2, 2, 4), TOPNT(2, 2, 4), TOP(3, 2, 4), TOPNT(3, 2, 4),
-    TOP(4, 2, 4), TOPNT(4, 2, 4), TOPNT(5, 2, 4), TOPNT(3, 4, 2), TOPNT(4, 4, 2),
+    {"b0", e_b0<false>, false}, {"b0z", e_b0<true>}, {"b0zs", e_b0<true, true>},
+    TOP(2, 8, 1), TOP(2, 32, 1), TOP(2, 64, 1), TOP(3, 8, 1), TOP(3, 16, 1), TOP(3, 32, 1),
+    TOP(4, 4, 1), TOP(4, 8, 1), TOP(4, 16, 1), TOPS(3, 16, 1), TOPS(4, 16, 1), TOPS(5, 8, 1),
+    TOP(2, 2, 4),
 };
 
 std::vector<Entry> selected() {

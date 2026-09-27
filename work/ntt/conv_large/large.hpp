@@ -64,9 +64,19 @@ struct Drivers {
     }
     static QA_AI V scale1(const Fixed& s, V x) { return shrink(s.mul<2, false, false, true>(x), P); }
 
+    // Identity inverse radix-4 group (k = 0) fused with the final scale; inputs < 2P,
+    // outputs canonical. Same arithmetic as inv4<C, true> followed by scale1.
+    static QA_AI void inv_identity_scale_body(V* f, long h, long j, const Fixed& z, const Fixed& scale) {
+        const V p0 = f[j], p1 = f[j + h], p2 = f[j + 2 * h], p3 = f[j + 3 * h];
+        const V ab = low(plus(p0, p1)), cd = low(plus(p2, p3)), amb = low(diff(p0, p1));
+        const V cmd = z.mul<2, false, false, true>(diff(p2, p3));
+        f[j] = scale1(scale, plus(ab, cd)); f[j + h] = scale1(scale, plus(amb, cmd));
+        f[j + 2 * h] = scale1(scale, diff(ab, cd)); f[j + 3 * h] = scale1(scale, diff(amb, cmd));
+    }
+
     // qasm run() generalized to n <= 2^26 (assert removed, 64-bit-safe loops) plus an
-    // optional zero-upper radix-4 top for even log2(nv).
-    static void run_b0(int lg, U* aa, U* bb, Tables& T, long nza, long nzb, bool zero_even) {
+    // optional zero-upper radix-4 top and an optional fused final scale for even log2(nv).
+    static void run_b0(int lg, U* aa, U* bb, Tables& T, long nza, long nzb, bool zero_even, bool fuse_scale = false) {
         const int n = 1 << lg, nv = n / 8;
         K::tables(n / 16, T.r, T.ir, T.size, true);
         K job(T.r, T.ir);
@@ -97,21 +107,25 @@ struct Drivers {
                 a[i] = scale1(scale, plus(x, y)); a[i + h] = scale1(scale, diff(x, y));
             }
         } else {
+            // Equivalent to job.visit(a, b, nv, 0) followed by a scale pass.
             const bool za = nza <= n / 2, zb = nzb <= n / 2;
+            const int h = nv / 4;
+            const Fixed z = job.template fixed_at<false>(1);
             if (zero_even && (za || zb)) {
-                const int h = nv / 4;
-                const Fixed z = job.template fixed_at<false>(1);
                 const Twiddle t0 = job.template twiddle<false>(0);
                 if (za) { for (int j = 0; j < h; ++j) top4_zero_body(a, h, j, z); } else fwd4<C, true>(a, h, t0);
                 if (zb) { for (int j = 0; j < h; ++j) top4_zero_body(b, h, j, z); } else fwd4<C, true>(b, h, t0);
-                phase(1);
-                job.visit_rest(a, b, nv, 0);
-            } else {
-                phase(1);
-                job.visit(a, b, nv, 0);
-            }
+            } else job.template group<false>(a, b, h, 0);
+            phase(1);
+            for (int t = 0; t < 4; ++t) job.visit(a + size_t(t) * h, b + size_t(t) * h, h, t);
             phase(2);
-            for (int i = 0; i < nv; ++i) a[i] = scale1(scale, a[i]);
+            if (fuse_scale) {
+                const Fixed iz = job.template fixed_at<true>(1);
+                for (int j = 0; j < h; ++j) inv_identity_scale_body(a, h, j, iz, scale);
+            } else {
+                job.template group<true>(a, nullptr, h, 0);
+                for (int i = 0; i < nv; ++i) a[i] = scale1(scale, a[i]);
+            }
         }
         phase(3);
     }
@@ -127,12 +141,46 @@ struct Drivers {
         int w = 2;            // panel width in vectors (w * 32 bytes per row segment)
         int dist = 4;         // software prefetch distance in panels (0 = none)
         bool nt = false;      // non-temporal stores when scattering
+        bool pair = true;     // forward: a and b panels together (asm groups) or separate sweeps (C++ fwd4)
     };
 
     static QA_AI void store_v(V* p, V x, bool nt) { if (nt) _mm256_stream_si256(p, x); else _mm256_store_si256(p, x); }
 
+    // Forward top pass on one array in its own sweep (C++ butterflies). buf holds R * w vectors.
+    static void top_forward_single(K& job, V* f, const Geo& g, const TopOpt& o, bool zero, V* buf) {
+        const int R = g.R, S = g.S, w = o.w, rows_in = zero ? R / 2 : R;
+        const Fixed z = job.template fixed_at<false>(1);
+        for (int c0 = 0; c0 < S; c0 += w) {
+            if (o.dist) {
+                const int cp = c0 + o.dist * w;
+                if (cp < S) for (int s = 0; s < rows_in; ++s) for (int i = 0; i < w; i += 2) _mm_prefetch((const char*)(f + size_t(s) * S + cp + i), _MM_HINT_T0);
+            }
+            for (int s = 0; s < rows_in; ++s) for (int i = 0; i < w; ++i) buf[s * w + i] = _mm256_load_si256(f + size_t(s) * S + c0 + i);
+            int d0 = 0;
+            if (g.odd) {
+                const int h = (R / 2) * w;
+                if (zero) for (int j = 0; j < h; ++j) buf[j + h] = buf[j];
+                else for (int j = 0; j < h; ++j) { V x = buf[j], y = buf[j + h]; buf[j] = low(plus(x, y)); buf[j + h] = low(diff(x, y)); }
+            } else {
+                const int h = (R / 4) * w;
+                if (zero) for (int j = 0; j < h; ++j) top4_zero_body(buf, h, j, z);
+                else fwd4<C, true>(buf, h, job.template twiddle<false>(0));
+                d0 = 1;
+            }
+            for (int d = d0; d < g.L; ++d) {
+                const int blocks = (1 << g.odd) << (2 * d), rows = R / blocks, h = (rows / 4) * w;
+                for (int k = 0; k < blocks; ++k) {
+                    if (k == 0) fwd4<C, true>(buf + size_t(k) * rows * w, h, job.template twiddle<false>(k));
+                    else fwd4<C, false>(buf + size_t(k) * rows * w, h, job.template twiddle<false>(k));
+                }
+            }
+            for (int s = 0; s < R; ++s) for (int i = 0; i < w; ++i) store_v(f + size_t(s) * S + c0 + i, buf[s * w + i], o.nt);
+        }
+        if (o.nt) _mm_sfence();
+    }
     // Forward top pass on a and b together. buf holds 2 * R * w vectors.
     static void top_forward(K& job, V* a, V* b, const Geo& g, const TopOpt& o, bool za, bool zb, V* buf) {
+        if (!o.pair) { top_forward_single(job, a, g, o, za, buf); top_forward_single(job, b, g, o, zb, buf); return; }
         const int R = g.R, S = g.S, w = o.w;
         V* pa = buf; V* pb = buf + size_t(R) * w;
         const Fixed z = job.template fixed_at<false>(1);
@@ -207,13 +255,8 @@ struct Drivers {
             } else {
                 // Identity inverse group at depth 0 fused with the scale.
                 const int h = (R / 4) * w;
-                const Twiddle t = job.template twiddle<true>(0);
-                for (int j = 0; j < h; ++j) {
-                    V p0 = buf[j], p1 = buf[j + h], p2 = buf[j + 2 * h], p3 = buf[j + 3 * h];
-                    V ab = low(plus(p0, p1)), cd = low(plus(p2, p3)), amb = low(diff(p0, p1)), cmd = t.z.mul<2, false, false, true>(diff(p2, p3));
-                    buf[j] = scale1(scale, plus(ab, cd)); buf[j + h] = scale1(scale, plus(amb, cmd));
-                    buf[j + 2 * h] = scale1(scale, diff(ab, cd)); buf[j + 3 * h] = scale1(scale, diff(amb, cmd));
-                }
+                const Fixed iz = job.template fixed_at<true>(1);
+                for (int j = 0; j < h; ++j) inv_identity_scale_body(buf, h, j, iz, scale);
             }
             for (int s = 0; s < R; ++s) for (int i = 0; i < w; ++i) store_v(a + size_t(s) * S + c0 + i, buf[s * w + i], o.nt);
         }
@@ -222,12 +265,13 @@ struct Drivers {
 
     // Top pass (L radix-4 levels, plus radix-2 if log2(nv) is odd), then qasm's fused
     // recursion per row, then the inverse top pass with scaling.
-    static void run_top(int lg, U* aa, U* bb, Tables& T, long nza, long nzb, int L, const TopOpt& o, V* buf) {
+    static void run_top(int lg, U* aa, U* bb, Tables& T, long nza, long nzb, int L, const TopOpt& o_in, V* buf) {
         const int n = 1 << lg, nv = n / 8;
         K::tables(n / 16, T.r, T.ir, T.size, true);
         K job(T.r, T.ir);
         V *a = (V*)aa, *b = (V*)bb;
         const Geo g(nv, L);
+        TopOpt o = o_in; o.w = std::min(o.w, g.S);   // panel width cannot exceed the row length
         const Fixed scale = scale_factor(nv);
         phase(0);
         top_forward(job, a, b, g, o, nza <= n / 2, nzb <= n / 2, buf);

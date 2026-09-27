@@ -33,3 +33,18 @@ jobs:
           name: conv-large-${{ matrix.sample }}
           path: results/
           retention-days: 7
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Judge-like end-to-end (official cases, judge flags and container limits)
+        env:
+          VARIANTS: "b0zs:-DQL_MODE=2;t3w16:-DQL_MODE=1 -DQL_L=3 -DQL_W=16 -DQL_D=1 -DQL_NT=0"
+        run: bash work/ntt/conv_large/run_e2e.sh results-e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conv-large-e2e
+          path: results-e2e/
+          retention-days: 7
