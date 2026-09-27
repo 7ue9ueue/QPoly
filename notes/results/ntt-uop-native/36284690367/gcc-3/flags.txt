@@ -1,0 +1,2 @@
+g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native -I/__w/QPoly/QPoly/work/ntt/uop_explore /__w/QPoly/QPoly/work/ntt/uop_explore/bench.cpp -o results/bench-lc
+g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=znver3 -I/__w/QPoly/QPoly/work/ntt/uop_explore /__w/QPoly/QPoly/work/ntt/uop_explore/bench.cpp -o results/bench-znver3

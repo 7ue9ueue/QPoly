@@ -1,0 +1,8 @@
+70d3f5d51b10127ae0ebe924bff1747975f6fdc03d27abb26e51eb33527e9e2c  /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/bench.cpp
+be372937dd4a641dad4df18bb36cd295c8dd6199e77537f79bf7f2f10382b7a4  /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/entries.inc
+8f7dd946a6d433e50e0e369a7624a660f3348122143f3849feeb097368635b2d  /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/baselines/asm_large_fixed.hpp
+b943373c11157d12fdcc92a9da23e455068ecbc011d4665cd5aad04bf088dce5  /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/baselines/h14.hpp
+968b5c001e39d0ad57441eb7d24edb0a9e92e581d47474b964d2324b16503209  /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/baselines/mullo_bottom.hpp
+f154557a1614fd3d62cea7d7a4c65c15d813372a2c5dbb34e11d6c72362df2ba  /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/baselines/ref_yosupo.hpp
+79a792f1ba02d6cd321a9c311104220f1f4614786bc932a77a6237e208c4ac89  /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/kernels/candidates.hpp
+128cfea4d958a4fca5485274e65d5e18e6c1ea943212ffb452892c64e18a95e6  /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/kernels/flip.hpp

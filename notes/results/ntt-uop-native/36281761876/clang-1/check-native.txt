@@ -1,0 +1,22 @@
+# CPU: AMD EPYC 9V74 80-Core Processor                
+# avx2=1 avx512f=1 avx512ifma=1
+# compiler: Ubuntu Clang 21.1.8 (++20251221032922+2078da43e25a-1~exp1~20251221153059.70)
+PASS 2^6
+PASS 2^7
+PASS 2^8
+PASS 2^9
+PASS 2^10
+PASS 2^11
+PASS 2^12
+PASS 2^13
+PASS 2^14
+PASS 2^15
+PASS 2^16
+PASS 2^17
+PASS 2^18
+PASS 2^19
+PASS 2^20
+PASS 2^21
+PASS 2^22
+PASS boundary, wraparound and changing sizes
+ALL CHECKS PASSED

@@ -1,0 +1,8 @@
+72775a75a4865ebe03ff6277550b0380257aa29cb3f083d26a62a76bfadd3778  /__w/QPoly/QPoly/work/ntt/uop_explore/bench.cpp
+0052228540c1d1501d0ee3d4c2333ce992441f2979d431f8f313af844cead2d3  /__w/QPoly/QPoly/work/ntt/uop_explore/entries.inc
+8f7dd946a6d433e50e0e369a7624a660f3348122143f3849feeb097368635b2d  /__w/QPoly/QPoly/work/ntt/uop_explore/baselines/asm_large_fixed.hpp
+b943373c11157d12fdcc92a9da23e455068ecbc011d4665cd5aad04bf088dce5  /__w/QPoly/QPoly/work/ntt/uop_explore/baselines/h14.hpp
+968b5c001e39d0ad57441eb7d24edb0a9e92e581d47474b964d2324b16503209  /__w/QPoly/QPoly/work/ntt/uop_explore/baselines/mullo_bottom.hpp
+f154557a1614fd3d62cea7d7a4c65c15d813372a2c5dbb34e11d6c72362df2ba  /__w/QPoly/QPoly/work/ntt/uop_explore/baselines/ref_yosupo.hpp
+5eee896151994dfe8b52e81d038c85e0df4d9afee190651ad6dd5dae7c169d37  /__w/QPoly/QPoly/work/ntt/uop_explore/kernels/candidates.hpp
+4bf1a9fbfbf1c34c4c957117b76404840a928018dae97530b51c97454f8e2d75  /__w/QPoly/QPoly/work/ntt/uop_explore/kernels/flip.hpp

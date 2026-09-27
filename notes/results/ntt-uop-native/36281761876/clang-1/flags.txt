@@ -1,0 +1,2 @@
+clang++-21 -std=gnu++23 -O2 -DATCODER -DNOMINMAX -DONLINE_JUDGE -Wno-unknown-pragmas -march=native -I/home/runner/work/QPoly/QPoly/work/ntt/uop_explore /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/bench.cpp -o results/bench-native
+clang++-21 -std=gnu++23 -O2 -DATCODER -DNOMINMAX -DONLINE_JUDGE -Wno-unknown-pragmas -march=haswell -mtune=native -I/home/runner/work/QPoly/QPoly/work/ntt/uop_explore /home/runner/work/QPoly/QPoly/work/ntt/uop_explore/bench.cpp -o results/bench-avx2
