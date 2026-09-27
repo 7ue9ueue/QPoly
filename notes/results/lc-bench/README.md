@@ -24,3 +24,10 @@ Median ms per cyclic convolution; speedup = other's time / ours.
 | Xeon 8573C (job 3) | 2^22 | 539.6742 | 48.9257 | 35.4085 | 29.4907 | 18.30 | 1.66 | 1.20 |
 
 Full tables for 2^10..2^22: `lc-bench-{1,2,3}/table.md`.
+
+## Run 36325403204 (adds the simd-v0 vs KACTL column)
+
+Commit with the extra column; jobs: EPYC 7763, EPYC 9V45, Xeon 8573C; all PASS.
+simd-v0 vs KACTL: 5.8× (2^10) rising to 11.6–12.3× (2^20..2^22) on AMD; 3.9–10.3× on Intel.
+Ours vs 393435: 1.49–1.60× (7763), 1.39–1.49× (9V45), 1.18–1.27× (8573C).
+Tables: `36325403204/lc-bench-{1,2,3}/table.md`.
