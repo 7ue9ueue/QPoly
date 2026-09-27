@@ -2,7 +2,7 @@ name: NTT uop exploration (round 7, Library Checker target)
 on:
   push:
     branches: [claude/ntt-uop-explore]
-    paths: [work/ntt/uop_explore/**, .github/workflows/ntt-uop.yml]
+    paths: [work/ntt/uop_explore/**, work/ntt/yosupo_convolution_shoup.cpp, .github/workflows/ntt-uop.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,4 +30,27 @@ jobs:
         with:
           name: gcc-${{ matrix.sample }}
           path: results/
+          retention-days: 7
+  yosupo:
+    runs-on: ubuntu-24.04
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq python3 util-linux > /dev/null
+      - name: Library Checker submission (exact judge flags)
+        run: |
+          echo "$GITHUB_SHA" > commit.txt
+          bash work/ntt/uop_explore/run_yosupo.sh results-yosupo
+          cp commit.txt results-yosupo/ && rm -f results-yosupo/max.txt results-yosupo/shoup results-yosupo/record results-yosupo/user_asm results-yosupo/reference
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yosupo-${{ matrix.sample }}
+          path: results-yosupo/
           retention-days: 7

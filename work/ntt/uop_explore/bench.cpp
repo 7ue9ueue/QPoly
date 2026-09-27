@@ -99,7 +99,9 @@ void correctness(int max_log) {
     std::mt19937 rng(20260927);
     for (int lg = 6; lg <= max_log; ++lg) {
         int n = 1 << lg; Aligned a(n), b(n), r(n), ir(n);
-        for (int pattern = 0; pattern < (lg <= 10 ? 7 : 2); ++pattern) {
+        // Pattern 7 (sizes <= 2^10) and the extra case below (larger sizes) have zero
+        // upper halves, which exercises the ordinary-convolution shortcut.
+        for (int pattern = 0; pattern < (lg <= 10 ? 8 : 2); ++pattern) {
             A x(n), y(n);
             for (int i = 0; i < n; ++i) {
                 x[i] = rng() % P; y[i] = rng() % P;
@@ -109,9 +111,15 @@ void correctness(int max_log) {
                 if (pattern == 4) x[i] = i & 1 ? P - 1 : 0, y[i] = i & 1 ? 1 : P - 1;
                 if (pattern == 5) x[i] = y[i] = 1;
                 if (pattern == 6) x[i] = P - 1 - (rng() & 7), y[i] = P - 1 - (rng() & 7);
+                if (pattern == 7 && i >= n / 2) x[i] = y[i] = 0;   // ordinary-convolution padding
             }
             A want = reference(x, y);
             if (n <= 256 && want != brute(x, y)) fail("oracle-vs-brute", n, 0, 0, 1);
+            if (pattern == 1 && lg > 10) {   // extra zero-upper-half case at large sizes
+                A x2 = x, y2 = y; for (int i = 0; i < n; ++i) { x2[i] = rng() % P; y2[i] = rng() % P; if (i >= n / 2) x2[i] = y2[i] = 0; }
+                A want2 = reference(x2, y2);
+                for (const Entry& e : entries) { int rs = 0; check_one(e, x2, y2, want2, a, b, r, ir, rs, true); }
+            }
             for (const Entry& e : entries) { int rs = 0; check_one(e, x, y, want, a, b, r, ir, rs, true); check_one(e, x, y, want, a, b, r, ir, rs, false); }
         }
         std::cout << "PASS 2^" << lg << '\n';

@@ -24,3 +24,17 @@ using S_ns_olb1k = qflip::Cfg<2, false, true, 0, false, 1024, true, true, true, 
     {"s_ns_olb", cand::flip_invoke<cand::S_ns_olb>}, \
     {"s_sh_olb", cand::flip_invoke<cand::S_sh_olb>}, \
     {"s_ns_olb1k", cand::flip_invoke<cand::S_ns_olb1k>},
+
+// Library Checker path: detects zero upper halves (as the judge wrapper knows N, M).
+namespace cand {
+inline void lc_invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint32_t* ir, int& s, bool fresh) {
+    auto nz = [n](const uint32_t* f) { int k = n; while (k > 0 && f[k - 1] == 0) --k; return k; };
+    qflip::Kernel<S_ns_olb>::run(n, a, b, r, ir, s, fresh, nz(a), nz(b));
+}
+}
+#undef CANDIDATE_ENTRIES
+#define CANDIDATE_ENTRIES \
+    {"f_fp_nml", cand::flip_invoke<cand::F_fp_nml>}, \
+    {"s_ns_ol", cand::flip_invoke<cand::S_ns_ol>}, \
+    {"s_ns_olb", cand::flip_invoke<cand::S_ns_olb>}, \
+    {"s_ns_olb_lc", cand::lc_invoke},
