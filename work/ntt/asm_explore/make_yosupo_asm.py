@@ -7,6 +7,11 @@ by kernels/qasm.hpp with the selected generated variants inlined; I/O, memory ar
 and main() are unchanged apart from the kernel configuration.
 
 usage: make_yosupo_asm.py --fwd 11 --inv 71 --leaf 5 --minh 4 [--bottom 3] [--out PATH]
+       [--io sse|393435] [--quiet]
+--io 393435 swaps in the input parser used before exploration 007 (QgQ submission 393435
+as adapted in work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io393435.cpp,
+SHA256 1b55ca7f...); output formatting is identical in both. --quiet prints compute_ms
+to stderr only when compiled with -DQPOLY_TIMING (submission-ready default).
 """
 import argparse
 import hashlib
@@ -111,6 +116,8 @@ def main():
     ap.add_argument('--fwd4', type=int, default=0)
     ap.add_argument('--scale', type=int, default=0)
     ap.add_argument('--out', default=str(root / 'work/ntt/yosupo_convolution_asm_shoup.cpp'))
+    ap.add_argument('--io', choices=['sse', '393435'], default='sse')
+    ap.add_argument('--quiet', action='store_true')
     args = ap.parse_args()
     base_path = root / 'work/ntt/yosupo_convolution_shoup.cpp'
     base = base_path.read_text()
@@ -139,6 +146,27 @@ def main():
                 '// Arithmetic, ranges, memory layout, I/O and main() are those of the base file:\n'
                 + ''.join('// ' + l[3:] + '\n' for l in head_old.splitlines()[7:] if l.startswith('// ')))
     src = head_new + src[len(head_old):]
+    if args.io == '393435':
+        old_path = root / 'work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io393435.cpp'
+        old = old_path.read_text()
+        marker = "// Selected uint32 I/O from QgQ's submission 393435"
+        old_io = old[old.index(marker):old.index('constexpr int max_transform')]
+        start, end = src.index(marker), src.index('// Pre-faulted 2 MiB-aligned zeroed words')
+        src = src[:start] + old_io + '\n' + src[end:]
+        assert src.count('read_sse_short(input_cursor)') == 4
+        src = src.replace('read_sse_short(input_cursor)', 'read_mod998_u32(input_cursor)')
+        note_old = ('// I/O: sse_short_lut8 from work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io_sse.cpp\n'
+                    '// (exploration 007), adapted from QgQ')
+        note_new = (f'// I/O: pre-exploration-007 reader/writer from {old_path.relative_to(root)}\n'
+                    f'// (SHA256 {hashlib.sha256(old.encode()).hexdigest()[:16]}...; exploration 006), adapted from QgQ')
+        assert note_old in src
+        src = src.replace(note_old, note_new)
+    if args.quiet:
+        for old_s, new_s in (('// Prints the transform time to stderr (compute_ms=...) unless QPOLY_QUIET is defined.',
+                              '// Prints the transform time to stderr (compute_ms=...) only with -DQPOLY_TIMING.'),
+                             ('#ifndef QPOLY_QUIET\n', '#ifdef QPOLY_TIMING\n')):
+            assert src.count(old_s) == 1, old_s
+            src = src.replace(old_s, new_s)
     Path(args.out).write_text(src)
     print(Path(args.out).relative_to(root) if Path(args.out).is_relative_to(root) else args.out,
           len(src), 'bytes, SHA256', hashlib.sha256(src.encode()).hexdigest())
