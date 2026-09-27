@@ -18,8 +18,9 @@ using S_ns_olb1k = qflip::Cfg<2, false, true, 0, false, 1024, true, true, true, 
 using S_ns_olbp  = qflip::Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true>;   // + pipelined leaves
 using S_l3       = qflip::Cfg<2, false, true, 3, false, 256, true, true, true, 1, true, false>;  // leaf register reuse
 using S_l3p      = qflip::Cfg<2, false, true, 3, false, 256, true, true, true, 1, true, true>;
-using S_l4p      = qflip::Cfg<2, false, true, 4, false, 256, true, true, true, 1, true, true>;
-using S_l5p      = qflip::Cfg<2, false, true, 5, false, 256, true, true, true, 1, true, true>;
+using S_l6       = qflip::Cfg<2, false, true, 6, false, 256, true, true, true, 1, true>;
+using S_l7       = qflip::Cfg<2, false, true, 7, false, 256, true, true, true, 1, true>;
+using S_l8       = qflip::Cfg<2, false, true, 8, false, 256, true, true, true, 1, true>;
 }  // namespace cand
 
 #define CANDIDATE_ENTRIES \
@@ -42,6 +43,7 @@ inline void lc_invoke(int n, uint32_t* a, uint32_t* b, uint32_t* r, uint32_t* ir
     {"s_ns_olb", cand::flip_invoke<cand::S_ns_olb>}, \
     {"s_ns_olbp", cand::flip_invoke<cand::S_ns_olbp>}, \
     {"s_l3p", cand::flip_invoke<cand::S_l3p>}, \
-    {"s_l4p", cand::flip_invoke<cand::S_l4p>}, \
-    {"s_l5p", cand::flip_invoke<cand::S_l5p>}, \
+    {"s_l6", cand::flip_invoke<cand::S_l6>}, \
+    {"s_l7", cand::flip_invoke<cand::S_l7>}, \
+    {"s_l8", cand::flip_invoke<cand::S_l8>}, \
     {"s_ns_olb_lc", cand::lc_invoke},
