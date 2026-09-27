@@ -8,25 +8,25 @@
 set -euo pipefail
 CXX=${1:-g++}; OUT=${2:-results}; export ONLY=${3:-${ONLY:-}}
 HERE=$(cd "$(dirname "$0")" && pwd)
-mkdir -p "$OUT"
+mkdir -p "$OUT"; BIN=$(mktemp -d)   # binaries stay out of the uploaded results
 COMMON=(-O2 -std=c++23 -DEVAL -DONLINE_JUDGE)
 { lscpu || true; "$CXX" --version; echo "ONLY=$ONLY"; } > "$OUT/environment.txt"
 sha256sum "$HERE"/bench.cpp "$HERE"/entries.inc "$HERE"/baselines/*.hpp "$HERE"/kernels/*.hpp > "$OUT/source-hashes.txt"
 for prof in lc znver3; do
   if [ $prof = lc ]; then ARCH=(-march=native); else ARCH=(-march=znver3); fi
-  cmd=("$CXX" "${COMMON[@]}" "${ARCH[@]}" -I"$HERE" "$HERE/bench.cpp" -o "$OUT/bench-$prof")
+  cmd=("$CXX" "${COMMON[@]}" "${ARCH[@]}" -I"$HERE" "$HERE/bench.cpp" -o "$BIN/bench-$prof")
   echo "${cmd[*]}" >> "$OUT/flags.txt"
   "${cmd[@]}"
 done
-"$OUT/bench-lc" check 22 > "$OUT/check-lc.txt"; tail -1 "$OUT/check-lc.txt"
+"$BIN/bench-lc" check 22 > "$OUT/check-lc.txt"; tail -1 "$OUT/check-lc.txt"
 grep -q "ALL CHECKS PASSED" "$OUT/check-lc.txt"
 if grep -qw avx2 /proc/cpuinfo && grep -qi 'AuthenticAMD' /proc/cpuinfo; then
-  "$OUT/bench-znver3" check 20 > "$OUT/check-znver3.txt"; grep -q "ALL CHECKS PASSED" "$OUT/check-znver3.txt"
+  "$BIN/bench-znver3" check 20 > "$OUT/check-znver3.txt"; grep -q "ALL CHECKS PASSED" "$OUT/check-znver3.txt"
 fi
 for round in 1 2 3; do
   for prof in lc znver3; do
     [ $prof = znver3 ] && ! grep -qi 'AuthenticAMD' /proc/cpuinfo && continue
-    "$OUT/bench-$prof" time 21 ${REPS:-11} ${MODE:-2} ${MINLOG:-19} > "$OUT/time-$prof-$round.csv"
+    "$BIN/bench-$prof" time 21 ${REPS:-11} ${MODE:-2} ${MINLOG:-19} > "$OUT/time-$prof-$round.csv"
   done
 done
 grep ',20,' "$OUT"/time-*.csv | cut -d, -f1-7
