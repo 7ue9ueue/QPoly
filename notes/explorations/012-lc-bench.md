@@ -29,9 +29,9 @@ times also include I/O (about half of the 16 ms / 23 ms).
 
 ## Findings (run 36324984251, three jobs)
 
-- EPYC 7763 (2 jobs, agree within ~1%): ours is **1.49–1.61× faster than 393435** at every
+- EPYC 7763 (2 jobs, agree within ~1%): ours is **1.48–1.61× faster than 393435** at every
   size 2^10..2^22 (2^20: 5.12 vs 7.78 ms), 1.91–2.77× faster than simd-v0, 16–23× faster than KACTL.
 - Xeon Platinum 8573C (1 job): ours vs 393435 **1.20–1.33×** (2^20: 6.30 vs 7.60 ms), vs simd-v0
-  1.66–2.48×. The Shoup kernel's lead is smaller on Intel, as in exploration 008.
+  1.64–2.48×. The Shoup kernel's lead is smaller on Intel, as in exploration 008.
 - simd-v0 → ours is ~1.9–2.0× at 2^18..2^22 on Zen 3; the gain is larger at small n (2.7× at 2^10).
 - Noise: row spread (worst IQR/median) ≤ 4.2% on EPYC; Intel 2^21/2^22 rows 10–18%, driven by KACTL.
