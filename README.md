@@ -2,6 +2,15 @@
 
 This is my NTT optimization showcase project. I am still actively working on it.
 
+## Update
+
+The original implementation below was developed mostly by hand. Inspired by recent advances in AI coding, I have revisited the project to explore further optimization with AI assistance. These new implementations are in separate branches and have not yet been merged.
+
+As of September 27, 2026, the AI-assisted versions rank **#1 by execution time** on Library Checker for both:
+
+- [Convolution](https://judge.yosupo.jp/submissions/?problem=convolution_mod&order=%2Btime&status=AC), 16 ms
+- [Convolution (Large)](https://judge.yosupo.jp/submissions/?problem=convolution_mod_large&order=%2Btime&status=AC), 454 ms
+
 ## My implementation
 
 My core authored path is the `ntt_{date}_{version}.cpp` progression in `cp/`, where I iteratively optimized the same NTT pipeline:
