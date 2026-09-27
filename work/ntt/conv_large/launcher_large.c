@@ -167,8 +167,15 @@ int main(int argc, char** argv) {
                 if (err_size && !strncmp(err, "compute_ms=", 11)) err_size = 0;  // Shoup file's own timer.
                 if (err_size) {
                     if (sscanf(err, "QP %lld %lld %lld %lld %lld %lld", &marks[0], &marks[1], &marks[2],
-                               &marks[3], &marks[4], &marks[5]) != 6) fail("unexpected stderr", variant_name[k]);
-                    for (int i = 0; i < 5; ++i) marks[i] -= begin;
+                               &marks[3], &marks[4], &marks[5]) == 6) {
+                        for (int i = 0; i < 5; ++i) marks[i] -= begin;
+                    } else {  // A reference program's own diagnostics: log once, keep marks zero.
+                        memset(marks, 0, sizeof marks);
+                        if (rep == -warmups) {
+                            for (char* q = err; *q; ++q) if (*q == '\n') *q = ' ';
+                            printf("stderr %s %s: %.200s\n", variant_name[k], case_name[c], err);
+                        }
+                    }
                 }
                 free(err);
                 if (rep >= 0)

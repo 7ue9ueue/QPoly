@@ -2,8 +2,9 @@
 # Judge-like end-to-end runs for convolution_mod_large on a GitHub-hosted x64 runner.
 # usage: run_e2e.sh RESULT_DIR
 # Env: CASES_LIST (comma list of official case names), VARIANTS ("name:FLAGS;..." built from
-# solve_main.cpp), REFS (judge submission ids fetched at run time, not stored), REPS (5),
-# THP_MODES ("madvise always"), CPU (default last CPU).
+# solve_main.cpp), STANDALONE ("name:MAKE_ARGS;..." single files from make_submission.py, built
+# exactly as the judge builds main.cpp), REFS (judge submission ids fetched at run time, not
+# stored), REPS (5), THP_MODES ("madvise always"), CPU (default last CPU).
 # Mirrors work/ntt/io_yosupo/run.sh: official cases on host tmpfs (/dev/shm), exact judge
 # compile command in the pinned gcc:15.2.0 image, solutions launched by an equivalent of
 # library-checker-init inside a container with the judge's limits (1024m memory+swap,
@@ -41,6 +42,11 @@ for v in "${VARS[@]}"; do
   name=${v%%:*}; flags=${v#*:}
   echo "variant $name flags $flags" >> "$RESULTS/manifest.txt"
 done
+IFS=';' read -ra STANDS <<< "${STANDALONE:-}"
+for v in "${STANDS[@]}"; do
+  name=${v%%:*}; margs=${v#*:}
+  python3 "$HERE/make_submission.py" $margs --out "$BUILD/src/$name.cpp" | tee -a "$RESULTS/manifest.txt"
+done
 for id in $REFS; do
   curl -fsSL "https://v3.api.judge.yosupo.jp/submissions/$id" | python3 -c \
     "import json,sys; d=json.load(sys.stdin); open('$BUILD/src/ref$id.cpp','w').write(d['source'])"
@@ -49,7 +55,8 @@ done
 find "$HERE" -maxdepth 1 -type f | sort | xargs sha256sum > "$RESULTS/harness-sha256.txt"
 
 FLAGS='-O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native'
-docker run --rm -v "$BUILD":/build -v "$ROOT/work/ntt":/ntt:ro -e FLAGS="$FLAGS" -e VARIANTS="$VARIANTS" -e REFS="$REFS" "$IMAGE" bash -euc '
+standalone=$(for v in "${STANDS[@]}"; do echo -n "${v%%:*} "; done)
+docker run --rm -v "$BUILD":/build -v "$ROOT/work/ntt":/ntt:ro -e FLAGS="$FLAGS" -e VARIANTS="$VARIANTS" -e REFS="$REFS" -e STANDALONE_NAMES="$standalone" "$IMAGE" bash -euc '
   cd /build; g++ --version | head -1 > bin/compiler.txt; echo "$FLAGS" >> bin/compiler.txt
   gcc -O2 -static /ntt/conv_large/init.c -o bin/init
   gcc -O2 /ntt/conv_large/launcher_large.c -o bin/launcher
@@ -63,9 +70,14 @@ docker run --rm -v "$BUILD":/build -v "$ROOT/work/ntt":/ntt:ro -e FLAGS="$FLAGS"
   for id in $REFS; do
     mkdir -p judge/ref$id; cp src/ref$id.cpp judge/ref$id/main.cpp
     (cd judge/ref$id && g++ $FLAGS -o main main.cpp -I /opt/ac-library) && cp judge/ref$id/main bin/ref$id
+  done
+  for name in $STANDALONE_NAMES; do
+    mkdir -p judge/$name; cp src/$name.cpp judge/$name/main.cpp
+    (cd judge/$name && g++ $FLAGS -o main main.cpp -I /opt/ac-library) && cp judge/$name/main bin/$name
   done'
 cp "$BUILD/bin/compiler.txt" "$RESULTS/"
 ours=$(for v in "${VARS[@]}"; do echo -n "${v%%:*} "; done)
+ours_all="$ours $standalone"
 refs=$(for id in $REFS; do echo -n "ref$id "; done)
 
 LIMITS=(--init --net=none --log-driver=none --memory=1024m --memory-swap=1024m
@@ -84,10 +96,10 @@ for c in json.load(open('$CASES/cases.json'))['cases']:
     | tee -a "$RESULTS/checks.txt"
 }
 # Correctness: every build on every generated case (exact bytes vs hash-verified output).
-launch correctness 1 0 "$ours $refs $(for v in $ours; do echo -n "${v}_phases "; done)" 'True'
+launch correctness 1 0 "$ours_all $refs $(for v in $ours; do echo -n "${v}_phases "; done)" 'True'
 for mode in ${THP_MODES:-madvise always}; do
   set_thp "$mode"
-  launch "timing-$mode" "${REPS:-5}" 1 "$ours $refs" 'True'
+  launch "timing-$mode" "${REPS:-5}" 1 "$ours_all $refs" 'True'
   launch "phases-$mode" 3 1 "$(for v in $ours; do echo -n "${v}_phases "; done)" 'True'
 done
 set_thp always
