@@ -542,7 +542,10 @@ struct Kernel {
         if (__builtin_ctz(unsigned(nv)) & 1) {
             const int h = nv / 2;
             auto top = [&](V* f, bool zero_upper) {
-                if (zero_upper) for (int i = 0; i < h; ++i) { V x = seed(f[i], i); f[i] = x; f[i + h] = x; }
+                if (zero_upper) {
+                    if constexpr (C::Flip) for (int i = 0; i < h; ++i) { V x = seed(f[i], i); f[i] = x; f[i + h] = x; }
+                    else for (int i = 0; i < h; ++i) f[i + h] = f[i];   // lower half already final
+                }
                 else for (int i = 0; i < h; ++i) {
                     V x = f[i], y = f[i + h];
                     f[i] = seed(low(plus(x, y)), i); f[i + h] = seed(low(diff(x, y)), i);

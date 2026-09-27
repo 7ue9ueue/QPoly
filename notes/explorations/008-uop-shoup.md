@@ -70,8 +70,11 @@ on N=M=2^19 (`run_yosupo.sh`). Raw data: [results](../results/ntt-uop-native/REA
 | + LdOdd (s_ns_ol) | 5.51–5.56 | 0.834–0.848 |
 | + Blk tables (s_ns_olb, 36282928940) / + Pipe (s_ns_olbp) | 5.49–5.56 | 0.833–0.841 |
 
-About 14.5% less time than the record holder and 16% less than the previous
-submission kernel, measured in the same processes. Rewrite control `f_nm`
+About 14.5% less time than the record holder compiled with our harness pragma
+(`O3,unroll-loops`) and 16% less than the previous submission kernel, measured in
+the same processes. The record holder is ~3% faster without that pragma (as it was
+submitted): 6.26–6.27 ms in run 36285228524, so the fair kernel margin is ~12.3%.
+The end-to-end submission comparison below builds it exactly as submitted. Rewrite control `f_nm`
 matched h14 exactly (1.000), so gains are attributable.
 
 Other CPUs: Zen 4/5 (EPYC 9V74/9V45) show the same ordering (best 0.823–0.83);
@@ -93,7 +96,15 @@ Per-phase cycles (micro.cpp, 7763, 3.2 GHz): radix-4 butterfly ~16 (µop floor
 ~12.5–13.3), leaf ~25 per vector (~23 pipelined; floor ~17), whole 2^20 run ≈136
 cycles/vector: seven radix-4 levels ≈84, bottom (h=1 + leaf) ≈39, top/scale ≈9.
 
+Optimization pragmas (run 36285228524, 7763, 2^20): O3 alone equals the default
+O3+unroll-loops; plain -O2 is 10% slower for our kernel; adding pre-RA scheduling
+(`schedule-insns,sched-pressure`) costs 3–4% on Zen 3 but helps Intel 6973P (−2%).
+
 ## Unsuccessful or neutral
+
+- Leaf windows built in registers with vpalignr/vperm2i128 (run 36285017214):
+  4–9% slower on Zen 3 — the shuffles compete for the same pipes, more than the
+  store-forwarding stalls they remove.
 
 - Leaf odd-lane reuse via extra loads (Leaf 1/2), via register reuse one leaf at a
   time (3) or interleaved (4/5): worse on Zen 3 (up to +3%); 3 helps Zen 4/5.
