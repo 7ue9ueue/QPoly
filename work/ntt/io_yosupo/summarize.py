@@ -16,17 +16,17 @@ def emit(text=''):
     lines.append(text)
 
 
-for job in sorted({p.parent for p in root.rglob('timing-cold.csv')} | {p.parent for p in root.rglob('phases.csv')}):
+for job in sorted({p.parent for pattern in ('timing-*.csv', 'phases.csv', 'replica.csv')
+                   for p in root.rglob(pattern)}):
     env = (job / 'environment.txt').read_text() if (job / 'environment.txt').exists() else ''
     cpu = next((l.split(':', 1)[1].strip() for l in env.splitlines() if l.startswith('Model name')), '?')
     thp = [l for l in env.splitlines() if l.startswith('thp ')]
     cases = {c['case']: c for c in json.loads((job / 'cases.json').read_text())['cases']}
     full = {name for name, c in cases.items() if c['n'] == c['m'] == 1 << 19}
     emit(f'## {job.relative_to(root.parent)} | {cpu} | {"; ".join(thp)}')
-    for mode in ('timing-cold', 'timing-warm'):
-        path = job / (mode + '.csv')
-        if not path.exists():
-            continue
+    emit('Timing files are named by the THP "enabled" mode set for that pass.')
+    for path in sorted(job.glob('timing-*.csv')):
+        mode = path.stem
         runs = {}
         for row in csv.DictReader(path.open()):
             runs.setdefault((row['case'], row['variant']), []).append(row)

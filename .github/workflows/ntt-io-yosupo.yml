@@ -8,17 +8,19 @@ on:
             .github/workflows/ntt-io-yosupo.yml]
 permissions:
   contents: read
+env:
+  VARIANTS: base,sse_short,sse_short_ob16k,sse_short_ob32k,sse_short_ob64k,sse_short_prefault,sse_short_thp,pquad,favx,favx_ob64k,io_all,io_all_prefault,io_all_thp
 jobs:
   judge-like:
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         sample: [1, 2]
     steps:
       - uses: actions/checkout@v4
-      - name: Correctness, timing and judge replica
+      - name: Correctness, timing per THP mode, phase breakdown
         run: bash work/ntt/io_yosupo/run.sh results
       - uses: actions/upload-artifact@v4
         if: always()
@@ -26,14 +28,46 @@ jobs:
           name: io-yosupo-${{ matrix.sample }}
           path: results/
           retention-days: 7
+  replica:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Judge Docker configuration (crun 1.15, cgroupfs driver)
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/crun https://github.com/containers/crun/releases/download/1.15/crun-1.15-linux-amd64
+          sudo chmod +x /usr/local/bin/crun
+          sudo python3 - <<'EOF'
+          import json, pathlib
+          path = pathlib.Path('/etc/docker/daemon.json')
+          config = json.loads(path.read_text()) if path.exists() else {}
+          config.update({'default-runtime': 'crun', 'exec-opts': ['native.cgroupdriver=cgroupfs'],
+                         'runtimes': {'crun': {'path': '/usr/local/bin/crun'}}})
+          path.write_text(json.dumps(config))
+          EOF
+          sudo systemctl restart docker
+          docker info --format '{{.DefaultRuntime}} {{.CgroupDriver}}'
+      - name: Judge-method polling replica
+        env:
+          PASSES: correctness replica
+          VARIANTS: base,sse_short,io_all,io_all_thp
+          REPLICA_VARIANTS: base,sse_short,io_all,io_all_thp
+        run: bash work/ntt/io_yosupo/run.sh results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: io-yosupo-replica
+          path: results/
+          retention-days: 7
   sanitize:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: ASan/UBSan on official cases and edge-case suite
+      - name: ASan/UBSan unit, official cases and edge-case suite
         env:
           SANITIZE: '1'
+          PASSES: correctness
         run: bash work/ntt/io_yosupo/run.sh results
       - uses: actions/upload-artifact@v4
         if: always()

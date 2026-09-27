@@ -95,6 +95,7 @@ VARIANTS = {
     'sse_short_prefault': ('sse_short', [prefault]),
     'sse_short_thp': ('sse_short', [huge_pages]),
 }
+PHASES = ['base', 'sse_short', 'sse_short_prefault']
 extra = here / 'extra_variants.py'
 if extra.exists():  # Later rounds register parser/formatter variants here.
     exec(compile(extra.read_text(), str(extra), 'exec'))
@@ -125,7 +126,6 @@ namespace kernel_asm_radix4_pair_large_fixed {''')
 ''')
 
 
-PHASES = ['base', 'sse_short', 'sse_short_prefault']
 selected = sys.argv[2].split(',') if len(sys.argv) > 2 else list(VARIANTS)
 manifest = {}
 for name in selected:
