@@ -6,10 +6,12 @@
 //             2: qp_parse_tail8 (8-token steps; needs QI_INPUT 1)
 //             3: qp_parse_ms, 8 lockstep streams per 32 KiB chunk (parse_ms.inc)   4: 4 streams
 //             5: qp_parse_ms2, 4 streams x 2 tokens per step, QI_CHUNK-byte chunks (parse_ms2.inc)
+//             6: qp_parse_ms3 (parse_ms3.inc), QI_STREAMS (4 or 8) streams, QI_CHUNK-byte chunks
 //   QI_FMT    0: exploration-007 table writer (variable width, 64 KiB buffer)
 //             1: fixed-width AVX2 writer (fmt_fixed.inc eight(): 10 bytes per value, space padded)
 //             2: fmt_fixed.inc blocks<1> (a from x directly)   3: blocks<2> (two blocks interleaved)
 //             4: blocks<4> (four blocks interleaved)   5: blocks3<4> (SWAR BCD groups, fmt_fixed.inc)
+//             6: blocks3<2>
 //   QI_OBUF   output buffer bytes for the fixed writers (default 64000; a multiple of 80 * G)
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
 #if defined(__GNUC__) && !defined(__clang__)
@@ -21,6 +23,7 @@
 #include "parse_tail.inc"
 #include "parse_ms.inc"
 #include "parse_ms2.inc"
+#include "parse_ms3.inc"
 #include "fmt_fixed.inc"
 #include <time.h>
 
@@ -35,6 +38,9 @@
 #endif
 #ifndef QI_CHUNK
 #define QI_CHUNK 65536
+#endif
+#ifndef QI_STREAMS
+#define QI_STREAMS 4
 #endif
 #ifndef QI_OBUF
 #define QI_OBUF 64000
@@ -147,7 +153,11 @@ int main() {
     const size_t len = size_t(1) << lg, arr = len + 16, tab = (qlarge::table_words(lg) + 15) & ~size_t(15);
     uint32_t* const a = lg >= 23 ? lazy_arena(2 * arr + 2 * tab) : arena(2 * arr + 2 * tab);
     uint32_t *const b = a + arr, *const roots = b + arr, *const iroots = roots + tab;
-#if QI_PARSE == 5
+#if QI_PARSE == 6
+    constexpr auto parse = qp_parse_ms3::parse_tokens<QI_STREAMS, QI_CHUNK, qp_parse_flat::parse_tokens>;
+    input_cursor = parse(input_cursor, a, n);
+    input_cursor = parse(input_cursor, b, m);
+#elif QI_PARSE == 5
     constexpr auto parse = qp_parse_ms2::parse_tokens<QI_CHUNK, qp_parse_flat::parse_tokens>;
     input_cursor = parse(input_cursor, a, n);
     input_cursor = parse(input_cursor, b, m);
@@ -188,9 +198,13 @@ int main() {
         c += 320;
         if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }
-#elif QI_FMT == 3
+#elif QI_FMT == 3 || QI_FMT == 6
     for (; i + 16 <= count; i += 16) {
+#if QI_FMT == 6
+        qp_fixed::blocks3<2>(a + i, c);
+#else
         qp_fixed::blocks<2>(a + i, c);
+#endif
         c += 160;
         if (c >= obuf + QI_OBUF) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }
@@ -198,6 +212,8 @@ int main() {
     for (; i + 8 <= count; i += 8) {   // a block reads 8 values
 #if QI_FMT == 1
         qp_fixed::eight(a + i, c);
+#elif QI_FMT >= 5
+        qp_fixed::blocks3<1>(a + i, c);
 #else
         qp_fixed::blocks<1>(a + i, c);
 #endif
