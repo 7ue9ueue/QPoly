@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
                     for (int i = 0; i < 256 * 8 + 16; ++i) { a1[i] = a2[i] = pick(4 * P); b1[i] = b2[i] = pick(4 * P); }
                     Kernel<CA> k1(T, IT);
                     k1.leaves((V*)a1, (V*)b1, 256, first);
-                    bottom_dispatch(std::make_integer_sequence<int, 64>{}, v, T, IT, (V*)a2, (V*)b2, first);
+                    bottom_dispatch(std::make_integer_sequence<int, 96>{}, v, T, IT, (V*)a2, (V*)b2, first);
                     for (int i = 0; i < 256 * 8; ++i) {
                         // the k = 0 batch uses a generic multiply by 1: equal mod P, both < 2P
                         const bool exact = !(first == 0 && i < 32);
@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
                     ++checks;
                 }
             }
-            static_assert(64 > 40, "dispatch range must cover every generated bottom id");
+            static_assert(96 > 87, "dispatch range must cover every generated bottom id");
             std::printf("PASS bottom variant %d\n", v);
         }
     }

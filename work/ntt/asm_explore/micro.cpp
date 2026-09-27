@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
         SCALE = saved_scale;
         std::free(fa); std::free(fb); std::free(fr); std::free(fir);
     }
-    bottoms(std::make_integer_sequence<int, 64>{});
+    bottoms(std::make_integer_sequence<int, 96>{});
     phases<Q<0, 0, 0>>("q_f0i0l0");
     phases<Q<11, 71, 5, 4>>("q_f11i71l5m4");
     phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 3>>("q_f11i71b3");

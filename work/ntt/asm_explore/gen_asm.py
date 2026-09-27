@@ -590,6 +590,12 @@ for _base, (_strategy, _count, _fold, _twmem) in ((20, ('ls', 1, True, False)), 
         AUTOTUNE.append((_base + _k, _strategy, _count, _fold, _twmem,
                          (1 + _k * 7 + _base, _r.choice([0, 1, 2, 3, 4]), _r.choice([0.0, 2.0, 4.0, 8.0]),
                           _r.choice([8, 10, 12, 16]), _r.choice([2, 3]), None)))
+# round 9: 24 more fixed-knob variants of the best loop family (2 butterflies, quotients in registers)
+_r9 = _random.Random(2030)
+for _k in range(24):
+    AUTOTUNE.append((260 + _k, 'ls', 2, True, 'half',
+                     (_r9.randrange(1000, 100000), _r9.choice([0, 1, 2, 3, 4]), _r9.choice([0.0, 1.0, 2.0, 4.0, 8.0]),
+                      _r9.choice([8, 10, 12, 16]), _r9.choice([2, 3]), None)))
 # round 5: windowed schedules (window = instructions of lookahead in source order)
 _r = _random.Random(2027)
 for _base, (_strategy, _count, _fold, _twmem) in ((160, ('sp', 1, True, 'half')), (180, ('sp', 2, True, True)),
@@ -964,6 +970,11 @@ _rb = _random.Random(2028)
 for _k in range(16):
     BOTTOM_AUTOTUNE.append((20 + _k, _rb.choice([0.0, 0.05, 0.1, 0.15, -0.05]), _rb.choice([8, 10, 12, 14, 16]),
                             _rb.randrange(1, 1000), _rb.choice([0, 1, 2, 3, 4])))
+# round 9: 48 more near the best round-6 knobs (b23: shift -0.05, window 12, margin 0)
+_rb = _random.Random(2029)
+for _k in range(48):
+    BOTTOM_AUTOTUNE.append((40 + _k, _rb.choice([-0.1, -0.075, -0.05, -0.025, 0.0]), _rb.choice([10, 12, 12, 14]),
+                            _rb.randrange(1000, 100000), _rb.choice([0, 0, 1, 2])))
 
 
 def emit_bottom(args, head):
