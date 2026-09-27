@@ -145,8 +145,12 @@ inline constexpr Constants constants{};
 // bytes past the end of the array).
 template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true,
          bool Opq_ = false, bool LdOdd_ = false, int Il_ = 1, bool Blk_ = false, bool Pipe_ = false,
-         int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0, int AsmMinH_ = 4>
+         int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0, int AsmMinH_ = 4, int AsmBottom_ = 0>
 struct Cfg {
+    // Fused assembly bottom stage (kernels/asm_bottom.inc, gen_asm.py BOTTOM_VARIANTS; 0 = C++):
+    // forward h=1 butterflies + leaf build of batch j+1 with leaf products + inverse h=1 of batch j.
+    static constexpr int AsmBottom = AsmBottom_;
+    static_assert(AsmBottom_ == 0 || (Mul_ == 2 && Blk_ && Pair_ && Aux_ && Pipe_ && !Flip_ && Leaf_ == 0));
     static constexpr int AsmMinH = AsmMinH_;   // asm loops only for groups with h >= AsmMinH
     // Generated asm loop variants (kernels/asm_bfly.inc numbering; 0 = C++) for
     // non-identity groups with h >= 4, and the leaf assembly variant (0 = C++).
@@ -173,6 +177,7 @@ struct Twiddle { Fixed x, y, z; };
 alignas(4) inline const U asm_const_P = P, asm_const_P2 = P2, asm_const_NI = NI;
 #include "asm_bfly.inc"
 #include "asm_leaf.inc"
+#include "asm_bottom.inc"
 
 // Forward Cooley-Tukey radix-4 on f[j + t*h], t=0..3, j<h (inputs/outputs < 4P):
 //   A=a+x*c, C=a-x*c, B=b+x*d, D=b-x*d; out = A+y*B, A-y*B, C+z*D, C-z*D.
@@ -479,6 +484,26 @@ struct Kernel {
         _mm_store_si128((__m128i*)w, wv);
     }
     QA_AI void leaves(V* a, V* b, int nv, int first) {
+        if constexpr (C::AsmBottom != 0) {
+            static_assert(asm_bottom_has(C::AsmBottom), "bottom asm variant not generated");
+            LeafBuf64 L[2];
+            alignas(32) U lw[2][8];   // leaf weights w[4] (normal form) then quotients wi[4]
+            const int k0 = first / 4;
+            leaf_weights(k0, lw[0], lw[0] + 4);
+            bottom_s1(C::AsmBottom, a, b, &L[0], rt + blk(k0), rt + blk(2 * k0), lw[0]);
+            for (int j = 0; j < nv; j += 4) {
+                const int cur = (j >> 2) & 1, kc = (first + j) / 4;
+                if (j + 4 < nv) {
+                    const int kn = (first + j + 4) / 4;
+                    leaf_weights(kn, lw[cur ^ 1], lw[cur ^ 1] + 4);
+                    bottom_s12(C::AsmBottom, a + j + 4, b + j + 4, &L[cur ^ 1], rt + blk(kn), rt + blk(2 * kn), lw[cur ^ 1],
+                               a + j, &L[cur], irt + blk(kc), irt + blk(2 * kc));
+                } else {
+                    bottom_s2(C::AsmBottom, a + j, &L[cur], irt + blk(kc), irt + blk(2 * kc));
+                }
+            }
+            return;
+        }
         if constexpr (C::Pipe && C::Leaf < 6) {
             static_assert(C::Pair);
             std::conditional_t<(C::AsmLeaf >= 1), LeafBuf64, LeafBuf> L[2];

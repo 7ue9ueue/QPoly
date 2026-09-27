@@ -42,10 +42,11 @@ import tempfile
 
 # Zen 3 model (uops.info; probe.cpp re-measures the uncertain entries).
 LAT = {'vpmuludq': 3, 'vpmulld': 3, 'vpsrlq': 1, 'vpaddd': 1, 'vpsubd': 1,
-       'vpminud': 1, 'vpblendd': 1}
+       'vpminud': 1, 'vpblendd': 1, 'vpaddq': 1}
 CLS = {'vpmuludq': 'mul', 'vpmulld': 'mul', 'vpsrlq': 'shf', 'vpaddd': 'alu',
-       'vpsubd': 'alu', 'vpminud': 'alu', 'vpblendd': 'alu'}
-COMMUTATIVE = {'vpaddd', 'vpminud', 'vpmuludq', 'vpmulld'}
+       'vpsubd': 'alu', 'vpminud': 'alu', 'vpblendd': 'alu', 'vpaddq': 'alu'}
+COMMUTATIVE = {'vpaddd', 'vpminud', 'vpmuludq', 'vpmulld', 'vpaddq'}
+LOADS = ('vmovdqa', 'vmovdqu', 'vbroadcastss')
 LOAD_LAT = 8
 
 
@@ -83,9 +84,30 @@ class Builder:
     def __init__(self, consts, fold, tag, disp, bank=0):
         self.ops, self.c, self.fold, self.tag, self.disp = [], consts, fold, tag, disp
         self.bank = bank   # 0: array at %[p], 1: array at %[q] (forward "ab" variants)
-        self.loaded = {}   # data mem Val id -> register Val
+        self.share_bcast = True   # one broadcast per (base, disp) per builder
+        self.loaded = {}          # data mem Val id (or broadcast key) -> register Val
+
+    def at(self, name, base, disp, fold=None):
+        """Vector at disp(%[base]) (bottom stage)."""
+        v = Val('mem', f'{name}{self.tag}', mem=(base, disp))
+        return v if (self.fold if fold is None else fold) else self.materialize(v)
+
+    def scalar(self, name, base, disp):
+        return Val('bmem', f'{name}{self.tag}', mem=(base, disp))
+
+    def store_at(self, v, base, disp):
+        self.ops.append(Op('vmovdqa', None, [v], store=(base, disp)))
 
     def materialize(self, v):
+        if v.kind == 'bmem':          # scalar in memory, broadcast to all lanes
+            key = ('b',) + v.mem
+            if self.share_bcast and key in self.loaded:
+                return self.loaded[key]
+            d = Val('reg', v.name + 'r')
+            self.ops.append(Op('vbroadcastss', d, [v]))
+            if self.share_bcast:
+                self.loaded[key] = d
+            return d
         if v.kind != 'mem':
             return v
         if v.id not in self.loaded:
@@ -100,7 +122,7 @@ class Builder:
         return v if self.fold else self.materialize(v)
 
     def op(self, mn, name, *srcs, imm=None):
-        srcs = [self.loaded.get(s.id, s) for s in srcs]
+        srcs = [self.materialize(s) if s.kind == 'bmem' else self.loaded.get(s.id, s) for s in srcs]
         if mn == 'vpsubd' or mn == 'vpblendd':
             srcs[0] = self.materialize(srcs[0])      # only the second source may be memory
             if srcs[0].kind == 'cmem':
@@ -212,7 +234,7 @@ def butterflies(kind, count, fold, twmem, tag, disp0=0, ab=False):
 def op_class(o):
     if o.store is not None:
         return 'st'
-    if o.mn in ('vmovdqa', 'vmovdqu'):
+    if o.mn in LOADS:
         return 'ld'
     return CLS[o.mn]
 
@@ -275,7 +297,7 @@ def list_schedule(ops, extra_deps=(), loads_per_cycle=2, budget=None, pinned=(),
     return order
 
 
-SEARCH = {'rng': None, 'margin': 0, 'noise': 0.0, 'load_lat': LOAD_LAT, 'lpc': 2}   # set by generate()
+SEARCH = {'rng': None, 'margin': 0, 'noise': 0.0, 'load_lat': LOAD_LAT, 'lpc': 2, 'window': None}   # set by generate()
 
 
 def _pressure_schedule(ops, extra_deps, loads_per_cycle, budget, pinned, live_out):
@@ -315,7 +337,9 @@ def _pressure_schedule(ops, extra_deps, loads_per_cycle, budget, pinned, live_ou
     stall = 0
     while remaining:
         cap = {'mul': 2, 'shf': 2, 'fp': 4, 'ld': loads_per_cycle, 'st': 1}
-        ready = [o for o in remaining if all(id(p) in finish and finish[id(p)] <= cycle for p in preds[id(o)])]
+        window = SEARCH['window']
+        cand = remaining[:window] if window else remaining
+        ready = [o for o in cand if all(id(p) in finish and finish[id(p)] <= cycle for p in preds[id(o)])]
         def key(o):
             dying, new = delta(o)
             grow = new - dying > 0 and live - dying + new > budget - margin
@@ -404,8 +428,10 @@ SLOT = {0: '(%[p])', 1: '(%[p],%[H])', 2: '(%[p],%[H],2)', 3: '(%[p],%[H3])',
 
 
 def operand(v, assign):
-    if v.kind == 'mem':
+    if v.kind in ('mem', 'bmem'):
         slot, disp = v.mem
+        if isinstance(slot, str):
+            return f'{disp}(%[{slot}])'
         return (str(disp) if disp else '') + SLOT[slot]
     if v.kind == 'cmem':
         return f'{v.mem[1]}(%[tw])'
@@ -416,10 +442,9 @@ def operand(v, assign):
 
 def emit(o, assign):
     if o.store is not None:
-        slot, disp = o.store
-        return f'vmovdqa {operand(o.srcs[0], assign)}, {(str(disp) if disp else "") + SLOT[slot]}'
+        return f'vmovdqa {operand(o.srcs[0], assign)}, {operand(Val("mem", "st", mem=o.store), assign)}'
     d = f'%%ymm{assign[o.dst.id]}'
-    if o.mn in ('vmovdqa', 'vmovdqu'):
+    if o.mn in LOADS:
         return f'{o.mn} {operand(o.srcs[0], assign)}, {d}'
     if o.mn == 'vpsrlq':
         return f'vpsrlq ${o.imm}, {operand(o.srcs[0], assign)}, {d}'
@@ -591,7 +616,9 @@ def mca(lines, cpu='znver3'):
     exe = '/opt/homebrew/opt/llvm/bin/llvm-mca'
     if not os.path.exists(exe):
         return None
-    sub = {'%[p]': '%rdi', '%[q]': '%r8', '%[H3]': '%rcx', '%[H]': '%rsi', '%[tw]': '%rdx', '%%': '%'}
+    sub = {'%[p]': '%rdi', '%[q]': '%r8', '%[H3]': '%rcx', '%[H]': '%rsi', '%[tw]': '%rdx', '%%': '%',
+           '%[an]': '%rdi', '%[bn]': '%rsi', '%[Ln]': '%rdx', '%[px]': '%rcx', '%[py]': '%r8', '%[lw]': '%r9',
+           '%[ac]': '%r10', '%[Lc]': '%r11', '%[ipx]': '%rbx', '%[ipy]': '%rbp'}
     txt = []
     for x in lines:
         for k, v in sub.items():
@@ -708,6 +735,181 @@ def leaf_function(vid, form, bc, group):
     return '\n'.join(L), body
 
 
+
+
+# ----------------------------------------------------------- fused bottom
+# One call handles a batch of four vectors (two leaves' worth of lanes x 4):
+#   stage 1 (next batch, pointers an/bn): forward radix-4 butterflies at h=1 on a
+#     and b with twiddles (px, py), outputs kept in registers; window rows
+#     [shrink(w_t*canonical(A_t)), canonical(A_t)] and coefficients canonical(B_t)
+#     stored to the leaf buffer Ln (layout of qasm::LeafBuf); lw = {w[4], wi[4]}.
+#   stage 2 (current batch, pointers ac/Lc): leaf products in load-reuse form,
+#     Montgomery REDC, low(), inverse radix-4 butterfly at h=1 with twiddles
+#     (ipx, ipy) in registers, four stores to ac.
+# Arithmetic equals qasm leaf_build / leaf_mac / fwd4 / inv4 except that the
+# identity group k = 0 is multiplied by the table entry for 1 (w = 1, wi = 4):
+# same residues, possibly different representatives, all within range.
+def fwd_h1(b, base):
+    tw = {n: b.scalar(n.lower(), src, d) for n, src, d in
+          (('WX', 'px', 0), ('WIX', 'px', 32), ('WY', 'py', 0), ('WIY', 'py', 32), ('WZ', 'py', 4), ('WIZ', 'py', 36))}
+    f = [b.at(f'{base}{t}', base, 32 * t) for t in range(4)]
+    f2o, f3o = b.at(f'{base}2o', base, 68), b.at(f'{base}3o', base, 100)
+    a = b.low(f[0], f'{base}a'); bb = b.low(f[1], f'{base}b')
+    cc = b.shoup(f[2], f2o, tw['WX'], tw['WIX'], f'{base}c')
+    dd = b.shoup(f[3], f3o, tw['WX'], tw['WIX'], f'{base}d')
+    ac = b.low(b.op('vpaddd', f'{base}s', a, cc), f'{base}ac')
+    amc = b.low_signed(b.op('vpsubd', f'{base}t', a, cc), f'{base}amc')
+    bd = b.op('vpaddd', f'{base}bd', bb, dd); bmd = b.diff(bb, dd, f'{base}bmd')
+    y = b.shoup(bd, None, tw['WY'], tw['WIY'], f'{base}y')
+    z = b.shoup(bmd, None, tw['WZ'], tw['WIZ'], f'{base}z')
+    return [b.op('vpaddd', f'{base}o0', ac, y), b.diff(ac, y, f'{base}o1'),
+            b.op('vpaddd', f'{base}o2', amc, z), b.diff(amc, z, f'{base}o3')]
+
+
+def canonical(b, x, name):   # shrink(low(x), P)
+    y = b.low(x, name + 'l')
+    return b.op('vpminud', name, y, b.op('vpsubd', name + 'p', y, b.c['P']))
+
+
+def bottom_stage1(b):
+    """Source order keeps pressure low: each array's butterfly is followed at once
+    by the stores that consume its four outputs."""
+    A = fwd_h1(b, 'an')
+    for t in range(4):
+        xa = canonical(b, A[t], f'xa{t}')
+        b.store_at(xa, 'Ln', 64 * t + 32)
+        wa = b.shoup(xa, None, b.scalar(f'w{t}', 'lw', 4 * t), b.scalar(f'wi{t}', 'lw', 16 + 4 * t), f'wa{t}')
+        wa = b.op('vpminud', f'was{t}', wa, b.op('vpsubd', f'wap{t}', wa, b.c['P']))
+        b.store_at(wa, 'Ln', 64 * t)
+    B = fwd_h1(b, 'bn')
+    for t in range(4):
+        b.store_at(canonical(b, B[t], f'cb{t}'), 'Ln', 256 + 32 * t)
+
+
+def bottom_stage2(b):
+    """Load-reuse leaf products: window vector X_k (k = 9..1) is loaded once and
+    feeds e (with y_{8-k}) and o (with y_{9-k}); values are created in use order."""
+    c = b.c
+    R = []
+    for t in range(4):
+        y = lambda i: b.scalar(f'y{t}_{i}', 'Lc', 256 + 32 * t + 4 * i)
+        X = lambda k: b.at(f'x{t}_{k}', 'Lc', 64 * t + 4 * k, fold=False)
+        e = o = None
+        for k in range(9, 0, -1):
+            x = X(k)
+            if k <= 8:
+                p = b.op('vpmuludq', f'pe{t}_{k}', x, y(8 - k))
+                e = p if e is None else b.op('vpaddq', f'e{t}_{k}', e, p)
+            if k >= 2:
+                p = b.op('vpmuludq', f'po{t}_{k}', x, y(9 - k))
+                o = p if o is None else b.op('vpaddq', f'o{t}_{k}', o, p)
+        e = b.op('vpaddq', f're{t}', e, b.op('vpmuludq', f'mep{t}', b.op('vpmuludq', f'me{t}', e, c['NI']), c['P']))
+        o = b.op('vpaddq', f'ro{t}', o, b.op('vpmuludq', f'mop{t}', b.op('vpmuludq', f'mo{t}', o, c['NI']), c['P']))
+        r = b.op('vpblendd', f'r{t}', b.op('vpsrlq', f'rs{t}', e, imm=32), o, imm=0xAA)
+        R.append(b.low(r, f'R{t}'))
+    tw = {n: b.scalar(n.lower(), src, d) for n, src, d in
+          (('WX', 'ipx', 0), ('WIX', 'ipx', 32), ('WY', 'ipy', 0), ('WIY', 'ipy', 32), ('WZ', 'ipy', 4), ('WIZ', 'ipy', 36))}
+    ab = b.low(b.op('vpaddd', 'sab', R[0], R[1]), 'ab')
+    cd = b.low(b.op('vpaddd', 'scd', R[2], R[3]), 'cd')
+    amb = b.shoup(b.diff(R[0], R[1], 'eamb'), None, tw['WY'], tw['WIY'], 'iy')
+    cmd = b.shoup(b.diff(R[2], R[3], 'ecmd'), None, tw['WZ'], tw['WIZ'], 'iz')
+    b.store_at(b.low(b.op('vpaddd', 's0', ab, cd), 'O0'), 'ac', 0)
+    b.store_at(b.low(b.op('vpaddd', 's1', amb, cmd), 'O1'), 'ac', 32)
+    b.store_at(b.shoup(b.diff(ab, cd, 'e2'), None, tw['WX'], tw['WIX'], 'ix2'), 'ac', 64)
+    b.store_at(b.shoup(b.diff(amb, cmd, 'e3'), None, tw['WX'], tw['WIX'], 'ix3'), 'ac', 96)
+
+
+BOTTOM_CONSTS = {'P': Val('creg', 'P', reg=15), 'P2': Val('creg', 'P2', reg=14), 'NI': Val('creg', 'NI', reg=13)}
+BOTTOM_ARGS = {'s1': ['an', 'bn', 'Ln', 'px', 'py', 'lw'], 's2': ['ac', 'Lc', 'ipx', 'ipy'],
+               's12': ['an', 'bn', 'Ln', 'px', 'py', 'lw', 'ac', 'Lc', 'ipx', 'ipy']}
+
+
+def gen_bottom(part, fold, share, knobs):
+    """part: 's1', 's2' or 's12' (stage 2 then stage 1 in source order, scheduled
+    together). knobs = (seed, margin, jitter, window); window 0 = source order."""
+    seed, margin, noise, window = knobs
+    b = Builder(BOTTOM_CONSTS, fold, '', 0)
+    b.share_bcast = share
+    if part in ('s2', 's12'):
+        bottom_stage2(b)
+    if part in ('s1', 's12'):
+        bottom_stage1(b)
+    if window == 0:
+        seq = b.ops
+    else:
+        SEARCH.update(rng=_random.Random(seed) if seed else None, margin=margin, noise=noise, window=window)
+        try:
+            seq = list_schedule(b.ops, budget=13)
+        finally:
+            SEARCH.update(rng=None, margin=0, noise=0.0, window=None)
+    assign = allocate(seq, {13, 14, 15})
+    return [emit(o, assign) for o in seq]
+
+
+def bottom_function(name, part, body):
+    args = BOTTOM_ARGS[part]
+    L = [f'// {name}: fused bottom {part}; {len(body)} instructions',
+         f'QA_AI void {name}(' + ', '.join(f'const void* {a}' for a in args) + ') {',
+         '    asm volatile(',
+         '        "vpbroadcastd %[cP], %%ymm15\\n\\t"',
+         '        "vpbroadcastd %[cP2], %%ymm14\\n\\t"',
+         '        "vpbroadcastd %[cNI], %%ymm13\\n\\t"']
+    L += [f'        "{x}\\n\\t"' for x in body]
+    L += ['        :',
+          '        : ' + ', '.join(f'[{a}] "r"({a})' for a in args) + ',',
+          '          [cP] "m"(asm_const_P), [cP2] "m"(asm_const_P2), [cNI] "m"(asm_const_NI)',
+          '        : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",',
+          '          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory");',
+          '}']
+    return '\n'.join(L)
+
+
+# Bottom variants: id, fold, share broadcasts, scheduling window (0 = source order).
+# For window > 0 the best of several seeds/margins by llvm-mca is kept.
+BOTTOM_VARIANTS = [(1, True, True, 0), (2, True, False, 0), (3, True, True, 12), (4, True, True, 24),
+                   (5, True, True, 48), (6, False, True, 24), (7, True, False, 24)]
+
+
+def emit_bottom(args, head):
+    out = list(head)
+    ids = []
+    for vid, fold, share, window in BOTTOM_VARIANTS:
+        funcs = {}
+        for part in ('s1', 's2', 's12'):
+            best = None
+            configs = [(0, 0, 0.0, 0)] if window == 0 else \
+                [(seed, m, 3.0 if seed else 0.0, window) for seed in range(0, 1 + 3 * max(1, args.tries or 0)) for m in (0, 2, 4)]
+            for knobs in configs:
+                try:
+                    body = gen_bottom(part, fold, share, knobs)
+                except AllocError:
+                    continue
+                cyc = mca(body) if args.mca else 0.0
+                if best is None or cyc < best[0]:
+                    best = (cyc, body, knobs)
+                if not args.mca:
+                    break
+            if best is None:
+                print(f'bottom{vid} {part}: no feasible schedule', file=sys.stderr)
+                break
+            funcs[part] = best
+            print(f'bottom{vid} {part}: {len(best[1])} instr, mca {best[0]:.1f} cycles/batch, knobs {best[2]}', file=sys.stderr)
+        if len(funcs) < 3:
+            continue
+        ids.append(vid)
+        for part, (cyc, body, knobs) in funcs.items():
+            out += [bottom_function(f'bottom{vid}_{part}', part, body), '']
+    out.append('#define ASM_BOTTOM_IDS " ' + ' '.join(map(str, ids)) + ' "')
+    for part in ('s1', 's2', 's12'):
+        args_ = BOTTOM_ARGS[part]
+        out.append(f'QA_AI void bottom_{part}(int v, ' + ', '.join(f'const void* {a}' for a in args_) + ') {')
+        out.append('    switch (v) {')
+        out += [f'    case {vid}: bottom{vid}_{part}(' + ', '.join(args_) + '); break;' for vid in ids]
+        out += ['    default: __builtin_unreachable();', '    }', '}']
+    out.append('constexpr bool asm_bottom_has(int v) { return ' + (' || '.join(f'v == {i}' for i in ids) or 'false') + '; }')
+    return out
+
+
 STEPS, AB = {}, set()
 
 
@@ -800,6 +1002,7 @@ def main():
     out += [f'    case {vid}: leaf_mac_asm{vid}(a, L); break;' for vid, *_ in LEAF_VARIANTS]
     out += ['    default: __builtin_unreachable();', '    }', '}', '']
     open(os.path.join(args.out, 'asm_leaf.inc'), 'w').write('\n'.join(out))
+    open(os.path.join(args.out, 'asm_bottom.inc'), 'w').write('\n'.join(emit_bottom(args, head)) + '\n')
 
 
 if __name__ == '__main__':

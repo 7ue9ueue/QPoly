@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <random>
+#include <utility>
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
 #endif
@@ -25,6 +26,18 @@ static U pick(U bound) {
     static const U edges[] = {0, 1, P - 1, P, P + 1, 2 * P - 1, 2 * P, 3 * P, 4 * P - 1};
     if (rng() % 8 == 0) { U e = edges[rng() % 9]; return e < bound ? e : bound - 1; }
     return rng() % bound;
+}
+// Runs the fused bottom of AsmBottom variant v through a kernel configured with it.
+template<int V_> static void bottom_leaves_t(const U* T, const U* IT, V* a, V* b, int first) {
+    using CB = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 0, 0, 0, 4, V_>;
+    Kernel<CB> k(T, IT);
+    k.leaves(a, b, 256, first);
+}
+template<int V_> static void bottom_try(int v, const U* T, const U* IT, V* a, V* b, int first) {
+    if constexpr (asm_bottom_has(V_)) { if (v == V_) bottom_leaves_t<V_>(T, IT, a, b, first); }
+}
+template<int... I> static void bottom_dispatch(std::integer_sequence<int, I...>, int v, const U* T, const U* IT, V* a, V* b, int first) {
+    (bottom_try<I>(v, T, IT, a, b, first), ...);
 }
 [[noreturn]] static void fail(const char* what, int v, int h, int i) {
     std::printf("FAIL %s variant %d h=%d word %d\n", what, v, h, i);
@@ -83,6 +96,30 @@ int main(int argc, char** argv) {
             ++checks;
         }
         std::printf("PASS leaf variant %d\n", v);
+    }
+    // fused bottom variants against the C++ bottom stage (Kernel::leaves) on one tile
+    {
+        using CA = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 0, 0, 0, 4>;
+        alignas(64) static U a1[256 * 8 + 16], b1[256 * 8 + 16], a2[256 * 8 + 16], b2[256 * 8 + 16];
+        for (int v = 1; v < 100; ++v) {
+            char key[8]; std::snprintf(key, sizeof key, " %d ", v);
+            if (!std::strstr(ASM_BOTTOM_IDS, key)) continue;
+            for (int it = 0; it < iters / 10 + 2; ++it) {
+                for (int first : {0, 256, 256 * (1 + int(rng() % 12))}) {   // twiddles 2k+1 < 2048 (table size)
+                    for (int i = 0; i < 256 * 8 + 16; ++i) { a1[i] = a2[i] = pick(4 * P); b1[i] = b2[i] = pick(4 * P); }
+                    Kernel<CA> k1(T, IT);
+                    k1.leaves((V*)a1, (V*)b1, 256, first);
+                    bottom_dispatch(std::make_integer_sequence<int, 32>{}, v, T, IT, (V*)a2, (V*)b2, first);
+                    for (int i = 0; i < 256 * 8; ++i) {
+                        // the k = 0 batch uses a generic multiply by 1: equal mod P, both < 2P
+                        const bool exact = !(first == 0 && i < 32);
+                        if (a2[i] >= 2 * P || (exact ? a1[i] != a2[i] : a1[i] % P != a2[i] % P)) fail("bottom", v, first, i);
+                    }
+                    ++checks;
+                }
+            }
+            std::printf("PASS bottom variant %d\n", v);
+        }
     }
     std::printf("ALL UNIT CHECKS PASSED (%ld cases)\n", checks);
 }
