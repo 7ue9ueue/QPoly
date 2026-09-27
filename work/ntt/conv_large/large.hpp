@@ -54,6 +54,19 @@ QA_AI void top4_zero_body(V* f, long h, long j, const Fixed& z) {
     f[j] = plus(a, b); f[j + h] = diff(a, b); f[j + 2 * h] = plus(a, zb); f[j + 3 * h] = diff(a, zb);
 }
 
+// Same, with non-temporal stores (the four output streams are not re-read soon; the
+// upper two would otherwise cost read-for-ownership traffic for never-read lines).
+QA_AI void top4_zero_body_nt(V* f, long h, long j, const Fixed& z) {
+    const V a = f[j], b = f[j + h];
+    const V zb = z.mul<2, false, false, true>(b);
+    _mm256_stream_si256(f + j, plus(a, b)); _mm256_stream_si256(f + j + h, diff(a, b));
+    _mm256_stream_si256(f + j + 2 * h, plus(a, zb)); _mm256_stream_si256(f + j + 3 * h, diff(a, zb));
+}
+
+// Optional per-depth timers for the recursion's large groups (bench "phases" mode).
+inline double depth_ms[2][4];   // [forward/inverse][depth 0..3]
+inline double (*depth_clock)() = nullptr;
+
 template<class C>
 struct Drivers {
     using K = Kernel<C>;
@@ -76,7 +89,19 @@ struct Drivers {
 
     // qasm run() generalized to n <= 2^26 (assert removed, 64-bit-safe loops) plus an
     // optional zero-upper radix-4 top and an optional fused final scale for even log2(nv).
-    static void run_b0(int lg, U* aa, U* bb, Tables& T, long nza, long nzb, bool zero_even, bool fuse_scale = false) {
+    // Kernel::visit with timers around the forward/inverse groups at depths < 4.
+    static void visit_timed(K& job, V* a, V* b, int nv, int k, int depth) {
+        if (!depth_clock || depth >= 4 || nv <= K::Tile) { job.visit(a, b, nv, k); return; }
+        const int h = nv / 4;
+        double t0 = depth_clock();
+        job.template group<false>(a, b, h, k);
+        depth_ms[0][depth] += depth_clock() - t0;
+        for (int t = 0; t < 4; ++t) visit_timed(job, a + size_t(t) * h, b + size_t(t) * h, h, 4 * k + t, depth + 1);
+        t0 = depth_clock();
+        job.template group<true>(a, nullptr, h, k);
+        depth_ms[1][depth] += depth_clock() - t0;
+    }
+    static void run_b0(int lg, U* aa, U* bb, Tables& T, long nza, long nzb, bool zero_even, bool fuse_scale = false, bool nt_top = false) {
         const int n = 1 << lg, nv = n / 8;
         K::tables(n / 16, T.r, T.ir, T.size, true);
         K job(T.r, T.ir);
@@ -113,11 +138,17 @@ struct Drivers {
             const Fixed z = job.template fixed_at<false>(1);
             if (zero_even && (za || zb)) {
                 const Twiddle t0 = job.template twiddle<false>(0);
-                if (za) { for (int j = 0; j < h; ++j) top4_zero_body(a, h, j, z); } else fwd4<C, true>(a, h, t0);
-                if (zb) { for (int j = 0; j < h; ++j) top4_zero_body(b, h, j, z); } else fwd4<C, true>(b, h, t0);
+                if (nt_top) {
+                    if (za) { for (int j = 0; j < h; ++j) top4_zero_body_nt(a, h, j, z); } else fwd4<C, true>(a, h, t0);
+                    if (zb) { for (int j = 0; j < h; ++j) top4_zero_body_nt(b, h, j, z); } else fwd4<C, true>(b, h, t0);
+                    _mm_sfence();
+                } else {
+                    if (za) { for (int j = 0; j < h; ++j) top4_zero_body(a, h, j, z); } else fwd4<C, true>(a, h, t0);
+                    if (zb) { for (int j = 0; j < h; ++j) top4_zero_body(b, h, j, z); } else fwd4<C, true>(b, h, t0);
+                }
             } else job.template group<false>(a, b, h, 0);
             phase(1);
-            for (int t = 0; t < 4; ++t) job.visit(a + size_t(t) * h, b + size_t(t) * h, h, t);
+            for (int t = 0; t < 4; ++t) visit_timed(job, a + size_t(t) * h, b + size_t(t) * h, h, t, 1);
             phase(2);
             if (fuse_scale) {
                 const Fixed iz = job.template fixed_at<true>(1);

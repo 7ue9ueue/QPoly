@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Judge-like end-to-end (official cases, judge flags and container limits)
         env:
-          VARIANTS: "b0zs:-DQL_MODE=2;t3w16:-DQL_MODE=1 -DQL_L=3 -DQL_W=16 -DQL_D=1 -DQL_NT=0"
+          VARIANTS: "b0zs:-DQL_MODE=2;b0zsn:-DQL_MODE=3"
         run: bash work/ntt/conv_large/run_e2e.sh results-e2e
       - uses: actions/upload-artifact@v4
         if: always()

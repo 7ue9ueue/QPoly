@@ -70,7 +70,7 @@ Work& work() { static Work w; return w; }
 using Fn = void (*)(int lg, U* a, U* b, long nza, long nzb);
 struct Entry { const char* name; Fn fn; bool shortcut = true; };   // shortcut: never reads above nz <= n/2
 using D = qlarge::Drivers<qlarge::Sel>;
-template<bool Z, bool S = false> void e_b0(int lg, U* a, U* b, long nza, long nzb) { D::run_b0(lg, a, b, work().T, nza, nzb, Z, S); }
+template<bool Z, bool S = false, bool N = false> void e_b0(int lg, U* a, U* b, long nza, long nzb) { D::run_b0(lg, a, b, work().T, nza, nzb, Z, S, N); }
 template<int L, int Wd, int Dist, bool Nt, bool Pair = true>
 void e_top(int lg, U* a, U* b, long nza, long nzb) {
     const int nv = (1 << lg) / 8, lgv = __builtin_ctz(unsigned(nv)), odd = lgv & 1;
@@ -85,11 +85,11 @@ void e_top(int lg, U* a, U* b, long nza, long nzb) {
 // Round 1 entries (kept for reference): TOP(2,2,4) TOPNT(2,2,4) TOP(3,2,4) TOPNT(3,2,4)
 // TOP(4,2,4) TOPNT(4,2,4) TOPNT(5,2,4) TOPNT(3,4,2) TOPNT(4,4,2).
 const Entry ENTRIES[] = {
-    {"b0", e_b0<false>, false}, {"b0z", e_b0<true>}, {"b0zs", e_b0<true, true>},
-    TOP(2, 8, 1), TOP(2, 32, 1), TOP(2, 64, 1), TOP(3, 8, 1), TOP(3, 16, 1), TOP(3, 32, 1),
-    TOP(4, 4, 1), TOP(4, 8, 1), TOP(4, 16, 1), TOPS(3, 16, 1), TOPS(4, 16, 1), TOPS(5, 8, 1),
-    TOP(2, 2, 4),
+    {"b0", e_b0<false>, false}, {"b0z", e_b0<true>}, {"b0zs", e_b0<true, true>}, {"b0zsn", e_b0<true, true, true>},
+    TOP(2, 8, 1), TOP(3, 32, 1), TOP(4, 16, 1),
 };
+// Round 2 entries (run 36312561197): TOP(2,32,1) TOP(2,64,1) TOP(3,8,1) TOP(3,16,1) TOP(4,4,1)
+// TOP(4,8,1) TOPS(3,16,1) TOPS(4,16,1) TOPS(5,8,1) TOP(2,2,4) -- all slower than b0zs.
 
 std::vector<Entry> selected() {
     std::vector<Entry> all(std::begin(ENTRIES), std::end(ENTRIES)), out;
@@ -238,16 +238,20 @@ void timing(int lg, int reps, bool full, bool phases) {
     std::vector<std::vector<double>> samples(count);
     std::vector<std::vector<std::array<double, 3>>> ph(count);
     uint64_t expected = 0; bool have = false;
-    if (phases) qlarge::phase_hook = hook;
+    if (phases) { qlarge::phase_hook = hook; qlarge::depth_clock = now_ms; }
+    std::vector<std::array<double, 8>> depth_sum(count);
+    std::vector<int> depth_runs(count);
     for (int rep = -2; rep < reps; ++rep) for (int pos = 0; pos < count; ++pos) {
         int j = (pos + rep + 2) % count; if (rep & 1) j = count - 1 - j;
         const Entry& e = entries[j];
         std::copy(x.begin(), x.end(), a.p); std::copy(y.begin(), y.end(), b.p);
         std::fill(a.p + len, a.p + n, 0); std::fill(b.p + len, b.p + n, 0);
         phase_seen = 0;
+        std::memset(qlarge::depth_ms, 0, sizeof qlarge::depth_ms);
         const double t0 = now_ms();
         e.fn(lg, a.p, b.p, long(len), long(len));
         const double t1 = now_ms();
+        if (phases && rep >= 0) { for (int q = 0; q < 8; ++q) depth_sum[j][q] += qlarge::depth_ms[q / 4][q % 4]; ++depth_runs[j]; }
         uint64_t h = 0; for (size_t i = 0; i < n; ++i) h = h * 31 + a.p[i];
         if (have && h != expected) fail(std::string("checksum mismatch ") + e.name);
         expected = h; have = true;
@@ -265,6 +269,8 @@ void timing(int lg, int reps, bool full, bool phases) {
         for (size_t k = 0; k < samples[j].size(); ++k) std::cout << (k ? ";" : "") << samples[j][k];
         if (phases && !ph[j].empty()) {
             for (int q = 0; q < 3; ++q) { std::vector<double> v; for (auto& t : ph[j]) v.push_back(t[q]); std::cout << ",phase" << q << '=' << median(v); }
+            if (depth_runs[j]) for (int q = 0; q < 8; ++q) if (depth_sum[j][q] > 0)
+                std::cout << (q < 4 ? ",fwd_d" : ",inv_d") << (q % 4) << '=' << depth_sum[j][q] / depth_runs[j];
         }
         std::cout << '\n';
     }

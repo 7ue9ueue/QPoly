@@ -3,7 +3,8 @@
 // table writer with a 64 KiB buffer, prefaulted THP-hinted arena. Kernel: qasm
 // (exploration 009) for transform lengths <= 2^22; for 2^23..2^25 the driver chosen by
 // QL_MODE (0: run_b0 with the zero-upper top, 1: run_top with QL_L/QL_W/QL_D/QL_NT,
-// 2: run_b0 with the zero-upper top and the final scale fused into the last inverse level).
+// 2: run_b0 with the zero-upper top and the final scale fused into the last inverse level,
+// 3: as 2 with non-temporal stores in the zero-upper top level).
 // -DQPOLY_PHASES prints "QP main mapped parsed ntt written 0" (CLOCK_MONOTONIC ns) to stderr.
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
@@ -71,6 +72,8 @@ int main() {
         D::run_b0(lg, a, b, T, long(n), long(m), true);
 #elif QL_MODE == 2
         D::run_b0(lg, a, b, T, long(n), long(m), true, true);
+#elif QL_MODE == 3
+        D::run_b0(lg, a, b, T, long(n), long(m), true, true, true);
 #else
         D::TopOpt o; o.w = QL_W; o.dist = QL_D; o.nt = QL_NT;
         D::run_top(lg, a, b, T, long(n), long(m), L, o, buf);

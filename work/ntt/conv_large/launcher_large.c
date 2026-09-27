@@ -54,6 +54,30 @@ static char* slurp(const char* path, size_t* size) {
     *size = done;
     return data;
 }
+// Token comparison (whitespace-insensitive, like the judge's testlib wcmp checker), used
+// only when the byte-exact comparison fails; such runs are reported as "ws-equal".
+typedef struct { int fd; char buf[1 << 16]; ssize_t len, pos; } Reader;
+static int next_char(Reader* r) {
+    if (r->pos == r->len) { r->len = read(r->fd, r->buf, sizeof r->buf); r->pos = 0; if (r->len <= 0) return -1; }
+    return (unsigned char)r->buf[r->pos++];
+}
+static int same_tokens(const char* a, const char* b) {
+    static Reader x, y;
+    x.fd = open(a, O_RDONLY); y.fd = open(b, O_RDONLY); x.len = x.pos = y.len = y.pos = 0;
+    if (x.fd < 0 || y.fd < 0) fail("open", a);
+    int same = 1, cx = next_char(&x), cy = next_char(&y);
+    for (;;) {
+        while (cx == ' ' || cx == '\n' || cx == '\r' || cx == '\t') cx = next_char(&x);
+        while (cy == ' ' || cy == '\n' || cy == '\r' || cy == '\t') cy = next_char(&y);
+        if (cx < 0 || cy < 0) { same = cx < 0 && cy < 0; break; }
+        while (cx >= 0 && cy >= 0 && cx == cy && !(cx == ' ' || cx == '\n' || cx == '\r' || cx == '\t')) { cx = next_char(&x); cy = next_char(&y); }
+        const int ex = cx < 0 || cx == ' ' || cx == '\n' || cx == '\r' || cx == '\t';
+        const int ey = cy < 0 || cy == ' ' || cy == '\n' || cy == '\r' || cy == '\t';
+        if (!ex || !ey) { same = 0; break; }
+    }
+    close(x.fd); close(y.fd);
+    return same;
+}
 static int same_file(const char* a, const char* b) {
     static char x[1 << 20], y[1 << 20];
     int fa = open(a, O_RDONLY), fb = open(b, O_RDONLY);
@@ -131,8 +155,11 @@ int main(int argc, char** argv) {
                 size_t err_size;
                 chmod(out_path, 0600);  // Created with mode 0 like the judge; readable when not root.
                 if (!same_file(out_path, case_expected[c])) {
-                    fprintf(stderr, "case %s variant %s\n", case_name[c], variant_name[k]);
-                    fail("output mismatch", case_name[c]);
+                    if (!same_tokens(out_path, case_expected[c])) {
+                        fprintf(stderr, "case %s variant %s\n", case_name[c], variant_name[k]);
+                        fail("output mismatch", case_name[c]);
+                    }
+                    if (rep == -warmups && position < variants) printf("ws-equal (not byte-exact) case %s variant %s\n", case_name[c], variant_name[k]);
                 }
                 char* err = slurp(err_path, &err_size);
                 err[err_size] = 0;
