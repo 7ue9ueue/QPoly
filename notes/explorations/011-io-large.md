@@ -27,7 +27,7 @@ End to end, max over the 6 large official cases (N = M = 2^24), same runner, jud
 **EPYC 7763 455.3 ms vs 525.9 ms** for the exploration-010 deliverable (−70.6 ms, −13.4%) and
 750.7 ms for the leader 403499 (judge 0.737 s); Xeon 8573C 556.7 / 505.0 vs 617.9 / 563.4 ms.
 Same configuration built from io_main.cpp: 7763 455.8–459.4 (rounds 6–7), 9V74 377.1 vs 442.6.
-If the judge keeps the 010 ratio (runner 758 ↔ judge 0.737 s for 403499), expect ≈ 0.44 s.
+Estimate for the judge from 403499 (runner 751–758 ms ↔ judge 0.737 s): ≈ 0.44–0.45 s.
 All 54 official cases pass (round 8: 11 byte-identical, 43 checker-accepted, probe the same).
 
 ## Budget at the start (exploration 010, EPYC 7763)
