@@ -145,13 +145,13 @@ int main(int argc, char** argv) {
 #endif
     std::printf("  \nImplementations: KACTL (reference), simd-v0 (the user's first AVX2 NTT), "
                 "393435 (QgQ, fastest other Library Checker submission), ours (exploration 009 kernel, submission 406478)\n\n");
-    std::printf("| n | KACTL ms | simd-v0 ms | 393435 ms | ours ms | ours vs KACTL | ours vs simd-v0 | ours vs 393435 | 393435 vs KACTL | reps | spread |\n");
-    std::printf("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n");
+    std::printf("| n | KACTL ms | simd-v0 ms | 393435 ms | ours ms | ours vs KACTL | ours vs simd-v0 | ours vs 393435 | simd-v0 vs KACTL | 393435 vs KACTL | reps | spread |\n");
+    std::printf("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n");
     for (const Row& r : rows) {
         std::printf("| 2^%d |", r.lg);
         for (int m = 0; m < N_IMPL; ++m) std::printf(" %.4f |", r.med[m]);
-        std::printf(" %.2fx | %.2fx | %.2fx | %.2fx | %d | %.1f%% |\n", r.med[KACTL] / r.med[OURS], r.med[V0] / r.med[OURS],
-                    r.med[QGQ] / r.med[OURS], r.med[KACTL] / r.med[QGQ], r.reps, 100 * r.spread);
+        std::printf(" %.2fx | %.2fx | %.2fx | %.2fx | %.2fx | %d | %.1f%% |\n", r.med[KACTL] / r.med[OURS], r.med[V0] / r.med[OURS],
+                    r.med[QGQ] / r.med[OURS], r.med[KACTL] / r.med[V0], r.med[KACTL] / r.med[QGQ], r.reps, 100 * r.spread);
     }
     std::printf("\n\"A vs B\" = B's median time / A's median time (above 1.00x: A is faster). "
                 "spread = largest interquartile range / median among the four in that row.\n\n");
