@@ -1,0 +1,35 @@
+# Exploration 009: inline-assembly kernels for the Library Checker NTT
+
+Starting point: the kernel of Library Checker submission 406403 (user Aiyiyi),
+`work/ntt/uop_explore/kernels/flip.hpp` (SHA256 5c5b0732…) with configuration
+`s_ns_olbp` (Shoup, block tables, opaque barrier, LdOdd, pipelined leaves), branch
+`claude/ntt-uop-explore` commit 224a0cb. Target: judge.yosupo.jp, GCC 15.2,
+`g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native`, AMD EPYC 7B13 (Zen 3);
+measured on GitHub EPYC 7763 runners (also Zen 3) with the same image and flags.
+
+## Files
+
+| File | Purpose |
+| --- | --- |
+| `gen_asm.py` | Generator. Builds each radix-4 butterfly, the leaf multiply-accumulate and the fused bottom stage as dataflow graphs of AVX2 instructions, schedules them (dataflow order, register-pressure-aware list scheduling on a Zen 3 port model, windowed list scheduling, two-stage software pipelining, seeded variations), allocates ymm0–15 and emits GCC extended-asm functions. Writes `kernels/asm_bfly.inc`, `kernels/asm_leaf.inc`, `kernels/asm_bottom.inc`. `--mca --tries 12` scores searched variants with `llvm-mca -mcpu=znver3` (Homebrew LLVM 23; needed only to regenerate). |
+| `kernels/qasm.hpp` | Copy of `flip.hpp` (namespace `qasm`) with switches `AsmF`, `AsmI` (generated forward/inverse loop variant), `AsmLeaf` (0 C++, 1 C++ with 64-byte aligned leaf buffer, ≥2 asm MAC), `AsmMinH` (asm loops only for h ≥ AsmMinH) and `AsmBottom` (fused bottom stage). All-zero switches reproduce `flip.hpp` exactly (`q_f0i0l0m4` control). |
+| `unit.cpp` | Bit-exact tests of every generated loop against `fwd4`/`inv4` (h = 1…64, random inputs over the full valid ranges plus boundary values), every leaf variant against `leaf_mac`, every fused bottom against `Kernel::leaves` (bit-exact except the k = 0 batch, which must agree mod P and stay < 2P). |
+| `bench.cpp`, `entries.inc` | Copy of the exploration-008 driver: independent scalar oracle, brute force, boundary patterns, zero upper halves, size changes; interleaved timing (`time 21 11 0 19`). `live` is `flip.hpp` unchanged. |
+| `micro.cpp` | Per-phase core cycles on the target: each loop variant at h = 64/16/4, leaf MAC variants and buffer alignment, bottom stage, 256-vector tile, full-size phases. |
+| `probe.cpp` | Zen 3 instruction probe (broadcast forms, line-crossing loads, folded operands, forwarding). |
+| `run.sh`, `run_yosupo.sh`, `.github/workflows/ntt-asm.yml` | CI (official `gcc:15.2.0` image): unit, check to 2^22, 3 timing rounds, probe, micro; submission end-to-end checks and N=M=2^19 timing. |
+| `make_yosupo_asm.py` | Builds a single-file submission from `work/ntt/yosupo_convolution_shoup.cpp` by swapping in `qasm.hpp` with only the selected variants inlined. |
+
+## Contract (unchanged from flip.hpp)
+
+Cyclic convolution mod 998244353, n a power of two in [64, 2^22]; a, b canonical,
+32-byte aligned, disjoint, 4 readable bytes after each array (LdOdd); a receives the
+canonical result, b is destroyed; root buffers n/8 + 8 words. Forward values < 4P,
+inverse values < 2P, Shoup products < 2P for any 32-bit input. Single-threaded.
+Generated loops need h to be a multiple of their step (1 or 2 butterflies); the
+kernel enforces this with `static_assert`. The asm reads twiddles from the block
+table directly (`vbroadcastss`); "half"/"mem" twiddle modes keep some twiddle
+vectors in a 192-byte stack array. Every asm statement declares all ymm registers,
+memory and flags clobbered.
+
+See `notes/explorations/009-asm.md` for results.

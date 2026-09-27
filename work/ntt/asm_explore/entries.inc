@@ -27,9 +27,8 @@ using Q = qasm::Kernel<qasm::Cfg<2, false, true, 0, false, 256, true, true, true
 #define QB(F, I, M, B) {"q_f" #F "i" #I "m" #M "b" #B, cand::invoke<cand::Q<F, I, 0, M, B>>}
 #ifndef ENTRY_LIST
 #define ENTRY_LIST                                                                         \
-    QE(0, 0, 0, 4), QE(11, 71, 5, 4),                                                      \
-    QE(225, 71, 5, 4), QE(228, 71, 5, 4), QE(11, 168, 5, 4), QE(11, 160, 5, 4),            \
-    QB(11, 71, 4, 3), QB(11, 71, 4, 8), QB(11, 71, 4, 9), QB(11, 71, 4, 10), QB(11, 71, 4, 11)
+    QE(0, 0, 0, 4), QE(11, 71, 5, 4), QB(11, 71, 4, 9),                                     \
+    QE(104, 71, 5, 4), QB(104, 71, 4, 9), QB(104, 66, 4, 9)
 #endif
 const Entry ENTRIES[] = {
     {"live", cand::invoke<cand::Live>},

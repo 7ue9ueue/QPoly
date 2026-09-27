@@ -890,6 +890,12 @@ BOTTOM_VARIANTS = [(1, True, True, 0, None), (2, True, False, 0, None), (3, True
                    # round 5: stages merged proportionally (per-use broadcasts), windowed
                    (8, True, False, 8, 0.0), (9, True, False, 12, 0.0), (10, True, False, 16, 0.1),
                    (11, True, False, 12, 0.25)]
+# round 6: hardware-autotuning family of merged bottoms with fixed knobs (seed, margin, window, shift)
+BOTTOM_AUTOTUNE = []
+_rb = _random.Random(2028)
+for _k in range(16):
+    BOTTOM_AUTOTUNE.append((20 + _k, _rb.choice([0.0, 0.05, 0.1, 0.15, -0.05]), _rb.choice([8, 10, 12, 14, 16]),
+                            _rb.randrange(1, 1000), _rb.choice([0, 1, 2, 3, 4])))
 
 
 def emit_bottom(args, head):
@@ -921,6 +927,32 @@ def emit_bottom(args, head):
         ids.append(vid)
         for part, (cyc, body, knobs) in funcs.items():
             out += [bottom_function(f'bottom{vid}_{part}', part, body), '']
+    # autotune family: s1/s2 from variant 9 (window 12, searched); s12 with fixed knobs
+    base9 = {}
+    for part in ('s1', 's2'):
+        best = None
+        for knobs in [(seed, m, 3.0 if seed else 0.0, 12) for seed in range(0, 1 + 3 * max(1, args.tries or 0)) for m in (0, 2, 4)]:
+            try:
+                body = gen_bottom(part, True, False, knobs, 0.0)
+            except AllocError:
+                continue
+            cyc = mca(body) if args.mca else 0.0
+            if best is None or cyc < best[0]:
+                best = (cyc, body)
+            if not args.mca:
+                break
+        base9[part] = best[1]
+    for vid, shift, window, seed, margin in BOTTOM_AUTOTUNE:
+        try:
+            body = gen_bottom('s12', True, False, (seed, margin, 3.0, window), shift)
+        except AllocError:
+            print(f'bottom{vid} s12: infeasible (shift {shift}, window {window}, seed {seed}, margin {margin})', file=sys.stderr)
+            continue
+        ids.append(vid)
+        print(f'bottom{vid} s12: shift {shift} window {window} seed {seed} margin {margin}', file=sys.stderr)
+        out += [bottom_function(f'bottom{vid}_s1', 's1', base9['s1']), '',
+                bottom_function(f'bottom{vid}_s2', 's2', base9['s2']), '',
+                bottom_function(f'bottom{vid}_s12', 's12', body), '']
     out.append('#define ASM_BOTTOM_IDS " ' + ' '.join(map(str, ids)) + ' "')
     for part in ('s1', 's2', 's12'):
         args_ = BOTTOM_ARGS[part]

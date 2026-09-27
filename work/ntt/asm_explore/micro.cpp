@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <random>
+#include <utility>
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
 #endif
@@ -27,6 +28,7 @@ static double cycle_ns() {
     return (now_ns() - t) / n;
 }
 alignas(64) static uint32_t A[256 * 8 + 64], B[256 * 8 + 64], T[1 << 14], IT[1 << 14];
+static uint32_t* const B_ = B;
 static double CYC; static long SCALE;
 
 template<class F> static void bench(const char* name, const char* what, double units, F&& f) {
@@ -62,6 +64,27 @@ template<class C> static void phases(const char* name) {
     bench(name, "inv level h=4 per bfly", 64, [&] { k.template level4<true>(a, nullptr); });
     bench(name, "bottom per vector", 256, [&] { k.leaves_all(a, b); });   // outputs stay valid inputs
     bench(name, "tile per vector", 256, [&] { k.tile(a, b); });
+}
+
+// Bottom stage per vector for every generated fused-bottom variant (and the C++ leaf-5 path).
+template<int B> static void bottom_one() {
+    if constexpr (asm_bottom_has(B)) {
+        using CB = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, B>;
+        reset();
+        int size = 0; Kernel<CB>::tables(1 << 12, T, IT, size, true);
+        Probe<CB> k(T, IT);
+        char nm[16]; std::snprintf(nm, sizeof nm, "bottom%d", B);
+        bench(nm, "bottom per vector", 256, [&] { k.leaves_all((V*)A, (V*)B_); });
+    }
+}
+template<int... I> static void bottoms(std::integer_sequence<int, I...>) {
+    {
+        using CL = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 5, 4>;
+        reset(); int size = 0; Kernel<CL>::tables(1 << 12, T, IT, size, true);
+        Probe<CL> k(T, IT);
+        bench("leaf5", "bottom per vector", 256, [&] { k.leaves_all((V*)A, (V*)B_); });
+    }
+    (bottom_one<I>(), ...);
 }
 
 int main(int argc, char** argv) {
@@ -122,6 +145,49 @@ int main(int argc, char** argv) {
             bench(nm, "leaf mac per vector", 256, [&] { for (int j = 0; j < 64; ++j) leaf_mac_asm(v, a + 4 * j, &L64[j]); });
         }
     }
+    // Whole 2^20 transform and its C++ phases outside the tiles, on full-size arrays
+    // (fresh roots, zero upper halves as for the judge). Units: cycles per vector of n/8.
+    {
+        const int n = 1 << 20, nv = n / 8, h = nv / 2;
+        U* fa = (U*)std::aligned_alloc(64, size_t(n + 64) * 4);
+        U* fb = (U*)std::aligned_alloc(64, size_t(n + 64) * 4);
+        U* fr = (U*)std::aligned_alloc(64, size_t(n) * 4);
+        U* fir = (U*)std::aligned_alloc(64, size_t(n) * 4);
+        std::mt19937 rng(5);
+        auto fill = [&] { for (int i = 0; i < n; ++i) { fa[i] = i < n / 2 ? rng() % P : 0; fb[i] = i < n / 2 ? rng() % P : 0; } };
+        auto whole = [&](auto tag, const char* name) {
+            using K = Kernel<typename decltype(tag)::type>;
+            double best = 1e30;
+            for (int rep = 0; rep < 7; ++rep) {
+                fill(); int rs = 0;
+                double t = now_ns(); K::run(n, fa, fb, fr, fir, rs, true, n / 2, n / 2); t = now_ns() - t;
+                if (rep) best = std::min(best, t);
+            }
+            std::printf("%-14s %-26s %8.2f cycles/unit\n", name, "2^20 run per vector", best / nv / CYC);
+        };
+        struct T0 { using type = Q<0, 0, 0>; }; struct T1 { using type = Q<11, 71, 5, 4>; };
+        whole(T0{}, "q_f0i0l0"); whole(T1{}, "q_f11i71l5m4");
+        fill();
+        const long saved_scale = SCALE; SCALE = 1;   // 2000 repetitions of full-size passes
+        int rs = 0; Kernel<C0>::tables(n / 16, fr, fir, rs, true);
+        Kernel<C0> k(fr, fir);
+        V *va = (V*)fa, *vb = (V*)fb;
+        bench("cxx", "top copy a+b per vector", nv, [&] { for (int i = 0; i < h; ++i) { va[i + h] = va[i]; vb[i + h] = vb[i]; } });
+        bench("cxx", "identity fwd h=2^14 a+b", nv, [&] { k.template group<false>(va, vb, nv / 8, 0); k.template group<false>(va + h, vb + h, nv / 8, 0); });
+        bench("cxx", "identity inv h=2^14", nv, [&] { k.template group<true>(va, nullptr, nv / 8, 0); k.template group<true>(va + h, nullptr, nv / 8, 0); });
+        const Fixed scale(splat(12345), splat(U((uint64_t(12345) << 32) / P)));
+        bench("cxx", "final scale per vector", nv, [&] {
+            for (int i = 0; i < h; ++i) {
+                V x = va[i], y = va[i + h];
+                va[i] = shrink(scale.mul<2, false, false, true>(plus(x, y)), P);
+                va[i + h] = shrink(scale.mul<2, false, false, true>(diff(x, y)), P);
+            }
+        });
+        bench("cxx", "nontrivial fwd h=2^12 a+b", nv, [&] { for (int g = 0; g < 8; ++g) k.template group<false>(va + g * nv / 8, vb + g * nv / 8, nv / 32, 5 + g); });
+        SCALE = saved_scale;
+        std::free(fa); std::free(fb); std::free(fr); std::free(fir);
+    }
+    bottoms(std::make_integer_sequence<int, 64>{});
     phases<Q<0, 0, 0>>("q_f0i0l0");
     phases<Q<11, 71, 5, 4>>("q_f11i71l5m4");
     phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 3>>("q_f11i71b3");
