@@ -21,6 +21,10 @@ SOURCES = {
     # Exploration 007 deliverable: SSE parse, byte table, single-digit return.
     'sse_short': ('work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io_sse.cpp',
                   'd2d02e0fd47c3c510ae62ddb23a91174c29643dc932f69a9aed912450b598304'),
+    # User's Shoup "flip" kernel submission (judge 406400/406401), sse_short I/O,
+    # prefaulted THP-hinted arena; prints compute_ms to stderr unless QPOLY_QUIET.
+    'shoup': ('work/ntt/yosupo_convolution_shoup.cpp',
+              '644e9f3ed8bdf0c008e9415d72426c0c66e8e73baf79283216031a3a7fb2cfe9'),
 }
 text = {}
 for name, (path, digest) in SOURCES.items():
@@ -30,11 +34,15 @@ for name, (path, digest) in SOURCES.items():
 
 
 def kernel(source):
+    if 'namespace qflip {' in source:
+        return source[source.index('namespace qflip {'):source.index('}  // namespace qflip')]
     return source[source.index('namespace kernel_asm_radix4_pair_large_fixed'):
                   source.index('// Selected uint32 I/O')]
 
 
-KERNEL = kernel(text['base'])
+# Parser/formatter code of sse_short for the in-memory microbenchmark.
+(out / 'baseline_io.inc').write_text(text['sse_short'][text['sse_short'].index('// Selected uint32 I/O'):
+                                                       text['sse_short'].index('constexpr int max_transform =')])
 
 
 def sub(source, old, new):
@@ -133,7 +141,7 @@ for name in selected:
     source = text[source_name]
     for transform in transforms:
         source = transform(source)
-    assert kernel(source) == KERNEL, name
+    assert kernel(source) == kernel(text[source_name]), name
     builds = {name: source}
     if name in PHASES:
         builds[name + '_phases'] = phases(source)

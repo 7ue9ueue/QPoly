@@ -74,6 +74,17 @@ for job in sorted({p.parent for pattern in ('timing-*.csv', 'phases.csv', 'repli
                  f'{ph(lambda r: g(r, "write_syscall_ns")):.3f} | '
                  f'{ph(lambda r: g(r, "wall_ns") - g(r, "written_ns")):.3f} | '
                  f'{ph(lambda r: g(r, "wall_ns")):.3f}')
+    path = job / 'bench.csv'
+    if path.exists():
+        emit('\n### in-memory conversion, median ns per item (11 runs)')
+        by = {}
+        for row in csv.DictReader(path.open()):
+            by.setdefault((row['kind'], row['case'], row['variant']), []).append(int(row['ns']) / int(row['items']))
+        for kind in ('parse', 'format'):
+            names = sorted({v for k, _, v in by if k == kind})
+            emit(f'{kind} case | ' + ' | '.join(names))
+            for c in sorted({c for k, c, _ in by if k == kind}):
+                emit(c + ' | ' + ' | '.join(f'{median(by[(kind, c, v)]):.3f}' for v in names))
     path = job / 'replica.csv'
     if path.exists():
         emit('\n### judge replica (docker per run, ~1 ms cgroup poll)')

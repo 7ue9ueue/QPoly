@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Judge-like correctness and timing on a GitHub-hosted x64 Linux runner.
 # usage: run.sh RESULT_DIR. Env: VARIANTS=a,b (default all), SANITIZE=1,
-# PASSES (default "correctness timing phases"; also "replica"), THP_MODES
+# PASSES (default "correctness bench timing phases"; also "replica"), THP_MODES
 # (default "madvise always never"), REPS (default 11), REPLICA_REPS (default 20),
 # REPLICA_VARIANTS, CPU (default last). Timing changes the runner's THP setting.
 set -euo pipefail
@@ -12,7 +12,7 @@ RESULTS=$(realpath -m "$1")
 BUILD=$ROOT/build/io_yosupo
 CASES=/dev/shm/qpoly-cases  # Judge volumes live on tmpfs (/var/lib/docker).
 CPU=${CPU:-$(( $(nproc) - 1 ))}
-PASSES=${PASSES:-correctness timing phases}
+PASSES=${PASSES:-correctness bench timing phases}
 mkdir -p "$RESULTS" "$BUILD/bin" "$CASES/out"
 cd "$ROOT"
 set_thp() { echo "$1" | sudo tee /sys/kernel/mm/transparent_hugepage/enabled >/dev/null; }
@@ -39,9 +39,12 @@ docker run --rm -v "$BUILD":/build -v "$ROOT/work/ntt":/ntt:ro -e FLAGS="$FLAGS"
   gcc -O2 /ntt/io_yosupo/launcher.c -o bin/launcher
   g++ -O2 -std=c++17 /ntt/yosupo_scalar_reference.cpp -o bin/reference
   g++ $FLAGS /ntt/io_yosupo/unit_io.cpp -o bin/unit_io
+  g++ $FLAGS -I src /ntt/io_yosupo/bench_io.cpp -o bin/bench_io
   for src in src/*.cpp; do
     name=$(basename "$src" .cpp); mkdir -p judge/$name; cp "$src" judge/$name/main.cpp
     (cd judge/$name && g++ $FLAGS -o main main.cpp -I /opt/ac-library) && cp judge/$name/main bin/$name
+    # The Shoup file prints compute_ms to stderr; the edge suite needs a silent build.
+    case $name in shoup*) g++ $FLAGS -DQPOLY_QUIET -o bin/${name}_quiet judge/$name/main.cpp;; esac
   done
   ldd "$(ls -d judge/*/main | head -1)" >> bin/compiler.txt'
 cp "$BUILD/bin/compiler.txt" "$RESULTS/"
@@ -73,8 +76,17 @@ if [[ " $PASSES " == *" correctness "* ]]; then
   docker run --rm -v "$BUILD":/build -v "$ROOT/work/ntt":/ntt:ro "$IMAGE" bash -euc '
     apt-get update -qq >/dev/null && apt-get install -y -qq python3 >/dev/null
     for v in '"$(echo $timed)"'; do
-      printf "%s: " $v; python3 /ntt/verify_yosupo_convolution.py /build/bin/$v /build/bin/reference --quick
+      b=/build/bin/$v; [ -e ${b}_quiet ] && b=${b}_quiet
+      printf "%s: " $v; python3 /ntt/verify_yosupo_convolution.py $b /build/bin/reference --quick
     done' | tee -a "$RESULTS/checks.txt"
+fi
+if [[ " $PASSES " == *" bench "* ]]; then
+  set_thp madvise
+  bench_cases=""
+  for c in ${BENCH_CASES:-max_random_00 max_random_01 max_ans_zero_00 fft_killer_00 all_same_00 all_same_01 small_and_large_00}; do
+    bench_cases="$bench_cases /casedir/$c"; done
+  docker run --rm "${LIMITS[@]}" -v "$BUILD/bin":/workdir -v "$CASES":/casedir -v "$RESULTS":/results \
+    "$IMAGE" sh -c "/workdir/bench_io /results/bench.csv $bench_cases > /dev/null" 2>&1 | tee -a "$RESULTS/checks.txt"
 fi
 LARGE='c["in_bytes"] > 1000000'
 if [[ " $PASSES " == *" timing "* ]]; then

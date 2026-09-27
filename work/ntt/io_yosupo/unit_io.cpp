@@ -1,4 +1,4 @@
-// Direct checks of parse_quad.inc and format_avx2.inc against snprintf/strtoul.
+// Direct checks of every parser/formatter .inc against snprintf/strtoul.
 // Guard pages sit exactly 64 bytes after parser input and 8 bytes after the
 // formatter's logical buffer end, so any read/write beyond the contracts faults.
 // Exits non-zero on the first mismatch.
@@ -14,6 +14,8 @@
 #include <vector>
 #include "parse_quad.inc"
 #include "format_avx2.inc"
+#include "parse_gen4.inc"
+#include "format_avx2x.inc"
 
 static void require(bool ok, const char* what, size_t detail) {
     if (!ok) { std::fprintf(stderr, "FAIL %s %zu\n", what, detail); std::exit(1); }
@@ -33,17 +35,24 @@ struct Sink {
     char* begin;
     char* flush(char* p) { out.append(begin, p); return begin; }
 };
+using Format = char* (*)(Sink&, char*, char*, const uint32_t*, size_t);
+static const Format formats[] = {qp_format::format_values<Sink>, qp_format2::format_values<Sink>,
+                                 qp_format2::format_scalar<Sink>};
+using Parse = char* (*)(char*, uint32_t*, size_t);
+static const Parse parsers[] = {qp_parse::parse_tokens, qp_parse4::parse_tokens};
 static void check_format(const std::vector<uint32_t>& values, size_t buffer) {
+  for (Format format : formats) {
     std::string want;
     char tmp[16];
     for (uint32_t v : values) { std::snprintf(tmp, sizeof tmp, " %u", v); want += tmp; }
     // Logical end is 8 bytes before the guard page: overhang is at most 7 bytes.
     char* start = guarded(buffer, 8);
     Sink sink{{}, start};
-    char* p = qp_format::format_values(sink, start, start + buffer, values.data(), values.size());
+    char* p = format(sink, start, start + buffer, values.data(), values.size());
     sink.flush(p);
     require(sink.out == want, "format", values.size());
     format_checks += values.size();
+  }
 }
 static void check_parse(const std::vector<uint32_t>& values, std::mt19937_64& rng, int style, bool split) {
     std::string text = "\n";
@@ -60,10 +69,11 @@ static void check_parse(const std::vector<uint32_t>& values, std::mt19937_64& rn
     char* data = guarded(text.size(), 64);
     std::memcpy(data, text.data(), text.size());
     std::memset(data + text.size(), 0, 64);
+  for (Parse parse : parsers) {
     std::vector<uint32_t> got(values.size() + 1, 0xFFFFFFFFu);
     const size_t first = split ? values.size() / 2 : values.size();
-    char* p = qp_parse::parse_tokens(data + 1, got.data(), first);
-    p = qp_parse::parse_tokens(p, got.data() + first, values.size() - first);
+    char* p = parse(data + 1, got.data(), first);
+    p = parse(p, got.data() + first, values.size() - first);
     for (size_t i = 0; i < values.size(); ++i) require(got[i] == values[i], "parse value", i);
     require(got[values.size()] == 0xFFFFFFFFu, "parse overrun", values.size());
     // Independent strtoul re-read confirms the text and the returned position.
@@ -75,6 +85,7 @@ static void check_parse(const std::vector<uint32_t>& values, std::mt19937_64& rn
     }
     require(p == q, "parse position", values.size());
     parse_checks += values.size();
+  }
 }
 
 int main() {

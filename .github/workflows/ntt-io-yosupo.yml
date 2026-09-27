@@ -4,12 +4,12 @@ on:
     branches: [claude/ntt-io-yosupo]
     paths: [work/ntt/io_yosupo/**, work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io393435.cpp,
             work/ntt/yosupo_convolution_asm_radix4_pair_large_fixed_io_sse.cpp,
-            work/ntt/verify_yosupo_convolution.py, work/ntt/yosupo_scalar_reference.cpp,
+            work/ntt/yosupo_convolution_shoup.cpp, work/ntt/verify_yosupo_convolution.py, work/ntt/yosupo_scalar_reference.cpp,
             .github/workflows/ntt-io-yosupo.yml]
 permissions:
   contents: read
 env:
-  VARIANTS: base,sse_short,sse_short_ob16k,sse_short_ob32k,sse_short_ob64k,sse_short_prefault,sse_short_thp,pquad,favx,favx_ob64k,io_all,io_all_prefault,io_all_thp
+  VARIANTS: base,sse_short,sse_short_arena,arena_ob64k,g4_arena_ob64k,g4_fx2_arena_ob64k,g4_swar_arena_ob64k,shoup,shoup_ob64k,shoup_g4_ob64k,shoup_g4_fx2_ob64k,shoup_g4_swar_ob64k
 jobs:
   judge-like:
     runs-on: ubuntu-24.04
@@ -50,8 +50,8 @@ jobs:
       - name: Judge-method polling replica
         env:
           PASSES: correctness replica
-          VARIANTS: base,sse_short,io_all,io_all_thp
-          REPLICA_VARIANTS: base,sse_short,io_all,io_all_thp
+          VARIANTS: base,shoup,shoup_g4_ob64k,g4_arena_ob64k
+          REPLICA_VARIANTS: base,shoup,shoup_g4_ob64k,g4_arena_ob64k
         run: bash work/ntt/io_yosupo/run.sh results
       - uses: actions/upload-artifact@v4
         if: always()
@@ -64,10 +64,11 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: ASan/UBSan unit, official cases and edge-case suite
+      - name: ASan/UBSan unit, official cases, edge-case suite, bench self-check
         env:
           SANITIZE: '1'
-          PASSES: correctness
+          PASSES: correctness bench
+          BENCH_CASES: max_random_00 all_same_00
         run: bash work/ntt/io_yosupo/run.sh results
       - uses: actions/upload-artifact@v4
         if: always()

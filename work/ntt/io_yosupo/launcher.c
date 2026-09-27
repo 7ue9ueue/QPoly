@@ -121,9 +121,10 @@ int main(int argc, char** argv) {
                 }
                 free(got);
                 char* err = slurp(err_path, &err_size);
+                err[err_size] = 0;
                 long long marks[6] = {0, 0, 0, 0, 0, 0};
+                if (err_size && !strncmp(err, "compute_ms=", 11)) err_size = 0;  // Shoup file's own timer.
                 if (err_size) {
-                    err[err_size] = 0;
                     if (sscanf(err, "QP %lld %lld %lld %lld %lld %lld", &marks[0], &marks[1], &marks[2],
                                &marks[3], &marks[4], &marks[5]) != 6) fail("unexpected stderr", variant_name[k]);
                     for (int i = 0; i < 5; ++i) marks[i] -= begin;
