@@ -18,7 +18,7 @@
 #include "kernels/qasm.hpp"
 
 using namespace qasm;
-template<int F, int I, int L> using Q = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, F, I, L>;
+template<int F, int I, int L, int M = 4> using Q = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, F, I, L, M>;
 
 static double now_ns() { return std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 static double cycle_ns() {
@@ -80,12 +80,20 @@ int main(int argc, char** argv) {
     // radix-4 loops at h = 64 (64 butterflies per call)
     bench("cxx", "fwd4 h=64 per bfly", 64, [&] { fwd4<C0, false>(a, 64, tw); });
     bench("cxx", "inv4 h=64 per bfly", 64, [&] { inv4<C0, false>(a, 64, itw); });
+    bench("cxx", "fwd4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) fwd4<C0, false>(a + 64 * g, 16, tw); });
+    bench("cxx", "inv4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) inv4<C0, false>(a + 64 * g, 16, itw); });
     char key[8], nm[16];
-    for (int v = 1; v <= 8; ++v) {
+    for (int v = 1; v < 100; ++v) {
         std::snprintf(key, sizeof key, " %d ", v);
         std::snprintf(nm, sizeof nm, "asm%d", v);
-        if (std::strstr(ASM_FWD_IDS, key)) bench(nm, "fwd4 h=64 per bfly", 64, [&] { fwd_asm(v, a, 64, px, py); });
-        if (std::strstr(ASM_INV_IDS, key)) bench(nm, "inv4 h=64 per bfly", 64, [&] { inv_asm(v, a, 64, ipx, ipy); });
+        if (std::strstr(ASM_FWD_IDS, key)) {
+            bench(nm, "fwd4 h=64 per bfly", 64, [&] { fwd_asm(v, a, 64, px, py); });
+            bench(nm, "fwd4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) fwd_asm(v, a + 64 * g, 16, px, py); });
+        }
+        if (std::strstr(ASM_INV_IDS, key)) {
+            bench(nm, "inv4 h=64 per bfly", 64, [&] { inv_asm(v, a, 64, ipx, ipy); });
+            bench(nm, "inv4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) inv_asm(v, a + 64 * g, 16, ipx, ipy); });
+        }
     }
     // leaf multiply-accumulate (+ reduce) on built buffers, 64 batches of 4 leaves
     {
@@ -103,14 +111,7 @@ int main(int argc, char** argv) {
         }
     }
     phases<Q<0, 0, 0>>("q_f0i0l0");
-    phases<Q<0, 0, 1>>("q_f0i0l1");
-    phases<Q<1, 1, 0>>("q_f1i1l0");
-    phases<Q<2, 2, 0>>("q_f2i2l0");
-    phases<Q<2, 3, 0>>("q_f2i3l0");
-    phases<Q<5, 5, 0>>("q_f5i5l0");
-    phases<Q<7, 7, 0>>("q_f7i7l0");
-    phases<Q<0, 0, 3>>("q_f0i0l3");
-    phases<Q<0, 0, 4>>("q_f0i0l4");
     phases<Q<0, 0, 5>>("q_f0i0l5");
-    phases<Q<0, 0, 6>>("q_f0i0l6");
+    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 2, 3, 5, 16>>("q_f2i3l5m16");
+    phases<Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 5, 5, 5, 16>>("q_f5i5l5m16");
 }

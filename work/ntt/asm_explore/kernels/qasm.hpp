@@ -145,8 +145,9 @@ inline constexpr Constants constants{};
 // bytes past the end of the array).
 template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true,
          bool Opq_ = false, bool LdOdd_ = false, int Il_ = 1, bool Blk_ = false, bool Pipe_ = false,
-         int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0>
+         int AsmF_ = 0, int AsmI_ = 0, int AsmLeaf_ = 0, int AsmMinH_ = 4>
 struct Cfg {
+    static constexpr int AsmMinH = AsmMinH_;   // asm loops only for groups with h >= AsmMinH
     // Generated asm loop variants (kernels/asm_bfly.inc numbering; 0 = C++) for
     // non-identity groups with h >= 4, and the leaf assembly variant (0 = C++).
     static constexpr int AsmF = AsmF_, AsmI = AsmI_, AsmLeaf = AsmLeaf_;
@@ -447,8 +448,8 @@ struct Kernel {
         const int h = H ? H : h_;
         static_assert(C::AsmF == 0 || asm_has(0, C::AsmF), "forward asm variant not generated");
         static_assert(C::AsmI == 0 || asm_has(1, C::AsmI), "inverse asm variant not generated");
-        if constexpr ((Inv ? C::AsmI : C::AsmF) != 0 && (H == 0 || H >= 4)) {
-            if (k != 0) {
+        if constexpr ((Inv ? C::AsmI : C::AsmF) != 0 && (H == 0 || H >= C::AsmMinH)) {
+            if (k != 0 && (H != 0 || h >= C::AsmMinH)) {
                 const U* t = Inv ? irt : rt;
                 const U *px = t + blk(k), *py = t + blk(2 * k);
                 if constexpr (Inv) inv_asm(C::AsmI, a, h, px, py);

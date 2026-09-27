@@ -178,10 +178,17 @@ GRAPHS = {'fwd': fwd_graph, 'inv': inv_graph}
 
 
 def constants(twmem):
+    """twmem: False = all six twiddle vectors in ymm8..13; True = all six as
+    stack memory operands; 'half' = quotients wi in ymm11..13, values w in memory."""
     c = {'P': Val('creg', 'P', reg=15), 'P2': Val('creg', 'P2', reg=14)}
+    reserved = {14, 15}
     for i, n in enumerate(['WX', 'WIX', 'WY', 'WIY', 'WZ', 'WIZ']):
-        c[n] = Val('cmem', n, mem=('tw', 32 * i)) if twmem else Val('creg', n, reg=8 + i)
-    reserved = {14, 15} | (set() if twmem else set(range(8, 14)))
+        if twmem is True or (twmem == 'half' and not n.startswith('WI')):
+            c[n] = Val('cmem', n, mem=('tw', 32 * i))
+        else:
+            r = 8 + i if twmem is False else 11 + i // 2
+            c[n] = Val('creg', n, reg=r)
+            reserved.add(r)
     return c, reserved
 
 
@@ -262,11 +269,12 @@ def list_schedule(ops, extra_deps=(), loads_per_cycle=2, budget=None, pinned=(),
     return order
 
 
-SEARCH = {'rng': None, 'margin': 0, 'noise': 0.0}   # set by generate() while searching
+SEARCH = {'rng': None, 'margin': 0, 'noise': 0.0, 'load_lat': LOAD_LAT, 'lpc': 2}   # set by generate()
 
 
 def _pressure_schedule(ops, extra_deps, loads_per_cycle, budget, pinned, live_out):
     rng, margin, noise = SEARCH['rng'], SEARCH['margin'], SEARCH['noise']
+    loads_per_cycle, load_lat = SEARCH['lpc'], SEARCH['load_lat']
     jitter = {id(o): (rng.random() * noise if rng else 0.0) for o in ops}
     producer = {o.dst.id: o for o in ops if o.dst is not None}
     preds = {id(o): [producer[s.id] for s in o.srcs if s.kind == 'reg' and s.id in producer] for o in ops}
@@ -276,7 +284,7 @@ def _pressure_schedule(ops, extra_deps, loads_per_cycle, budget, pinned, live_ou
     for o in ops:
         for p in preds[id(o)]:
             succs[id(p)].append(o)
-    lat = {id(o): LOAD_LAT if op_class(o) == 'ld' else 1 if op_class(o) == 'st' else LAT[o.mn] for o in ops}
+    lat = {id(o): load_lat if op_class(o) == 'ld' else 1 if op_class(o) == 'st' else LAT[o.mn] for o in ops}
     prio = {}
 
     def pr(o):
@@ -466,7 +474,35 @@ VARIANTS = [
     ('sp', 'sp', 1, True, False),
     ('spt', 'sp', 1, True, True),
     ('sp2t', 'sp', 2, True, True),
+    # round 2
+    ('sph', 'sp', 1, True, 'half'),
+    ('lsh', 'ls', 1, True, 'half'),
+    ('ls2h', 'ls', 2, True, 'half'),
 ]
+
+
+# Hardware-autotuning family (round 2): fixed knobs (seed, margin, jitter, modeled
+# load latency, loads per cycle) per id; micro.cpp times them all on the target.
+import random as _random
+AUTOTUNE = []
+_r = _random.Random(2026)
+for _base, (_strategy, _count, _fold, _twmem) in ((20, ('ls', 1, True, False)), (40, ('ls', 2, True, True)),
+                                                 (60, ('ls', 3, True, True)), (80, ('sp', 1, True, True))):
+    for _k in range(12):
+        AUTOTUNE.append((_base + _k, _strategy, _count, _fold, _twmem,
+                         (1 + _k * 7 + _base, _r.choice([0, 1, 2, 3, 4]), _r.choice([0.0, 2.0, 4.0, 8.0]),
+                          _r.choice([8, 10, 12, 16]), _r.choice([2, 3]))))
+
+
+def generate_fixed(kind, strategy, count, fold, twmem, knobs):
+    seed, margin, noise, lat, lpc = knobs
+    SEARCH.update(rng=_random.Random(seed), margin=margin, noise=noise, load_lat=lat, lpc=lpc)
+    try:
+        g = gen_pipelined(kind, count, fold, twmem) if strategy == 'sp' else gen_simple(kind, count, fold, twmem, True)
+    finally:
+        SEARCH.update(rng=None, margin=0, noise=0.0, load_lat=LOAD_LAT, lpc=2)
+    g.update(strategy=strategy, fold=fold, twmem=twmem, search=knobs)
+    return g
 
 
 def generate(kind, strategy, count, fold, twmem, tries=0):
@@ -507,20 +543,20 @@ def asm_function(name, kind, g):
     step, twmem = g['step'], g['twmem']
     body = ['vpbroadcastd %[cP], %%ymm15', 'vpbroadcastd %[cP2], %%ymm14']
     for i, src in enumerate(['(%[px])', '32(%[px])', '(%[py])', '32(%[py])', '4(%[py])', '36(%[py])']):
-        if twmem:
+        if twmem is True or (twmem == 'half' and i % 2 == 0):
             body += [f'vbroadcastss {src}, %%ymm0', f'vmovdqa %%ymm0, {32 * i}(%[tw])']
         else:
-            body.append(f'vbroadcastss {src}, %%ymm{8 + i}')
+            body.append(f'vbroadcastss {src}, %%ymm{8 + i if twmem is False else 11 + i // 2}')
     if g.get('pipelined'):
         body += g['pre'] + ['cmp %[last], %[p]', 'je 2f', '.p2align 5', '1:'] + g['body']
         body += [f'add ${32 * step}, %[p]', 'cmp %[last], %[p]', 'jne 1b', '2:'] + g['post']
     else:
         body += ['.p2align 5', '1:'] + g['body'] + [f'add ${32 * step}, %[p]', 'cmp %[end], %[p]', 'jne 1b']
-    L = [f'// {name}: strategy={g["strategy"]} step={step} fold={int(g["fold"])} twmem={int(twmem)}; '
+    L = [f'// {name}: strategy={g["strategy"]} step={step} fold={int(g["fold"])} twmem={twmem}; '
          f'{len(g["body"])} loop instructions; search (seed, margin, jitter) = {g.get("search")}; '
          f'llvm-mca znver3 {g.get("mca") or 0:.2f} cycles/butterfly',
          f'QA_AI void {name}(V* f, long h, const U* px, const U* py) {{',
-         '    alignas(32) V tw[6];' if twmem else '    V* tw = nullptr;',
+         '    alignas(32) V tw[6];' if twmem else '    V* tw = nullptr;',   # half: w at even slots
          '    char* p = (char*)f; const long H = h * 32, H3 = 3 * H;',
          f'    char* const end = p + H; char* const last = end - {32 * step};',
          '    (void)last; (void)end;',
@@ -656,6 +692,9 @@ def leaf_function(vid, form, bc, group):
     return '\n'.join(L), body
 
 
+STEPS = {}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--mca', action='store_true', help='llvm-mca znver3 estimates (stderr)')
@@ -665,6 +704,22 @@ def main():
     head = ['// Generated by gen_asm.py; do not edit. The docstring there documents the',
             '// arithmetic, ranges, schedules and register conventions.', '#pragma once', '']
     out, cases = list(head), {'fwd': [], 'inv': []}
+    for kind in ('fwd', 'inv'):
+        for vid, strategy, count, fold, twmem, knobs in AUTOTUNE:
+            name = f'{kind}_at{vid}'
+            try:
+                g = generate_fixed(kind, strategy, count, fold, twmem, knobs)
+            except AllocError as e:
+                print(f'{name}: skipped ({e})', file=sys.stderr)
+                continue
+            if args.mca:
+                cyc = mca(g['body'])
+                g['mca'] = cyc / g['step']
+                print(f'{vid} {name:10s} {len(g["body"]):4d} instr/{g["step"]} bfly  mca {g["mca"]:6.2f} cyc/bfly  knobs={knobs}',
+                      file=sys.stderr)
+            out += [asm_function(name, kind, g), '']
+            cases[kind].append((vid, name))
+            STEPS[vid] = count
     for kind in ('fwd', 'inv'):
         for vid, (suffix, strategy, count, fold, twmem) in enumerate(VARIANTS, start=1):
             name = f'{kind}_{suffix}'
@@ -686,7 +741,7 @@ def main():
     out.append('    switch (kind * 100 + v) {')
     for kind_i, kind in enumerate(('fwd', 'inv')):
         for vid, name in cases[kind]:
-            out.append(f'    case {kind_i * 100 + vid}: return {VARIANTS[vid - 1][2]};')
+            out.append(f'    case {kind_i * 100 + vid}: return {STEPS.get(vid) or VARIANTS[vid - 1][2]};')
     out += ['    }', '    return 1;', '}', '#define ASM_STEP(k, v) asm_step(k, v)']
     out.append('constexpr bool asm_has(int kind, int v) {   // variant generated (not skipped)')
     out.append('    switch (kind * 100 + v) {')

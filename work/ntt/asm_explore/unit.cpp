@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     alignas(64) static U x[4 * 64 * 8 + 64], y[4 * 64 * 8 + 64];
     long checks = 0;
     for (int kind = 0; kind < 2; ++kind) {
-        for (int v = 1; v <= 8; ++v) {
+        for (int v = 1; v < 100; ++v) {
             char key[8]; std::snprintf(key, sizeof key, " %d ", v);   // generated (not skipped) variants
             if (!std::strstr(kind ? ASM_INV_IDS : ASM_FWD_IDS, key)) continue;
             for (int h : {1, 2, 4, 8, 16, 64}) {
@@ -59,8 +59,8 @@ int main(int argc, char** argv) {
                     ++checks;
                 }
             }
-            std::printf("PASS %s variant %d\n", kind ? "inv" : "fwd", v);
         }
+        std::printf("PASS %s variants %s\n", kind ? "inv" : "fwd", kind ? ASM_INV_IDS : ASM_FWD_IDS);
     }
     // leaf MAC variants against the C++ MAC on identical buffers
     for (int v = 2; v <= ASM_LEAF_MAX; ++v) {
