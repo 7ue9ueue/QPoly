@@ -1,0 +1,62 @@
+ws-equal (not byte-exact) case random_02 variant fmt
+ws-equal (not byte-exact) case random_02 variant both
+ws-equal (not byte-exact) case random_02 variant both_probe
+stderr both_probe random_02: map 0.0 parse 49.5 ntt 158.4 out 110.3 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+stderr final_probe random_02: map 0.0 parse 48.8 ntt 160.8 out 121.2 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case max_random_00 variant fmt
+ws-equal (not byte-exact) case max_random_00 variant both
+ws-equal (not byte-exact) case max_random_00 variant both_probe
+stderr both_probe max_random_00: map 0.0 parse 56.2 ntt 159.5 out 138.3 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+stderr final_probe max_random_00: map 0.1 parse 62.0 ntt 158.5 out 155.7 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case fft_killer_00 variant fmt
+ws-equal (not byte-exact) case fft_killer_00 variant both
+ws-equal (not byte-exact) case fft_killer_00 variant both_probe
+stderr both_probe fft_killer_00: map 0.0 parse 61.9 ntt 157.0 out 135.9 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+stderr final_probe fft_killer_00: map 0.0 parse 62.8 ntt 157.3 out 152.8 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt
+ws-equal (not byte-exact) case max_ans_zero_00 variant both
+ws-equal (not byte-exact) case max_ans_zero_00 variant both_probe
+stderr both_probe max_ans_zero_00: map 0.0 parse 55.9 ntt 157.1 out 135.8 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+stderr final_probe max_ans_zero_00: map 0.0 parse 56.6 ntt 161.1 out 153.8 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case small_and_large_00 variant fmt
+ws-equal (not byte-exact) case small_and_large_00 variant both
+ws-equal (not byte-exact) case small_and_large_00 variant both_probe
+stderr both_probe small_and_large_00: map 0.0 parse 28.1 ntt 157.3 out 67.9 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+stderr final_probe small_and_large_00: map 0.0 parse 33.7 ntt 158.2 out 76.6 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case all_same_00 variant fmt
+ws-equal (not byte-exact) case all_same_00 variant both
+ws-equal (not byte-exact) case all_same_00 variant both_probe
+stderr both_probe all_same_00: map 0.0 parse 41.8 ntt 158.7 out 137.6 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+stderr final_probe all_same_00: map 0.0 parse 41.8 ntt 158.4 out 134.3 ms (from main) | thp [always] madvise never | AMD EPYC 9V45 96-Core Processor                 
+PASS 9 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+stderr final_probe random_02: map 0.0 parse 49.0 ntt 160.0 out 122.2 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case random_02 variant both_probe
+stderr both_probe random_02: map 0.0 parse 45.0 ntt 159.3 out 109.8 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case random_02 variant both
+ws-equal (not byte-exact) case random_02 variant fmt
+stderr final_probe max_random_00: map 0.0 parse 62.5 ntt 161.4 out 153.9 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case max_random_00 variant both_probe
+stderr both_probe max_random_00: map 0.0 parse 56.1 ntt 160.5 out 137.4 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case max_random_00 variant both
+ws-equal (not byte-exact) case max_random_00 variant fmt
+stderr final_probe fft_killer_00: map 0.0 parse 65.8 ntt 158.6 out 153.5 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case fft_killer_00 variant both_probe
+stderr both_probe fft_killer_00: map 0.0 parse 62.1 ntt 159.8 out 137.2 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case fft_killer_00 variant both
+ws-equal (not byte-exact) case fft_killer_00 variant fmt
+stderr final_probe max_ans_zero_00: map 0.0 parse 62.5 ntt 158.3 out 155.9 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case max_ans_zero_00 variant both_probe
+stderr both_probe max_ans_zero_00: map 0.0 parse 62.1 ntt 158.8 out 136.5 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case max_ans_zero_00 variant both
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt
+stderr final_probe small_and_large_00: map 0.0 parse 28.0 ntt 158.9 out 75.7 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case small_and_large_00 variant both_probe
+stderr both_probe small_and_large_00: map 0.0 parse 32.9 ntt 160.1 out 69.5 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case small_and_large_00 variant both
+ws-equal (not byte-exact) case small_and_large_00 variant fmt
+stderr final_probe all_same_00: map 0.0 parse 40.7 ntt 156.7 out 132.2 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case all_same_00 variant both_probe
+stderr both_probe all_same_00: map 0.0 parse 40.8 ntt 156.5 out 136.9 ms (from main) | thp always [madvise] never | AMD EPYC 9V45 96-Core Processor                 
+ws-equal (not byte-exact) case all_same_00 variant both
+ws-equal (not byte-exact) case all_same_00 variant fmt
+PASS 9 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0

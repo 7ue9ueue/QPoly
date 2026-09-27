@@ -3,8 +3,10 @@
 //   QI_INPUT  0: exploration-007 input mapping (fastio_unsafe_impl::input)
 //             1: file mapped between two readable zero guard pages (parse_tail's look-behind)
 //   QI_PARSE  0: qp_parse_flat (exploration 007)      1: qp_parse_tail (parse_tail.inc; needs QI_INPUT 1)
+//             2: qp_parse_tail8 (8-token steps; needs QI_INPUT 1)
 //   QI_FMT    0: exploration-007 table writer (variable width, 64 KiB buffer)
-//             1: fixed-width AVX2 writer (fmt_fixed.inc: 10 bytes per value, space padded)
+//             1: fixed-width AVX2 writer (fmt_fixed.inc eight(): 10 bytes per value, space padded)
+//             2: fmt_fixed.inc blocks<1> (a from x directly)   3: blocks<2> (two blocks interleaved)
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
@@ -133,7 +135,10 @@ int main() {
     const size_t len = size_t(1) << lg, arr = len + 16, tab = (qlarge::table_words(lg) + 15) & ~size_t(15);
     uint32_t* const a = lg >= 23 ? lazy_arena(2 * arr + 2 * tab) : arena(2 * arr + 2 * tab);
     uint32_t *const b = a + arr, *const roots = b + arr, *const iroots = roots + tab;
-#if QI_PARSE
+#if QI_PARSE == 2
+    input_cursor = qp_parse_tail8::parse_tokens(input_cursor, a, n);
+    input_cursor = qp_parse_tail8::parse_tokens(input_cursor, b, m);
+#elif QI_PARSE == 1
     input_cursor = qp_parse_tail::parse_tokens(input_cursor, a, n);
     input_cursor = qp_parse_tail::parse_tokens(input_cursor, b, m);
 #else
@@ -153,8 +158,19 @@ int main() {
     alignas(64) static char obuf[64000 + 256];
     char* c = obuf;
     unsigned i = 0;
-    for (; i + 8 <= count; i += 8) {   // a[] has 16 padding words, eight() reads 8
+#if QI_FMT == 3
+    for (; i + 16 <= count; i += 16) {   // 64000 = 400 * 160 bytes
+        qp_fixed::blocks<2>(a + i, c);
+        c += 160;
+        if (c >= obuf + 64000) { write_all(obuf, size_t(c - obuf)); c = obuf; }
+    }
+#endif
+    for (; i + 8 <= count; i += 8) {   // a[] has 16 padding words; a block reads 8 values
+#if QI_FMT == 1
         qp_fixed::eight(a + i, c);
+#else
+        qp_fixed::blocks<1>(a + i, c);
+#endif
         c += 80;
         if (c >= obuf + 64000) { write_all(obuf, size_t(c - obuf)); c = obuf; }
     }

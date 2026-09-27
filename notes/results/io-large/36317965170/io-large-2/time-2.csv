@@ -1,0 +1,21 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+parse,sse,random,112.05,3.339 ns/token
+parse,flat,random,68.42,2.039 ns/token
+parse,tail,random,70.90,2.113 ns/token
+parse,sse,nine_digit,63.49,1.892 ns/token
+parse,flat,nine_digit,68.31,2.036 ns/token
+parse,tail,nine_digit,70.75,2.108 ns/token
+parse,sse,single_digit,42.12,1.255 ns/token
+parse,flat,single_digit,60.29,1.797 ns/token
+parse,tail,single_digit,62.21,1.854 ns/token
+format,table,random,84.48,2.518 ns/value (sink 0)
+format,fixed_table,random,102.38,3.051 ns/value (sink 0)
+format,fixed_avx2,random,53.43,1.592 ns/value (sink 0)
+format_write,table,random,225.34,6.716 ns/value (331199356 bytes)
+format_write,fixed_avx2,random,181.41,5.406 ns/value (335544320 bytes)
+format,table,small,82.93,2.471 ns/value (sink 0)
+format,fixed_table,small,100.39,2.992 ns/value (sink 0)
+format,fixed_avx2,small,53.36,1.590 ns/value (sink 0)
+format_write,table,small,189.63,5.651 ns/value (279769320 bytes)
+format_write,fixed_avx2,small,182.49,5.439 ns/value (335544320 bytes)

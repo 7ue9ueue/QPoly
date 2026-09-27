@@ -1,0 +1,62 @@
+ws-equal (not byte-exact) case random_02 variant fmt
+ws-equal (not byte-exact) case random_02 variant both
+ws-equal (not byte-exact) case random_02 variant both_probe
+stderr both_probe random_02: map 0.0 parse 74.6 ntt 220.0 out 144.8 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe random_02: map 0.0 parse 71.5 ntt 218.2 out 167.6 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_random_00 variant fmt
+ws-equal (not byte-exact) case max_random_00 variant both
+ws-equal (not byte-exact) case max_random_00 variant both_probe
+stderr both_probe max_random_00: map 0.1 parse 92.8 ntt 218.0 out 182.1 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe max_random_00: map 0.1 parse 90.6 ntt 218.7 out 209.4 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case fft_killer_00 variant fmt
+ws-equal (not byte-exact) case fft_killer_00 variant both
+ws-equal (not byte-exact) case fft_killer_00 variant both_probe
+stderr both_probe fft_killer_00: map 0.1 parse 94.6 ntt 222.1 out 183.2 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe fft_killer_00: map 0.1 parse 91.6 ntt 220.3 out 212.2 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt
+ws-equal (not byte-exact) case max_ans_zero_00 variant both
+ws-equal (not byte-exact) case max_ans_zero_00 variant both_probe
+stderr both_probe max_ans_zero_00: map 0.1 parse 93.8 ntt 220.6 out 183.0 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe max_ans_zero_00: map 0.1 parse 90.8 ntt 220.6 out 212.9 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case small_and_large_00 variant fmt
+ws-equal (not byte-exact) case small_and_large_00 variant both
+ws-equal (not byte-exact) case small_and_large_00 variant both_probe
+stderr both_probe small_and_large_00: map 0.0 parse 47.0 ntt 222.5 out 92.5 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe small_and_large_00: map 0.0 parse 47.6 ntt 222.7 out 104.1 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case all_same_00 variant fmt
+ws-equal (not byte-exact) case all_same_00 variant both
+ws-equal (not byte-exact) case all_same_00 variant both_probe
+stderr both_probe all_same_00: map 0.0 parse 74.2 ntt 228.4 out 187.5 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+stderr final_probe all_same_00: map 0.0 parse 72.3 ntt 221.2 out 194.5 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                 
+PASS 9 variants x 6 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+stderr final_probe random_02: map 0.0 parse 73.4 ntt 226.3 out 171.2 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case random_02 variant both_probe
+stderr both_probe random_02: map 0.0 parse 75.5 ntt 220.2 out 144.1 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case random_02 variant both
+ws-equal (not byte-exact) case random_02 variant fmt
+stderr final_probe max_random_00: map 0.0 parse 91.6 ntt 226.2 out 216.2 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_random_00 variant both_probe
+stderr both_probe max_random_00: map 0.0 parse 98.4 ntt 227.7 out 185.7 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_random_00 variant both
+ws-equal (not byte-exact) case max_random_00 variant fmt
+stderr final_probe fft_killer_00: map 0.0 parse 90.7 ntt 217.3 out 210.4 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case fft_killer_00 variant both_probe
+stderr both_probe fft_killer_00: map 0.0 parse 94.0 ntt 217.8 out 182.9 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case fft_killer_00 variant both
+ws-equal (not byte-exact) case fft_killer_00 variant fmt
+stderr final_probe max_ans_zero_00: map 0.0 parse 90.8 ntt 219.2 out 215.6 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_ans_zero_00 variant both_probe
+stderr both_probe max_ans_zero_00: map 0.1 parse 93.8 ntt 221.3 out 182.3 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case max_ans_zero_00 variant both
+ws-equal (not byte-exact) case max_ans_zero_00 variant fmt
+stderr final_probe small_and_large_00: map 0.0 parse 45.9 ntt 221.0 out 105.5 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case small_and_large_00 variant both_probe
+stderr both_probe small_and_large_00: map 0.0 parse 47.6 ntt 228.5 out 88.9 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case small_and_large_00 variant both
+ws-equal (not byte-exact) case small_and_large_00 variant fmt
+stderr final_probe all_same_00: map 0.0 parse 71.5 ntt 219.1 out 194.0 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case all_same_00 variant both_probe
+stderr both_probe all_same_00: map 0.0 parse 73.8 ntt 219.0 out 182.0 ms (from main) | thp always [madvise] never | AMD EPYC 7763 64-Core Processor                 
+ws-equal (not byte-exact) case all_same_00 variant both
+ws-equal (not byte-exact) case all_same_00 variant fmt
+PASS 9 variants x 6 cases x 7 measured (+1 warmup) runs: exact output, exit 0

@@ -48,7 +48,8 @@ Text make_text(const std::vector<uint32_t>& v, int style) {   // style 0: "a b c
 using ParseFn = char* (*)(char*, uint32_t*, size_t);
 char* parse_sse(char* p, uint32_t* dst, size_t n) { for (size_t i = 0; i < n; ++i) dst[i] = read_sse_short(p); return p; }
 struct NamedParser { const char* name; ParseFn fn; };
-const NamedParser PARSERS[] = {{"sse", parse_sse}, {"flat", qp_parse_flat::parse_tokens}, {"tail", qp_parse_tail::parse_tokens}};
+const NamedParser PARSERS[] = {{"sse", parse_sse}, {"flat", qp_parse_flat::parse_tokens}, {"tail", qp_parse_tail::parse_tokens},
+                               {"tail8", qp_parse_tail8::parse_tokens}};
 
 std::vector<uint32_t> values(size_t n, int kind, uint32_t seed) {
     std::mt19937 rng(seed); std::vector<uint32_t> v(n);
@@ -75,10 +76,21 @@ void unit_format(uint64_t limit) {
             qp_fixed::one_table(v[i], b + 10 * i);
             if (std::memcmp(a + 10 * i, b + 10 * i, 10) != 0) fail("fixed_avx2 vs fixed_table at " + std::to_string(v[i]));
         }
+        qp_fixed::blocks<1>(v, a);
+        if (std::memcmp(a, b, 80) != 0) fail("blocks<1> vs fixed_table at " + std::to_string(v[0]));
         if (x0 % (1u << 12) == 0 || x0 < 20000000) {   // digit-loop reference on a dense prefix + sample
             for (int i = 0; i < 8; ++i) { qp_fixed::one(v[i], a); if (std::memcmp(a, b + 10 * i, 10) != 0) fail("fixed_table vs reference at " + std::to_string(v[i])); }
         }
         checked += 8;
+    }
+    {   // blocks<2> on random values and on a dense prefix
+        std::mt19937 rng(3); alignas(32) uint32_t w[16]; char c2[256], d2[256];
+        for (int t = 0; t < 4000000; ++t) {
+            for (int i = 0; i < 16; ++i) w[i] = t < 2000000 ? uint32_t(t * 16 % 1000000000 + i) : rng() % 1000000000u;
+            qp_fixed::blocks<2>(w, c2);
+            for (int i = 0; i < 16; ++i) qp_fixed::one_table(w[i], d2 + 10 * i);
+            if (std::memcmp(c2, d2, 160) != 0) fail("blocks<2> vs fixed_table");
+        }
     }
     // Boundaries and P-1 against the reference.
     std::vector<uint32_t> edge = {0, 1, 9, 10, 11, 99, 100, 101, 998244352};
@@ -172,8 +184,8 @@ void time_all(int reps) {
     for (int kind : {0, 4}) {
         auto v = values(n + 8, kind, 9);
         alignas(64) static char buf[(1 << 16) + 256];
-        for (int f = 0; f < 3; ++f) {
-            const char* name = f == 0 ? "table" : f == 1 ? "fixed_table" : "fixed_avx2";
+        for (int f = 0; f < 5; ++f) {
+            const char* name = f == 0 ? "table" : f == 1 ? "fixed_table" : f == 2 ? "fixed_avx2" : f == 3 ? "fixed_v2g1" : "fixed_v2g2";
             std::vector<double> s; uint64_t sink = 0;
             for (int r = 0; r < reps + 1; ++r) {
                 const double t0 = now_ms();
@@ -193,7 +205,9 @@ void time_all(int reps) {
                 } else {
                     char* c = buf; char* const e = buf + (1 << 16);
                     if (f == 1) for (size_t i = 0; i < n; ++i) { if (__builtin_expect(c + 10 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::one_table(v[i], c); c += 10; }
-                    else for (size_t i = 0; i < n; i += 8) { if (__builtin_expect(c + 86 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::eight(v.data() + i, c); c += 80; }
+                    else if (f == 2) for (size_t i = 0; i < n; i += 8) { if (__builtin_expect(c + 86 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::eight(v.data() + i, c); c += 80; }
+                    else if (f == 3) for (size_t i = 0; i < n; i += 8) { if (__builtin_expect(c + 86 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::blocks<1>(v.data() + i, c); c += 80; }
+                    else for (size_t i = 0; i < n; i += 16) { if (__builtin_expect(c + 166 > e, 0)) { sink += uint64_t(c - buf); c = buf; } qp_fixed::blocks<2>(v.data() + i, c); c += 160; }
                     sink += uint64_t(c - buf) + uint8_t(buf[5]);
                 }
                 const double t1 = now_ms();
@@ -202,8 +216,9 @@ void time_all(int reps) {
             std::printf("format,%s,%s,%.2f,%.3f ns/value (sink %llu)\n", name, fkind_name[kind], median(s), median(s) * 1e6 / double(n), (unsigned long long)(sink & 1));
         }
         // With write() into a fresh tmpfs file (the judge's output is a new tmpfs file).
-        for (int f = 0; f < 3; f += 2) {
-            const char* name = f == 0 ? "table" : "fixed_avx2";
+        for (int f = 0; f < 4; ++f) {
+            if (f == 1) continue;
+            const char* name = f == 0 ? "table" : f == 2 ? "fixed_avx2" : "fixed_v2g2";
             std::vector<double> s; size_t bytes = 0;
             for (int r = 0; r < std::min(reps, 3) + 1; ++r) {
                 unlink("/dev/shm/qpoly_io_out");
@@ -224,9 +239,13 @@ void time_all(int reps) {
                         } else fastio_unsafe_impl::emit_u32_unchecked(c, value);
                     }
                     put(ob.begin(), size_t(c - ob.begin()));
-                } else {
+                } else if (f == 2) {
                     char* c = buf; char* const e = buf + 64000;
                     for (size_t i = 0; i < n; i += 8) { qp_fixed::eight(v.data() + i, c); c += 80; if (c >= e) { put(buf, size_t(c - buf)); c = buf; } }
+                    put(buf, size_t(c - buf));
+                } else {
+                    char* c = buf; char* const e = buf + 64000;
+                    for (size_t i = 0; i < n; i += 16) { qp_fixed::blocks<2>(v.data() + i, c); c += 160; if (c >= e) { put(buf, size_t(c - buf)); c = buf; } }
                     put(buf, size_t(c - buf));
                 }
                 const double t1 = now_ms();
