@@ -26,7 +26,7 @@ fi
 for round in 1 2 3; do
   for prof in lc znver3; do
     [ $prof = znver3 ] && ! grep -qi 'AuthenticAMD' /proc/cpuinfo && continue
-    "$OUT/bench-$prof" time 21 ${REPS:-15} 0 ${MINLOG:-18} > "$OUT/time-$prof-$round.csv"
+    "$OUT/bench-$prof" time 21 ${REPS:-11} ${MODE:-2} ${MINLOG:-19} > "$OUT/time-$prof-$round.csv"
   done
 done
 grep ',20,' "$OUT"/time-*.csv | cut -d, -f1-7

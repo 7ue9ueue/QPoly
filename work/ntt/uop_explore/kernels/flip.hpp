@@ -119,10 +119,14 @@ inline constexpr Constants constants{};
 // Leaf: 0 plain (unroll 2); 1 odd-lane reuse, peeled first step + unroll 1; 2 reuse, full unroll.
 // Shuf: odd-lane extraction with vpshufd (shuffle port) instead of vpsrlq.
 // Mul: 0 Montgomery, 1 Montgomery+vpmulld quotient, 2 Shoup (needs Pair, no Flip).
-// Leaf products and the final scale always use Montgomery (MontMul).
-template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false>
+// Leaf accumulators are always reduced with Montgomery.
+// With Shoup, the leaf's w*a multiply and the final scale also use Shoup.
+// Aux=false keeps Montgomery (vpmulld) for those two multiplies even with Shoup.
+template<int Mul_, bool Flip_, bool Pair_, int Leaf_, bool Shuf_ = false, int Tile_ = 256, bool Aux_ = true>
 struct Cfg {
-    static constexpr int Mul = Mul_, MontMul = Mul_ == 0 ? 0 : 1, Leaf = Leaf_;
+    static constexpr int Mul = Mul_, MontMul = Mul_ == 0 ? 0 : 1, Leaf = Leaf_, Tile = Tile_;
+    static constexpr bool ShoupAux = Mul_ == 2 && Aux_;
+    static constexpr int LeafMul = ShoupAux ? 2 : MontMul;
     static constexpr bool Flip = Flip_, Pair = Pair_, Shuf = Shuf_;
     static_assert(Mul != 2 || (Pair && !Flip));
 };
@@ -179,7 +183,7 @@ QF_AI void leaf4(V* a, V* b, const U* weights, const U* weights_ni) {
     for (int t = 0; t < 4; ++t) {
         V x = canonical(a[t]);
         const Fixed wt = weights_ni ? Fixed(splat(weights[t]), splat(weights_ni[t])) : Fixed::scalar(weights[t]);
-        _mm256_store_si256((V*)window[t], shrink(wt.mul<C::MontMul, false, C::Shuf>(x), P));
+        _mm256_store_si256((V*)window[t], shrink(wt.mul<C::LeafMul, false, C::Shuf>(x), P));
         _mm256_store_si256((V*)(window[t] + 8), x);
         _mm256_store_si256((V*)coeff[t], canonical(b[t]));
         e[t] = o[t] = _mm256_setzero_si256();
@@ -212,7 +216,7 @@ QF_AI void leaf4(V* a, V* b, const U* weights, const U* weights_ni) {
 
 template<class C>
 struct Kernel {
-    static constexpr int Tile = 256;
+    static constexpr int Tile = C::Tile;
     const U *rt, *irt;
     U leaf_cursor = ONE;
     Kernel(const U* r, const U* ir) : rt(r), irt(ir) {}
@@ -288,8 +292,12 @@ struct Kernel {
             leaf_cursor = muls(leaf_cursor, constants.even_step[__builtin_ctz(~unsigned(k))]);
             if constexpr (C::Pair) {   // weights and their NI products as one vector each
                 __m128i wv = _mm_setr_epi32(int(w[0]), int(P - w[0]), int(w[2]), int(P - w[2]));
-                _mm_store_si128((__m128i*)w, wv);
                 _mm_store_si128((__m128i*)wi, _mm_mullo_epi32(wv, _mm_set1_epi32(int(NI))));
+                if constexpr (C::ShoupAux) {   // Shoup: normal-form weights, same quotients
+                    U n0 = muls(w[0], 1), n2 = muls(w[2], 1);
+                    wv = _mm_setr_epi32(int(n0), int(P - n0), int(n2), int(P - n2));
+                }
+                _mm_store_si128((__m128i*)w, wv);
                 leaf4<C>(a + j, b + j, w, wi);
             } else {
                 w[1] = P - w[0]; w[3] = P - w[2];
@@ -319,12 +327,12 @@ struct Kernel {
     }
     void visit(V* a, V* b, int nv, int k) {
         if (nv <= Tile) {
-            switch (nv) {
-                case 4: fixed_tile<4>(a, b, k); break;
-                case 16: fixed_tile<16>(a, b, k); break;
-                case 64: fixed_tile<64>(a, b, k); break;
-                case 256: fixed_tile<256>(a, b, k); break;
-                default: assert(false);
+            if (nv == 4) fixed_tile<4>(a, b, k);
+            else if (nv == 16) fixed_tile<16>(a, b, k);
+            else if (nv == 64) fixed_tile<64>(a, b, k);
+            else if constexpr (Tile >= 256) {
+                if (nv == 256) fixed_tile<256>(a, b, k);
+                else if constexpr (Tile >= 1024) { if (nv == 1024) fixed_tile<1024>(a, b, k); }
             }
         } else {
             int h = nv / 4;
@@ -344,7 +352,10 @@ struct Kernel {
         Kernel job(r, ir);
         V *a = (V*)aa, *b = (V*)bb;
         const int nv = n / 8;
-        const Fixed scale = Fixed::scalar(mont(mont(power(U(nv), P - 2))));
+        // Result so far carries nv*R^-1; scale by nv^-1*R (Shoup) or its Montgomery form.
+        const U s_norm = mont(power(U(nv), P - 2)), s_mont = mont(s_norm);
+        const Fixed scale = C::ShoupAux ? Fixed(splat(s_norm), splat(s_mont * NI)) : Fixed::scalar(s_mont);
+        constexpr int SM = C::ShoupAux ? 2 : C::MontMul;
         constexpr bool F = C::Flip;
         if (__builtin_ctz(unsigned(nv)) & 1) {
             const int h = nv / 2;
@@ -358,13 +369,13 @@ struct Kernel {
             // Values < 2P; sums/differences < 4P are valid multiply inputs.
             for (int i = 0; i < h; ++i) {
                 V x = a[i], y = a[i + h];
-                a[i] = seed(shrink(scale.mul<C::MontMul, F, C::Shuf>(plus(x, y)), P), i);
-                a[i + h] = seed(shrink(scale.mul<C::MontMul, F, C::Shuf>(diff(x, y)), P), i);
+                a[i] = seed(shrink(scale.mul<SM, F, C::Shuf>(plus(x, y)), P), i);
+                a[i + h] = seed(shrink(scale.mul<SM, F, C::Shuf>(diff(x, y)), P), i);
             }
         } else {
             if constexpr (F) for (int i = 0; i < nv; ++i) { a[i] = seed(a[i], i); b[i] = seed(b[i], i); }
             job.visit(a, b, nv, 0);
-            for (int i = 0; i < nv; ++i) a[i] = seed(shrink(scale.mul<C::MontMul, F, C::Shuf>(a[i]), P), i);
+            for (int i = 0; i < nv; ++i) a[i] = seed(shrink(scale.mul<SM, F, C::Shuf>(a[i]), P), i);
         }
     }
 };
