@@ -2,7 +2,7 @@ name: NTT large convolution (exploration 010, convolution_mod_large)
 on:
   push:
     branches: [claude/ntt-conv-large]
-    paths: [work/ntt/conv_large/**, .github/workflows/ntt-conv-large.yml]
+    paths: [work/ntt/conv_large/**, work/ntt/io_large/**, .github/workflows/ntt-conv-large.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,6 +34,31 @@ jobs:
         with:
           name: conv-large-${{ matrix.sample }}
           path: results/
+          retention-days: 7
+  io:
+    runs-on: ubuntu-24.04
+    container:
+      image: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+      options: --shm-size=4g
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq util-linux > /dev/null
+      - name: I/O unit tests and timing (exploration 011, judge flags)
+        run: |
+          set -a; . work/ntt/conv_large/ci.env; set +a
+          mkdir -p results-io; echo "$GITHUB_SHA" > results-io/commit.txt
+          if [ "$IO" = 1 ]; then bash work/ntt/io_large/run_io.sh results-io; else echo "io job disabled by ci.env"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: io-large-${{ matrix.sample }}
+          path: results-io/
           retention-days: 7
   e2e:
     runs-on: ubuntu-24.04
@@ -69,8 +94,9 @@ jobs:
             srcs=()
             IFS=';' read -ra BUILDS <<< "$OFFICIAL_BUILDS"
             for v in "${BUILDS[@]}"; do
-              name=${v%%:*}; margs=${v#*:}
-              python3 work/ntt/conv_large/make_submission.py $margs --out "$RUNNER_TEMP/$name.cpp" | tee -a results-official/generated.txt
+              name=${v%%:*}; margs=${v#*:}; gen=work/ntt/conv_large/make_submission.py
+              case "$margs" in "@io"*) gen=work/ntt/io_large/make_submission.py; margs=${margs#@io};; esac
+              python3 $gen $margs --out "$RUNNER_TEMP/$name.cpp" | tee -a results-official/generated.txt
               cp "$RUNNER_TEMP/$name.cpp" results-official/; srcs+=("$RUNNER_TEMP/$name.cpp")
             done
             bash work/ntt/conv_large/run_official_all.sh results-official "${srcs[@]}"

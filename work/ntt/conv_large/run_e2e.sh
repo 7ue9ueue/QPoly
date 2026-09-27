@@ -45,7 +45,9 @@ done
 IFS=';' read -ra STANDS <<< "${STANDALONE:-}"
 for v in "${STANDS[@]}"; do
   name=${v%%:*}; margs=${v#*:}
-  python3 "$HERE/make_submission.py" $margs --out "$BUILD/src/$name.cpp" | tee -a "$RESULTS/manifest.txt"
+  gen="$HERE/make_submission.py"   # "@io ARGS" selects the exploration-011 generator
+  case "$margs" in "@io"*) gen="$ROOT/work/ntt/io_large/make_submission.py"; margs=${margs#@io};; esac
+  python3 "$gen" $margs --out "$BUILD/src/$name.cpp" | tee -a "$RESULTS/manifest.txt"
 done
 for id in $REFS; do
   curl -fsSL "https://v3.api.judge.yosupo.jp/submissions/$id" | python3 -c \
