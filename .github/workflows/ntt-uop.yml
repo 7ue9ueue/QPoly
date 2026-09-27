@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sample: [1, 2, 3]
+        sample: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - name: Tools
@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sample: [1, 2]
+        sample: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - name: Install Clang 21 (apt.llvm.org)

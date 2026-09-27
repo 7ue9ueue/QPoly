@@ -27,9 +27,9 @@ done
 "$OUT/bench-native" check 22 > "$OUT/check-native.txt"; tail -1 "$OUT/check-native.txt"
 "$OUT/bench-avx2" check 20 > "$OUT/check-avx2.txt"; tail -1 "$OUT/check-avx2.txt"
 grep -q "ALL CHECKS PASSED" "$OUT/check-native.txt"; grep -q "ALL CHECKS PASSED" "$OUT/check-avx2.txt"
-for round in 1 2; do
+for round in 1 2 3; do
   for prof in native avx2; do
-    "$OUT/bench-$prof" time 21 ${REPS:-11} 0 ${MINLOG:-16} > "$OUT/time-$prof-$round.csv"
+    "$OUT/bench-$prof" time 21 ${REPS:-15} 0 ${MINLOG:-18} > "$OUT/time-$prof-$round.csv"
   done
 done
 grep ',20,' "$OUT"/time-*.csv | cut -d, -f1-7
