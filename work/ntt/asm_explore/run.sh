@@ -15,9 +15,9 @@ echo "${LC[*]}" > "$OUT/flags.txt"
 for prog in probe unit micro bench; do "${LC[@]}" "$HERE/$prog.cpp" -o "$BIN/$prog"; done
 "$BIN/unit" 300 > "$OUT/unit.txt"; tail -1 "$OUT/unit.txt"; grep -q "ALL UNIT CHECKS PASSED" "$OUT/unit.txt"
 "$BIN/bench" check 22 > "$OUT/check.txt"; tail -1 "$OUT/check.txt"; grep -q "ALL CHECKS PASSED" "$OUT/check.txt"
-"$BIN/probe" > "$OUT/probe.txt"
-"$BIN/micro" 10 > "$OUT/micro.txt"
 for round in 1 2 3; do
   "$BIN/bench" time 21 ${REPS:-11} 0 19 > "$OUT/time-$round.csv"
 done
+"$BIN/probe" > "$OUT/probe.txt"
+"$BIN/micro" 10 > "$OUT/micro.txt"
 grep ',20,' "$OUT"/time-*.csv | cut -d, -f1-7

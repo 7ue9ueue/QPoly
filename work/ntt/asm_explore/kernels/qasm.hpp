@@ -448,6 +448,8 @@ struct Kernel {
         const int h = H ? H : h_;
         static_assert(C::AsmF == 0 || asm_has(0, C::AsmF), "forward asm variant not generated");
         static_assert(C::AsmI == 0 || asm_has(1, C::AsmI), "inverse asm variant not generated");
+        static_assert(C::AsmMinH % asm_step(0, C::AsmF) == 0 && C::AsmMinH % asm_step(1, C::AsmI) == 0,
+                      "asm loop step must divide every h it is used for");
         if constexpr ((Inv ? C::AsmI : C::AsmF) != 0 && (H == 0 || H >= C::AsmMinH)) {
             if (k != 0 && (H != 0 || h >= C::AsmMinH)) {
                 const U* t = Inv ? irt : rt;

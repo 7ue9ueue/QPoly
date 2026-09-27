@@ -65,6 +65,7 @@ template<class C> static void phases(const char* name) {
 }
 
 int main(int argc, char** argv) {
+    std::setvbuf(stdout, nullptr, _IOLBF, 0);   // keep partial output if a phase crashes
     SCALE = argc > 1 ? std::atol(argv[1]) : 10;
     CYC = cycle_ns();
     std::printf("cycle %.4f ns (%.2f GHz)\n", CYC, 1 / CYC);
@@ -86,11 +87,11 @@ int main(int argc, char** argv) {
     for (int v = 1; v < 100; ++v) {
         std::snprintf(key, sizeof key, " %d ", v);
         std::snprintf(nm, sizeof nm, "asm%d", v);
-        if (std::strstr(ASM_FWD_IDS, key)) {
+        if (16 % ASM_STEP(0, v) == 0 && std::strstr(ASM_FWD_IDS, key)) {
             bench(nm, "fwd4 h=64 per bfly", 64, [&] { fwd_asm(v, a, 64, px, py); });
             bench(nm, "fwd4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) fwd_asm(v, a + 64 * g, 16, px, py); });
         }
-        if (std::strstr(ASM_INV_IDS, key)) {
+        if (16 % ASM_STEP(1, v) == 0 && std::strstr(ASM_INV_IDS, key)) {
             bench(nm, "inv4 h=64 per bfly", 64, [&] { inv_asm(v, a, 64, ipx, ipy); });
             bench(nm, "inv4 h=16 per bfly", 64, [&] { for (int g = 0; g < 4; ++g) inv_asm(v, a + 64 * g, 16, ipx, ipy); });
         }

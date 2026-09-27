@@ -486,8 +486,9 @@ VARIANTS = [
 import random as _random
 AUTOTUNE = []
 _r = _random.Random(2026)
+# (a three-butterfly family was dropped: its step does not divide power-of-two h)
 for _base, (_strategy, _count, _fold, _twmem) in ((20, ('ls', 1, True, False)), (40, ('ls', 2, True, True)),
-                                                 (60, ('ls', 3, True, True)), (80, ('sp', 1, True, True))):
+                                                 (60, ('ls', 2, True, 'half')), (80, ('sp', 1, True, True))):
     for _k in range(12):
         AUTOTUNE.append((_base + _k, _strategy, _count, _fold, _twmem,
                          (1 + _k * 7 + _base, _r.choice([0, 1, 2, 3, 4]), _r.choice([0.0, 2.0, 4.0, 8.0]),
