@@ -1,0 +1,34 @@
+name: Library Checker NTT comparison (KACTL, simd-v0, 393435, ours)
+on:
+  push:
+    branches: [claude/lc-bench]
+    paths: [work/ntt/lc_bench/**, .github/workflows/lc-bench.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    # Library Checker's compiler (gcc 15.2); same image digest as the earlier explorations
+    container: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq python3 util-linux > /dev/null
+      - name: Build and benchmark (Library Checker flags)
+        run: |
+          test "$(g++ -dumpfullversion)" = 15.2.0
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          bash work/ntt/lc_bench/run.sh results 10 22
+          { echo "### Job ${{ matrix.sample }}"; cat results/table.md; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lc-bench-${{ matrix.sample }}
+          path: results/
+          retention-days: 30
