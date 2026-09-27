@@ -13,6 +13,7 @@
 #include "../conv_large/io007.hpp"
 #include "parse_tail.inc"
 #include "parse_ms.inc"
+#include "parse_ms2.inc"
 #include "fmt_fixed.inc"
 #include <algorithm>
 #include <chrono>
@@ -54,7 +55,10 @@ const NamedParser PARSERS[] = {{"sse", parse_sse}, {"flat", qp_parse_flat::parse
                                {"ms4", qp_parse_ms::parse_tokens<4, 32768, qp_parse_flat::parse_tokens>},
                                {"ms8", qp_parse_ms::parse_tokens<8, 32768, qp_parse_flat::parse_tokens>},
                                {"ms8s", qp_parse_ms::parse_tokens<8, 16384, qp_parse_flat::parse_tokens>},
-                               {"ms8l", qp_parse_ms::parse_tokens<8, 65536, qp_parse_flat::parse_tokens>}};
+                               {"ms8l", qp_parse_ms::parse_tokens<8, 65536, qp_parse_flat::parse_tokens>},
+                               {"m2x16", qp_parse_ms2::parse_tokens<16384, qp_parse_flat::parse_tokens>},
+                               {"m2x32", qp_parse_ms2::parse_tokens<32768, qp_parse_flat::parse_tokens>},
+                               {"m2x64", qp_parse_ms2::parse_tokens<65536, qp_parse_flat::parse_tokens>}};
 
 std::vector<uint32_t> values(size_t n, int kind, uint32_t seed) {
     std::mt19937 rng(seed); std::vector<uint32_t> v(n);

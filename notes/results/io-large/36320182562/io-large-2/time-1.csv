@@ -1,0 +1,52 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+parse,sse,random,112.45,3.351 ns/token
+parse,flat,random,68.23,2.034 ns/token
+parse,tail,random,70.61,2.104 ns/token
+parse,tail8,random,73.27,2.184 ns/token
+parse,ms4,random,59.34,1.769 ns/token
+parse,ms8,random,75.31,2.244 ns/token
+parse,ms8s,random,79.83,2.379 ns/token
+parse,ms8l,random,72.70,2.167 ns/token
+parse,sse,nine_digit,63.29,1.886 ns/token
+parse,flat,nine_digit,68.05,2.028 ns/token
+parse,tail,nine_digit,70.49,2.101 ns/token
+parse,tail8,nine_digit,73.19,2.181 ns/token
+parse,ms4,nine_digit,59.17,1.763 ns/token
+parse,ms8,nine_digit,74.03,2.206 ns/token
+parse,ms8s,nine_digit,77.92,2.322 ns/token
+parse,ms8l,nine_digit,72.12,2.149 ns/token
+parse,sse,single_digit,42.01,1.252 ns/token
+parse,flat,single_digit,63.63,1.896 ns/token
+parse,tail,single_digit,62.34,1.858 ns/token
+parse,tail8,single_digit,64.54,1.923 ns/token
+parse,ms4,single_digit,55.45,1.653 ns/token
+parse,ms8,single_digit,70.19,2.092 ns/token
+parse,ms8s,single_digit,69.62,2.075 ns/token
+parse,ms8l,single_digit,69.85,2.082 ns/token
+format,table,random,83.43,2.486 ns/value (sink 0)
+format,fixed_table,random,103.03,3.071 ns/value (sink 0)
+format,fixed_avx2,random,53.40,1.591 ns/value (sink 0)
+format,fixed_v2g1,random,45.83,1.366 ns/value (sink 0)
+format,fixed_v2g2,random,41.98,1.251 ns/value (sink 0)
+format,fixed_v2g3,random,40.92,1.219 ns/value (sink 0)
+format,fixed_v2g4,random,41.03,1.223 ns/value (sink 0)
+format_write,table,random,223.76,6.668 ns/value (331199356 bytes)
+format_write,fixed_v2g2,random,166.58,4.964 ns/value (335544320 bytes)
+format_write,g4_64000,random,162.77,4.851 ns/value (335544320 bytes)
+format_write,g4_163840,random,164.23,4.894 ns/value (335544320 bytes)
+format_write,g4_327680,random,159.92,4.766 ns/value (335544320 bytes)
+format_write,g4_1310720,random,164.35,4.898 ns/value (335544320 bytes)
+format,table,small,81.71,2.435 ns/value (sink 0)
+format,fixed_table,small,100.84,3.005 ns/value (sink 0)
+format,fixed_avx2,small,53.47,1.594 ns/value (sink 0)
+format,fixed_v2g1,small,45.87,1.367 ns/value (sink 0)
+format,fixed_v2g2,small,41.84,1.247 ns/value (sink 0)
+format,fixed_v2g3,small,40.85,1.218 ns/value (sink 0)
+format,fixed_v2g4,small,41.16,1.227 ns/value (sink 0)
+format_write,table,small,190.77,5.685 ns/value (279769320 bytes)
+format_write,fixed_v2g2,small,167.50,4.992 ns/value (335544320 bytes)
+format_write,g4_64000,small,166.87,4.973 ns/value (335544320 bytes)
+format_write,g4_163840,small,165.66,4.937 ns/value (335544320 bytes)
+format_write,g4_327680,small,160.98,4.798 ns/value (335544320 bytes)
+format_write,g4_1310720,small,160.98,4.798 ns/value (335544320 bytes)
