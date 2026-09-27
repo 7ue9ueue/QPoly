@@ -6,6 +6,7 @@
 // 2: run_b0 with the zero-upper top and the final scale fused into the last inverse level,
 // 3: as 2 with non-temporal stores in the zero-upper top level).
 // -DQPOLY_PHASES prints "QP main mapped parsed ntt written 0" (CLOCK_MONOTONIC ns) to stderr.
+// -DQPOLY_PROBE prints one readable line (phase ms, THP mode, CPU) to stderr, for a judge probe.
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
 #endif
@@ -40,12 +41,37 @@
 #define QL_CHUNK 4096
 #endif
 
+#if defined(QPOLY_PROBE) && !defined(QPOLY_PHASES)
+#define QPOLY_PHASES
+#endif
 #ifdef QPOLY_PHASES
 static long long qp_marks[5];
 static inline long long qp_now() { timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec * 1000000000LL + t.tv_nsec; }
 #define QP_MARK(i) (qp_marks[i] = qp_now())
 #else
 #define QP_MARK(i) ((void)0)
+#endif
+
+#ifdef QPOLY_PHASES
+#include <cpuid.h>
+static void qp_report() {
+#ifdef QPOLY_PROBE
+    char thp[128] = "?";
+    if (FILE* f = std::fopen("/sys/kernel/mm/transparent_hugepage/enabled", "r")) {
+        if (!std::fgets(thp, sizeof thp, f)) thp[0] = 0;
+        std::fclose(f);
+        for (char* q = thp; *q; ++q) if (*q == '\n') *q = 0;
+    }
+    unsigned r[4]; char brand[49]{};
+    for (unsigned i = 0; i < 3; ++i) { __cpuid(0x80000002 + i, r[0], r[1], r[2], r[3]); std::memcpy(brand + 16 * i, r, 16); }
+    const double ms = 1e-6;
+    std::fprintf(stderr, "map %.1f parse %.1f ntt %.1f out %.1f ms (from main) | thp %s | %s\n",
+                 (qp_marks[1] - qp_marks[0]) * ms, (qp_marks[2] - qp_marks[1]) * ms,
+                 (qp_marks[3] - qp_marks[2]) * ms, (qp_marks[4] - qp_marks[3]) * ms, thp, brand);
+#else
+    dprintf(2, "QP %lld %lld %lld %lld %lld 0\n", qp_marks[0], qp_marks[1], qp_marks[2], qp_marks[3], qp_marks[4]);
+#endif
+}
 #endif
 
 int main() {
@@ -140,7 +166,7 @@ int main() {
         out.finish(output_cursor);
         QP_MARK(4);
 #ifdef QPOLY_PHASES
-        dprintf(2, "QP %lld %lld %lld %lld %lld 0\n", qp_marks[0], qp_marks[1], qp_marks[2], qp_marks[3], qp_marks[4]);
+        qp_report();
 #endif
         return 0;
     }
@@ -165,7 +191,7 @@ int main() {
     out.finish(output_cursor);
     QP_MARK(4);
 #ifdef QPOLY_PHASES
-    dprintf(2, "QP %lld %lld %lld %lld %lld 0\n", qp_marks[0], qp_marks[1], qp_marks[2], qp_marks[3], qp_marks[4]);
+    qp_report();
 #endif
     return 0;
 }

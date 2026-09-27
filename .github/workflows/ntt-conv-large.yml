@@ -66,9 +66,14 @@ jobs:
           set -a; . work/ntt/conv_large/ci.env; set +a
           mkdir -p results-official; echo "$GITHUB_SHA" > results-official/commit.txt
           if [ "$OFFICIAL" = 1 ]; then
-            python3 work/ntt/conv_large/make_submission.py $OFFICIAL_ARGS --out "$RUNNER_TEMP/submission.cpp" | tee results-official/generated.txt
-            cp "$RUNNER_TEMP/submission.cpp" results-official/submission.cpp
-            bash work/ntt/conv_large/run_official_all.sh results-official "$RUNNER_TEMP/submission.cpp"
+            srcs=()
+            IFS=';' read -ra BUILDS <<< "$OFFICIAL_BUILDS"
+            for v in "${BUILDS[@]}"; do
+              name=${v%%:*}; margs=${v#*:}
+              python3 work/ntt/conv_large/make_submission.py $margs --out "$RUNNER_TEMP/$name.cpp" | tee -a results-official/generated.txt
+              cp "$RUNNER_TEMP/$name.cpp" results-official/; srcs+=("$RUNNER_TEMP/$name.cpp")
+            done
+            bash work/ntt/conv_large/run_official_all.sh results-official "${srcs[@]}"
           else echo "official job disabled by ci.env"; fi
       - uses: actions/upload-artifact@v4
         if: always()

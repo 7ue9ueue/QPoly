@@ -25,41 +25,17 @@
 // Ranges and Shoup/Montgomery conventions are qasm's: forward values < 4P, inverse
 // values < 2P. Single-threaded; tables and panel buffers are caller-owned.
 #pragma once
-#include "../asm_explore/kernels/qasm.hpp"
-#include <cstddef>
+#include "large_core.hpp"
+#include <algorithm>
 #include <cstring>
 
 namespace qlarge {
-using namespace qasm;
-
-// Exploration 009 selected configuration (Library Checker submission kernel).
-using Sel = Cfg<2, false, true, 0, false, 256, true, true, true, 1, true, true, 11, 71, 0, 4, 23, 0, 2, 2, 104>;
 // Same with 1024-vector fixed tiles (exploration 010 round 4 test).
 using Sel1024 = Cfg<2, false, true, 0, false, 1024, true, true, true, 1, true, true, 11, 71, 0, 4, 23, 0, 2, 2, 104>;
 // Round 4 control: when false, run_b0 keeps previously built root tables (fresh = false).
 inline bool fresh_tables = true;
 
-// Root tables in qasm's block layout: n/16 entries -> n/8 words each (+16 padding).
-struct Tables {
-    U* r = nullptr; U* ir = nullptr; int size = 0;
-};
-inline size_t table_words(int lg) { return (size_t(1) << lg) / 8 + 16; }
-
-// Optional phase timers (bench "phases" mode); off unless a callback is set.
-using PhaseHook = void (*)(int phase);
-inline PhaseHook phase_hook = nullptr;
-inline void phase(int p) { if (phase_hook) phase_hook(p); }
-
-// Zero-upper-half identity radix-4 group: c = d = 0, inputs a = f[j], b = f[j+h]
-// canonical (< P). Outputs a+b, a-b+2P, a+zb, a-zb+2P (all < 4P), z = r[1].
-QA_AI void top4_zero_body(V* f, long h, long j, const Fixed& z) {
-    const V a = f[j], b = f[j + h];
-    const V zb = z.mul<2, false, false, true>(b);
-    f[j] = plus(a, b); f[j + h] = diff(a, b); f[j + 2 * h] = plus(a, zb); f[j + 3 * h] = diff(a, zb);
-}
-
-// Same, with non-temporal stores (the four output streams are not re-read soon; the
-// upper two would otherwise cost read-for-ownership traffic for never-read lines).
+// Same as top4_zero_body with non-temporal stores (round 3: +14 ms, rejected).
 QA_AI void top4_zero_body_nt(V* f, long h, long j, const Fixed& z) {
     const V a = f[j], b = f[j + h];
     const V zb = z.mul<2, false, false, true>(b);
@@ -71,25 +47,13 @@ QA_AI void top4_zero_body_nt(V* f, long h, long j, const Fixed& z) {
 inline double depth_ms[2][4];   // [forward/inverse][depth 0..3]
 inline double (*depth_clock)() = nullptr;
 
+// Experimental drivers (exploration 010 rounds 1-5); the final path is Core<C>::run.
 template<class C>
-struct Drivers {
+struct Drivers : Core<C> {
     using K = Kernel<C>;
-    static Fixed scale_factor(int nv) {
-        // Result so far carries nv*R^-1; scale by nv^-1*R (normal form, Shoup quotient).
-        const U s_norm = mont(power(U(nv), P - 2)), s_mont = mont(s_norm);
-        return Fixed(splat(s_norm), splat(s_mont * NI));
-    }
-    static QA_AI V scale1(const Fixed& s, V x) { return shrink(s.mul<2, false, false, true>(x), P); }
-
-    // Identity inverse radix-4 group (k = 0) fused with the final scale; inputs < 2P,
-    // outputs canonical. Same arithmetic as inv4<C, true> followed by scale1.
-    static QA_AI void inv_identity_scale_body(V* f, long h, long j, const Fixed& z, const Fixed& scale) {
-        const V p0 = f[j], p1 = f[j + h], p2 = f[j + 2 * h], p3 = f[j + 3 * h];
-        const V ab = low(plus(p0, p1)), cd = low(plus(p2, p3)), amb = low(diff(p0, p1));
-        const V cmd = z.mul<2, false, false, true>(diff(p2, p3));
-        f[j] = scale1(scale, plus(ab, cd)); f[j + h] = scale1(scale, plus(amb, cmd));
-        f[j + 2 * h] = scale1(scale, diff(ab, cd)); f[j + 3 * h] = scale1(scale, diff(amb, cmd));
-    }
+    using Core<C>::scale_factor;
+    using Core<C>::scale1;
+    using Core<C>::inv_identity_scale_body;
 
     // qasm run() generalized to n <= 2^26 (assert removed, 64-bit-safe loops) plus an
     // optional zero-upper radix-4 top and an optional fused final scale for even log2(nv).

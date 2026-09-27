@@ -20,7 +20,7 @@ BUILD=$ROOT/build/conv_large
 CASES=/dev/shm/qpoly-large
 CPU=${CPU:-$(( $(nproc) - 1 ))}
 CASES_LIST=${CASES_LIST:-max_random_00,fft_killer_00,all_same_00,max_ans_zero_00,small_and_large_00,random_02}
-VARIANTS=${VARIANTS:-"b0z:-DQL_MODE=0;top:-DQL_MODE=1"}
+VARIANTS=${VARIANTS-"b0z:-DQL_MODE=0;top:-DQL_MODE=1"}
 REFS=${REFS:-403499 303498}
 mkdir -p "$RESULTS" "$BUILD/bin" "$BUILD/src" "$CASES/out"
 cd "$ROOT"
@@ -100,7 +100,7 @@ launch correctness 1 0 "$ours_all $refs $(for v in $ours; do echo -n "${v}_phase
 for mode in ${THP_MODES:-madvise always}; do
   set_thp "$mode"
   launch "timing-$mode" "${REPS:-5}" 1 "$ours_all $refs" 'True'
-  launch "phases-$mode" 3 1 "$(for v in $ours; do echo -n "${v}_phases "; done)" 'True'
+  [ -n "${ours// }" ] && launch "phases-$mode" 3 1 "$(for v in $ours; do echo -n "${v}_phases "; done)" 'True'
 done
 set_thp always
 python3 "$HERE/summarize_e2e.py" "$RESULTS" | tee "$RESULTS/summary.txt"

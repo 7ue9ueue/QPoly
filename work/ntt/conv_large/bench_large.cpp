@@ -90,8 +90,9 @@ void e_top(int lg, U* a, U* b, long nza, long nzb) {
 #define TOPS(L, W, DI) {"t" #L "w" #W "d" #DI "s", e_top<L, W, DI, false, false>}
 // Round 1 entries (kept for reference): TOP(2,2,4) TOPNT(2,2,4) TOP(3,2,4) TOPNT(3,2,4)
 // TOP(4,2,4) TOPNT(4,2,4) TOPNT(5,2,4) TOPNT(3,4,2) TOPNT(4,4,2).
+void e_final(int lg, U* a, U* b, long nza, long nzb) { qlarge::Core<qlarge::Sel>::run(lg, a, b, work().T, nza, nzb); }
 const Entry ENTRIES[] = {
-    {"b0zs", e_b0<true, true>}, {"b0", e_b0<false>, false}, {"b0zs_t1024", e_b0zs_t1024}, {"b0zs_keep", e_b0zs_keep},
+    {"final", e_final}, {"b0zs", e_b0<true, true>}, {"b0", e_b0<false>, false}, {"b0zs_t1024", e_b0zs_t1024}, {"b0zs_keep", e_b0zs_keep},
 };
 // Round 3 entries (run 36313058400): {"b0z", e_b0<true>}, {"b0zsn", e_b0<true, true, true>} (NT top,
 // +14 ms), TOP(2, 8, 1), TOP(3, 32, 1), TOP(4, 16, 1).
