@@ -32,3 +32,24 @@ jobs:
           name: bench-${{ matrix.sample }}
           path: results/
           retention-days: 30
+  e2e:
+    # Judge-like end-to-end runs: host runner + docker (gcc 15.2 image, judge limits, tmpfs cases).
+    if: ${{ vars.MP_E2E != '0' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: End-to-end correctness and timing (exact judge compile command)
+        run: |
+          bash work/matrix_product/e2e/run_e2e.sh results-e2e
+          { echo "### e2e job ${{ matrix.sample }}: $(grep -m1 'Model name' results-e2e/environment.txt)"; cat results-e2e/summary.txt; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-${{ matrix.sample }}
+          path: results-e2e/
+          retention-days: 30

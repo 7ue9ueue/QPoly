@@ -232,6 +232,7 @@ def main():
     # Tails for the kernels used by the Strassen leaves.
     out.append(emit_tail("wipp_s0", first_unit(wip_period(1, 0, 0), "vmovdqu 64("), 2))
     out.append(emit_tail("wipp_i2", first_unit(wipp_period_variant("i2"), "vmovdqu 64("), 2))
+    out.append(emit_tail("wipp_sh", first_unit(wipp_period_variant("sh"), "vmovdqu 64("), 2))
     out.append(emit_tail("wip_s0", first_unit(wip_period(0, 0, 0), "vmovsldup 64("), 2))
     out.append(emit_tail("direct_g_s0", first_unit(direct_period_g(0), "vbroadcastss 16(%[pa])"), 1))
     out.append('}  // namespace mp::simd')

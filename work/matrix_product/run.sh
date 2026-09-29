@@ -19,6 +19,7 @@ FLAGS="-O2 -std=c++23 -march=native"
   echo "march_native: $($CXX -march=native -Q --help=target 2>/dev/null | grep -E '^\s+-march=' | head -1 | tr -s ' ')"
 } | tee "$out/environment.txt"
 cd "$here"
+if [ "${BENCH:-1}" = 0 ]; then : > "$out/table.md"; exit 0; fi
 mkdir -p "$out/build"
 $CXX $FLAGS -DMP_FLAGS="\"$FLAGS\"" bench.cpp kernels/*.cpp -o "$out/build/bench"
 sha256sum bench.cpp common.hpp strassen.hpp kernels/*.cpp kernels/*.hpp 2>/dev/null > "$out/sources-sha256.txt" || true

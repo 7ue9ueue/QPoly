@@ -1,0 +1,4 @@
+# NAME [-DKEY=VALUE ...]  (flattened from main_mp.cpp) or FILE NAME PATH
+mp_wippi2_d3 -DMP_KERNEL=wipp_i2 -DMP_DEPTH_MAX=3
+mp_wippsh_d3 -DMP_KERNEL=wipp_sh -DMP_DEPTH_MAX=3
+mp_wippi2_d4 -DMP_KERNEL=wipp_i2 -DMP_DEPTH_MAX=4
