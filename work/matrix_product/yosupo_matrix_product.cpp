@@ -20,13 +20,16 @@
 #define MP_CHUNKED
 // Library Checker matrix_product (https://judge.yosupo.jp/problem/matrix_product), QPoly
 // exploration 013. C = A B mod 998244353, 1 <= N, M, K <= 1024.
-// Pipeline: exploration-007 input (padded mmap + two-stage AVX2 parser) into row-major
-// buffers; vectorized conversion into the recursive Strassen layout (A: Montgomery factor
-// 2^32, centered; B: centered; 4-row / 8-column packed panels at the leaves); Strassen-Winograd
-// to depth D over a generated inline-asm Winograd inner-product 4x8 micro-kernel (see
-// work/matrix_product/README.md); row-major unpack; exploration-007 table writer with a
-// 64 KiB buffer. Scratch memory: one 2 MiB-aligned anonymous arena with a THP hint,
-// populated before use. Define MP_PHASES to print phase times (ms) to stderr.
+// Pipeline: exploration-007 input (padded mmap + two-stage AVX2 parser); conversion into the
+// recursive Strassen layout (A: Montgomery factor 2^32, centered; B: centered; 4-row / 8-column
+// packed panels at the leaves); Strassen-Winograd to depth D over a generated inline-asm 4x8
+// micro-kernel (MP_KERNEL, see work/matrix_product/README.md); exploration-007 table writer
+// with a 64 KiB buffer. MP_CHUNKED parses 4 rows of A / 1 row of B at a time into an L1 buffer
+// and packs them directly, and writes each output row from the C tiles through a row buffer;
+// otherwise whole row-major buffers are parsed, packed and unpacked. Scratch memory: one
+// 2 MiB-aligned anonymous arena with a THP hint, populated before use. Other switches:
+// MP_DEPTH_MAX, MP_FUSED / MP_FUSE_DEPTH (fused Strassen passes), MP_EARLY_UNMAP and
+// MP_FAST_EXIT (both measured slower), MP_PHASES (phase times in ms on stderr).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3")
 #endif
