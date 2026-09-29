@@ -1,6 +1,3 @@
 # NAME [-DKEY=VALUE ...]  (flattened from main_mp.cpp), FILE NAME PATH, or JUDGE NAME SUBMISSION_ID
 JUDGE ref_adamant_401223 401223
-full -DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_CHUNKED
-full_um -DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_CHUNKED -DMP_EARLY_UNMAP
-full_um_fe -DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_CHUNKED -DMP_EARLY_UNMAP -DMP_FAST_EXIT
-one -DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_CHUNKED --asm-only sh_burst_p1
+FILE final work/matrix_product/yosupo_matrix_product.cpp
