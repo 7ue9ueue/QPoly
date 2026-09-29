@@ -1,0 +1,4 @@
+PASS 8 variants x 22 cases x 1 measured (+0 warmup) runs: tokens equal (wcmp), exit 0
+PASS stress: 160 cases x 4 programs token-identical to the model solution
+PASS 5 variants x 6 cases x 15 measured (+2 warmup) runs: tokens equal (wcmp), exit 0
+PASS 3 variants x 3 cases x 15 measured (+1 warmup) runs: tokens equal (wcmp), exit 0

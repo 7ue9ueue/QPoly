@@ -38,3 +38,6 @@ Summaries: `python3 work/matrix_product/summarize.py <round dir> <baseline>` (be
 | 15 | Early `munmap` of the input (no gain) and `_exit` again (slower). |
 | 16 | Final confirmation of the deliverable (SHA256 936b8e78…): 22 cases, stress, timing vs 401223. |
 | 17 | Comment-only update (SHA256 6b771616…): identical judge-flag binary (aa99cf7b… on EPYC 7763), 22 cases. |
+| 18 | I/O: exploration-011 parser/formatter path (token-wise checks), direct-from-tiles output, lazy arena, 64 KiB buffer. |
+| 19 | I/O: fused parse→pack through a sink-based parser (no gain) vs 011 I/O + lazy arena. |
+| 20 | I/O deliverable (SHA256 4ecc061d…) vs the submitted 007-I/O file: 22 cases, stress, THP madvise/always/never. |

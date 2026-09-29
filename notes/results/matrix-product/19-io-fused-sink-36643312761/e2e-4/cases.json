@@ -1,0 +1,181 @@
+{
+ "problems_commit": "1814c4e5205517e368bb57a8d1127eb961cfeaae",
+ "cases": [
+  {
+   "case": "example_00",
+   "n": 2,
+   "m": 2,
+   "k": 2,
+   "in_bytes": 22,
+   "out_bytes": 8
+  },
+  {
+   "case": "example_01",
+   "n": 1,
+   "m": 2,
+   "k": 3,
+   "in_bytes": 22,
+   "out_bytes": 9
+  },
+  {
+   "case": "example_02",
+   "n": 1,
+   "m": 1,
+   "k": 1,
+   "in_bytes": 20,
+   "out_bytes": 10
+  },
+  {
+   "case": "random_00",
+   "n": 810,
+   "m": 812,
+   "k": 664,
+   "in_bytes": 11836719,
+   "out_bytes": 5318483
+  },
+  {
+   "case": "random_01",
+   "n": 709,
+   "m": 746,
+   "k": 788,
+   "in_bytes": 11044020,
+   "out_bytes": 5524886
+  },
+  {
+   "case": "random_02",
+   "n": 599,
+   "m": 906,
+   "k": 573,
+   "in_bytes": 10500155,
+   "out_bytes": 3394169
+  },
+  {
+   "case": "max_random_00",
+   "n": 1024,
+   "m": 1024,
+   "k": 1024,
+   "in_bytes": 20738716,
+   "out_bytes": 10369156
+  },
+  {
+   "case": "max_random_01",
+   "n": 1024,
+   "m": 1024,
+   "k": 1024,
+   "in_bytes": 20738523,
+   "out_bytes": 10369030
+  },
+  {
+   "case": "max_random_02",
+   "n": 1024,
+   "m": 1024,
+   "k": 1024,
+   "in_bytes": 20738101,
+   "out_bytes": 10369079
+  },
+  {
+   "case": "small_00",
+   "n": 53,
+   "m": 43,
+   "k": 97,
+   "in_bytes": 63773,
+   "out_bytes": 50808
+  },
+  {
+   "case": "small_01",
+   "n": 70,
+   "m": 107,
+   "k": 21,
+   "in_bytes": 96369,
+   "out_bytes": 14493
+  },
+  {
+   "case": "small_02",
+   "n": 88,
+   "m": 11,
+   "k": 6,
+   "in_bytes": 10222,
+   "out_bytes": 5218
+  },
+  {
+   "case": "small_03",
+   "n": 65,
+   "m": 111,
+   "k": 82,
+   "in_bytes": 161387,
+   "out_bytes": 52672
+  },
+  {
+   "case": "small_04",
+   "n": 20,
+   "m": 45,
+   "k": 127,
+   "in_bytes": 65420,
+   "out_bytes": 25093
+  },
+  {
+   "case": "small_05",
+   "n": 106,
+   "m": 93,
+   "k": 47,
+   "in_bytes": 140688,
+   "out_bytes": 49283
+  },
+  {
+   "case": "small_06",
+   "n": 6,
+   "m": 124,
+   "k": 73,
+   "in_bytes": 96892,
+   "out_bytes": 4325
+  },
+  {
+   "case": "small_07",
+   "n": 91,
+   "m": 83,
+   "k": 23,
+   "in_bytes": 93593,
+   "out_bytes": 20706
+  },
+  {
+   "case": "small_08",
+   "n": 64,
+   "m": 47,
+   "k": 7,
+   "in_bytes": 33004,
+   "out_bytes": 4423
+  },
+  {
+   "case": "small_09",
+   "n": 97,
+   "m": 122,
+   "k": 24,
+   "in_bytes": 146038,
+   "out_bytes": 23011
+  },
+  {
+   "case": "signed_overflow_00",
+   "n": 38,
+   "m": 38,
+   "k": 38,
+   "in_bytes": 28889,
+   "out_bytes": 14440
+  },
+  {
+   "case": "unsigned_overflow_00",
+   "n": 18,
+   "m": 18,
+   "k": 18,
+   "in_bytes": 6489,
+   "out_bytes": 972
+  },
+  {
+   "case": "unsigned_overflow_01",
+   "n": 19,
+   "m": 19,
+   "k": 19,
+   "in_bytes": 7229,
+   "out_bytes": 1083
+  }
+ ]
+}

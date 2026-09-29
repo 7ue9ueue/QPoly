@@ -1,0 +1,221 @@
+case,variant,rep,position,wall_ns,user_us,sys_us,minflt,majflt,nvcsw,nivcsw,stderr
+example_00,base,0,0,1652342,0,1594,171,0,1,1,
+example_00,io11,0,1,1343549,0,1301,172,0,1,1,
+example_00,io11_phases,0,2,1193805,1154,0,175,0,1,1,setup 0.123;parse 0.021;pack 0.003;multiply 0.012;output 0.006;
+example_00,io11d,0,3,1150903,1112,0,174,0,1,1,
+example_00,io11d_phases,0,4,1132429,1093,0,175,0,1,1,setup 0.104;parse 0.016;pack 0.003;multiply 0.013;output 0.007;
+example_00,io11l,0,5,1146799,0,1062,170,0,1,2,
+example_00,io11l_phases,0,6,1078976,0,1040,175,0,1,1,setup 0.016;parse 0.094;pack 0.005;multiply 0.018;output 0.007;
+example_00,io11s,0,7,1125335,0,1052,172,0,1,1,
+example_00,io11s_phases,0,8,1097891,1059,0,175,0,1,1,setup 0.098;parse 0.018;pack 0.003;multiply 0.017;output 0.007;
+example_00,ref_adamant_401223,0,9,995168,954,0,174,0,1,1,
+example_01,base,0,0,1132834,1095,0,171,0,1,1,
+example_01,io11,0,1,1212474,0,1156,170,0,1,2,
+example_01,io11_phases,0,2,1141175,1100,0,175,0,1,1,setup 0.102;parse 0.014;pack 0.003;multiply 0.015;output 0.007;
+example_01,io11d,0,3,1175895,0,1115,171,0,1,1,
+example_01,io11d_phases,0,4,1187858,1147,0,178,0,1,1,setup 0.105;parse 0.018;pack 0.002;multiply 0.018;output 0.009;
+example_01,io11l,0,5,1158372,1111,0,168,0,1,1,
+example_01,io11l_phases,0,6,1168225,1128,0,175,0,1,1,setup 0.018;parse 0.097;pack 0.004;multiply 0.014;output 0.007;
+example_01,io11s,0,7,1207519,0,1162,170,0,1,1,
+example_01,io11s_phases,0,8,1174264,0,1132,175,0,1,1,setup 0.125;parse 0.020;pack 0.003;multiply 0.013;output 0.006;
+example_01,ref_adamant_401223,0,9,1075169,1035,0,171,0,1,1,
+example_02,base,0,0,1153329,1112,0,169,0,1,1,
+example_02,io11,0,1,1237884,1156,0,169,0,1,2,
+example_02,io11_phases,0,2,1208009,583,583,176,0,1,1,setup 0.104;parse 0.016;pack 0.003;multiply 0.012;output 0.006;
+example_02,io11d,0,3,1179009,0,1137,171,0,1,1,
+example_02,io11d_phases,0,4,1325884,1178,0,176,0,1,2,setup 0.107;parse 0.018;pack 0.002;multiply 0.013;output 0.006;
+example_02,io11l,0,5,1212366,0,1151,171,0,1,1,
+example_02,io11l_phases,0,6,1236544,0,1189,174,0,1,1,setup 0.017;parse 0.100;pack 0.004;multiply 0.013;output 0.007;
+example_02,io11s,0,7,1247016,0,1158,171,0,1,2,
+example_02,io11s_phases,0,8,1190055,1149,0,175,0,1,1,setup 0.106;parse 0.018;pack 0.002;multiply 0.014;output 0.006;
+example_02,ref_adamant_401223,0,9,1077895,1037,0,172,0,1,1,
+random_00,base,0,0,35787420,32669,2969,366,0,1,4,
+random_00,io11,0,1,29164679,26081,3009,407,0,1,3,
+random_00,io11_phases,0,2,31999808,29950,1996,409,0,1,2,setup 0.477;parse 2.357;pack 0.460;multiply 25.166;output 2.269;
+random_00,io11d,0,3,28485223,25496,2941,406,0,1,1,
+random_00,io11d_phases,0,4,26845404,24737,2061,411,0,1,1,setup 0.463;parse 1.934;pack 0.406;multiply 21.078;output 1.878;
+random_00,io11l,0,5,28100438,26017,2001,403,0,1,2,
+random_00,io11l_phases,0,6,28520387,27455,1016,407,0,1,1,setup 0.022;parse 2.178;pack 0.583;multiply 22.886;output 1.744;
+random_00,io11s,0,7,28556829,25443,3053,381,0,1,1,
+random_00,io11s_phases,0,8,27514543,27431,0,386,0,1,4,setup 0.419;parse 1.957;pack 0.419;multiply 21.884;output 1.708;
+random_00,ref_adamant_401223,0,9,36948972,31913,4986,2511,0,1,1,
+random_01,base,0,0,28736424,27650,1024,357,0,1,3,
+random_01,io11,0,1,26891997,21864,4969,395,0,1,2,
+random_01,io11_phases,0,2,31903524,26865,4975,397,0,1,3,setup 0.474;parse 2.194;pack 0.439;multiply 25.160;output 2.323;
+random_01,io11d,0,3,30696158,29621,1021,389,0,1,1,
+random_01,io11d_phases,0,4,25547098,24480,1020,398,0,1,1,setup 0.490;parse 1.807;pack 0.388;multiply 20.068;output 1.716;
+random_01,io11l,0,5,28070104,25012,3001,392,0,1,2,
+random_01,io11l_phases,0,6,27143910,26089,1003,397,0,1,1,setup 0.022;parse 2.246;pack 0.618;multiply 21.332;output 1.756;
+random_01,io11s,0,7,25183224,23126,2010,370,0,1,1,
+random_01,io11s_phases,0,8,28337832,23409,4877,373,0,1,1,setup 0.460;parse 1.950;pack 0.415;multiply 22.148;output 2.158;
+random_01,ref_adamant_401223,0,9,41292981,37217,4023,2883,0,1,1,
+random_02,base,0,0,20366800,17407,2901,348,0,1,2,
+random_02,io11,0,1,19468957,18401,1022,382,0,1,1,
+random_02,io11_phases,0,2,21843032,18817,2971,390,0,1,1,setup 0.486;parse 2.189;pack 0.380;multiply 16.363;output 1.134;
+random_02,io11d,0,3,18733649,16610,2076,383,0,1,1,
+random_02,io11d_phases,0,4,18676600,17588,1034,388,0,1,2,setup 0.425;parse 1.814;pack 0.337;multiply 13.949;output 1.057;
+random_02,io11l,0,5,18570993,17494,1029,385,0,1,1,
+random_02,io11l_phases,0,6,18588380,17512,1030,387,0,1,1,setup 0.021;parse 1.954;pack 0.488;multiply 14.021;output 1.035;
+random_02,io11s,0,7,18808544,15798,2962,357,0,1,1,
+random_02,io11s_phases,0,8,19413180,15491,3872,362,0,1,1,setup 0.471;parse 1.691;pack 0.341;multiply 14.767;output 1.046;
+random_02,ref_adamant_401223,0,9,31072934,25005,6001,3725,0,1,2,
+max_random_00,base,0,0,61914620,56877,4989,505,0,1,1,
+max_random_00,io11,0,1,57732492,54628,3034,545,0,1,3,
+max_random_00,io11_phases,0,2,55302993,51227,4017,549,0,1,2,setup 1.157;parse 3.558;pack 0.846;multiply 44.762;output 3.695;
+max_random_00,io11d,0,3,54627570,49517,5052,547,0,1,2,
+max_random_00,io11d_phases,0,4,57071107,50995,5999,550,0,1,3,setup 0.838;parse 3.483;pack 0.771;multiply 47.398;output 3.362;
+max_random_00,io11l,0,5,55685151,51572,4044,547,0,1,2,
+max_random_00,io11l_phases,0,6,55010874,52951,1998,550,0,1,2,setup 0.022;parse 3.871;pack 1.140;multiply 45.114;output 3.619;
+max_random_00,io11s,0,7,55678011,51645,3972,520,0,1,2,
+max_random_00,io11s_phases,0,8,55680555,50654,4966,524,0,1,2,setup 0.844;parse 3.450;pack 0.767;multiply 45.831;output 3.521;
+max_random_00,ref_adamant_401223,0,9,69905497,58868,10975,3744,0,1,2,
+max_random_01,base,0,0,58047003,53984,3998,503,0,1,2,
+max_random_01,io11,0,1,59805353,55734,3981,545,0,1,3,
+max_random_01,io11_phases,0,2,54930003,48874,5984,546,0,1,4,setup 0.936;parse 3.529;pack 0.796;multiply 44.892;output 3.434;
+max_random_01,io11d,0,3,55909763,51860,3989,543,0,1,2,
+max_random_01,io11d_phases,0,4,62649252,58594,3972,546,0,1,3,setup 0.925;parse 3.704;pack 0.784;multiply 52.275;output 3.538;
+max_random_01,io11l,0,5,61703835,60610,1010,544,0,1,4,
+max_random_01,io11l_phases,0,6,64712199,59593,5050,547,0,1,3,setup 0.024;parse 3.767;pack 1.119;multiply 54.252;output 4.240;
+max_random_01,io11s,0,7,66212675,60129,6012,521,0,1,3,
+max_random_01,io11s_phases,0,8,63170759,58986,3999,528,0,1,5,setup 0.926;parse 3.956;pack 0.809;multiply 51.275;output 4.712;
+max_random_01,ref_adamant_401223,0,9,74432413,65270,9037,3746,0,1,5,
+max_random_02,base,0,0,58907780,53764,5072,507,0,1,2,
+max_random_02,io11,0,1,56458041,51439,4946,545,0,1,3,
+max_random_02,io11_phases,0,2,55558954,49546,5945,548,0,1,3,setup 0.918;parse 3.507;pack 0.795;multiply 45.396;output 3.550;
+max_random_02,io11d,0,3,64604458,59484,5041,541,0,1,2,
+max_random_02,io11d_phases,0,4,60129484,56053,4003,547,0,1,3,setup 1.008;parse 3.790;pack 0.849;multiply 48.934;output 4.052;
+max_random_02,io11l,0,5,56322951,53228,3012,544,0,1,3,
+max_random_02,io11l_phases,0,6,58393462,56307,2010,549,0,1,3,setup 0.024;parse 4.263;pack 1.204;multiply 47.861;output 3.652;
+max_random_02,io11s,0,7,57995612,50928,6990,518,0,1,3,
+max_random_02,io11s_phases,0,8,63813046,59736,3982,526,0,1,3,setup 0.958;parse 4.012;pack 0.879;multiply 52.788;output 3.703;
+max_random_02,ref_adamant_401223,0,9,69639802,63527,6050,3743,0,1,2,
+small_00,base,0,0,1300419,1254,0,185,0,1,0,
+small_00,io11,0,1,1229085,1168,0,185,0,1,1,
+small_00,io11_phases,0,2,1207014,0,1166,188,0,1,1,setup 0.113;parse 0.028;pack 0.007;multiply 0.035;output 0.036;
+small_00,io11d,0,3,1167874,1126,0,183,0,1,1,
+small_00,io11d_phases,0,4,1176069,1134,0,184,0,1,1,setup 0.099;parse 0.030;pack 0.007;multiply 0.035;output 0.037;
+small_00,io11l,0,5,1199292,0,1145,184,0,1,1,
+small_00,io11l_phases,0,6,1170482,1130,0,187,0,1,1,setup 0.020;parse 0.105;pack 0.009;multiply 0.036;output 0.035;
+small_00,io11s,0,7,1140272,0,1100,182,0,1,1,
+small_00,io11s_phases,0,8,1178622,1137,0,186,0,1,1,setup 0.100;parse 0.027;pack 0.007;multiply 0.034;output 0.035;
+small_00,ref_adamant_401223,0,9,1127498,0,1077,199,0,1,1,
+small_01,base,0,0,1104241,0,1065,175,0,1,1,
+small_01,io11,0,1,1134086,0,1093,177,0,1,1,
+small_01,io11_phases,0,2,1183220,1138,0,181,0,1,2,setup 0.099;parse 0.038;pack 0.008;multiply 0.028;output 0.017;
+small_01,io11d,0,3,1112422,1072,0,173,0,1,1,
+small_01,io11d_phases,0,4,1149593,1086,0,180,0,1,1,setup 0.101;parse 0.033;pack 0.008;multiply 0.024;output 0.017;
+small_01,io11l,0,5,1112526,1070,0,173,0,1,1,
+small_01,io11l_phases,0,6,1111284,0,1070,180,0,1,1,setup 0.018;parse 0.109;pack 0.009;multiply 0.025;output 0.017;
+small_01,io11s,0,7,1091829,1051,0,177,0,1,1,
+small_01,io11s_phases,0,8,1103890,0,1064,179,0,1,1,setup 0.099;parse 0.034;pack 0.007;multiply 0.025;output 0.016;
+small_01,ref_adamant_401223,0,9,1284606,0,1112,193,0,1,2,
+small_02,base,0,0,1068376,0,1029,169,0,1,1,
+small_02,io11,0,1,1037922,0,995,171,0,1,1,
+small_02,io11_phases,0,2,1066554,0,1029,176,0,1,1,setup 0.114;parse 0.021;pack 0.003;multiply 0.017;output 0.014;
+small_02,io11d,0,3,1054285,1011,0,173,0,1,1,
+small_02,io11d_phases,0,4,1046648,0,1008,177,0,1,1,setup 0.097;parse 0.016;pack 0.003;multiply 0.012;output 0.014;
+small_02,io11l,0,5,1038836,995,0,173,0,1,1,
+small_02,io11l_phases,0,6,1196358,1048,0,178,0,1,2,setup 0.018;parse 0.095;pack 0.005;multiply 0.015;output 0.013;
+small_02,io11s,0,7,1027703,985,0,172,0,1,1,
+small_02,io11s_phases,0,8,1040052,0,1002,176,0,1,1,setup 0.097;parse 0.017;pack 0.003;multiply 0.012;output 0.012;
+small_02,ref_adamant_401223,0,9,1004246,0,964,180,0,1,1,
+small_03,base,0,0,1144544,0,1093,186,0,1,1,
+small_03,io11,0,1,1164183,1122,0,186,0,1,1,
+small_03,io11_phases,0,2,1228581,0,1188,192,0,1,1,setup 0.098;parse 0.059;pack 0.007;multiply 0.053;output 0.036;
+small_03,io11d,0,3,1412559,0,1234,184,0,1,2,
+small_03,io11d_phases,0,4,1268399,0,1227,189,0,1,1,setup 0.105;parse 0.059;pack 0.008;multiply 0.058;output 0.040;
+small_03,io11l,0,5,1298883,1256,0,184,0,1,1,
+small_03,io11l_phases,0,6,1300183,627,627,191,0,1,1,setup 0.021;parse 0.135;pack 0.010;multiply 0.079;output 0.040;
+small_03,io11s,0,7,1250559,0,1207,187,0,1,1,
+small_03,io11s_phases,0,8,1296591,0,1251,192,0,1,1,setup 0.106;parse 0.055;pack 0.009;multiply 0.059;output 0.034;
+small_03,ref_adamant_401223,0,9,1288640,1249,0,262,0,1,1,
+small_04,base,0,0,1072378,1033,0,177,0,1,1,
+small_04,io11,0,1,1163737,0,1114,176,0,1,1,
+small_04,io11_phases,0,2,1244416,550,550,181,0,1,2,setup 0.098;parse 0.030;pack 0.005;multiply 0.026;output 0.022;
+small_04,io11d,0,3,1049710,0,1011,175,0,1,1,
+small_04,io11d_phases,0,4,1092638,1055,0,182,0,1,1,setup 0.098;parse 0.027;pack 0.005;multiply 0.023;output 0.022;
+small_04,io11l,0,5,1062516,1024,0,179,0,1,1,
+small_04,io11l_phases,0,6,1069147,1031,0,178,0,1,1,setup 0.018;parse 0.106;pack 0.007;multiply 0.021;output 0.022;
+small_04,io11s,0,7,1058623,0,1020,174,0,1,1,
+small_04,io11s_phases,0,8,1096912,0,1058,180,0,1,1,setup 0.098;parse 0.028;pack 0.005;multiply 0.021;output 0.021;
+small_04,ref_adamant_401223,0,9,1155429,0,1036,190,0,1,1,
+small_05,base,0,0,1147756,0,1111,183,0,1,1,
+small_05,io11,0,1,1184838,0,1145,185,0,1,1,
+small_05,io11_phases,0,2,1132836,1094,0,189,0,1,1,setup 0.098;parse 0.046;pack 0.009;multiply 0.040;output 0.037;
+small_05,io11d,0,3,1109217,0,1069,185,0,1,1,
+small_05,io11d_phases,0,4,1160796,1123,0,188,0,1,1,setup 0.099;parse 0.043;pack 0.010;multiply 0.041;output 0.073;
+small_05,io11l,0,5,1173418,1098,0,185,0,1,2,
+small_05,io11l_phases,0,6,1124382,0,1087,188,0,1,1,setup 0.018;parse 0.118;pack 0.011;multiply 0.041;output 0.036;
+small_05,io11s,0,7,1096387,1058,0,185,0,1,1,
+small_05,io11s_phases,0,8,1179353,571,571,191,0,1,1,setup 0.098;parse 0.047;pack 0.010;multiply 0.041;output 0.037;
+small_05,ref_adamant_401223,0,9,1193359,1155,0,214,0,1,1,
+small_06,base,0,0,1049574,1012,0,172,0,1,1,
+small_06,io11,0,1,1074290,1038,0,170,0,1,1,
+small_06,io11_phases,0,2,1159677,0,1038,176,0,1,2,setup 0.098;parse 0.036;pack 0.005;multiply 0.017;output 0.008;
+small_06,io11d,0,3,1028986,0,992,172,0,1,1,
+small_06,io11d_phases,0,4,1052062,0,1014,178,0,1,1,setup 0.098;parse 0.033;pack 0.005;multiply 0.017;output 0.008;
+small_06,io11l,0,5,1061944,0,1024,173,0,1,1,
+small_06,io11l_phases,0,6,1051732,0,1014,179,0,1,1,setup 0.017;parse 0.111;pack 0.007;multiply 0.017;output 0.009;
+small_06,io11s,0,7,1044737,1006,0,169,0,1,1,
+small_06,io11s_phases,0,8,1074919,0,1037,178,0,1,1,setup 0.130;parse 0.034;pack 0.005;multiply 0.020;output 0.008;
+small_06,ref_adamant_401223,0,9,1097148,0,983,187,0,1,2,
+small_07,base,0,0,1044216,1008,0,172,0,1,1,
+small_07,io11,0,1,1059271,1022,0,176,0,1,1,
+small_07,io11_phases,0,2,1105773,0,1068,181,0,1,1,setup 0.096;parse 0.036;pack 0.008;multiply 0.023;output 0.021;
+small_07,io11d,0,3,1066261,0,1029,177,0,1,1,
+small_07,io11d_phases,0,4,1072087,1035,0,182,0,1,1,setup 0.099;parse 0.030;pack 0.008;multiply 0.024;output 0.024;
+small_07,io11l,0,5,1076672,0,1038,178,0,1,1,
+small_07,io11l_phases,0,6,1226281,0,1041,184,0,1,2,setup 0.018;parse 0.242;pack 0.010;multiply 0.026;output 0.023;
+small_07,io11s,0,7,1084090,1046,0,176,0,1,1,
+small_07,io11s_phases,0,8,1116974,0,1078,182,0,1,1,setup 0.099;parse 0.035;pack 0.008;multiply 0.028;output 0.023;
+small_07,ref_adamant_401223,0,9,1167068,0,1129,195,0,1,1,
+small_08,base,0,0,1132059,0,1092,171,0,1,1,
+small_08,io11,0,1,1133965,0,1094,172,0,1,1,
+small_08,io11_phases,0,2,1169121,0,1124,176,0,1,1,setup 0.105;parse 0.023;pack 0.005;multiply 0.014;output 0.014;
+small_08,io11d,0,3,1218917,0,1090,170,0,1,1,
+small_08,io11d_phases,0,4,1065145,1027,0,175,0,1,1,setup 0.099;parse 0.020;pack 0.005;multiply 0.021;output 0.014;
+small_08,io11l,0,5,1023628,0,986,173,0,1,1,
+small_08,io11l_phases,0,6,1061808,0,1024,174,0,1,1,setup 0.017;parse 0.100;pack 0.006;multiply 0.014;output 0.014;
+small_08,io11s,0,7,1027410,0,990,171,0,1,1,
+small_08,io11s_phases,0,8,1042186,0,1005,175,0,1,1,setup 0.096;parse 0.023;pack 0.008;multiply 0.018;output 0.012;
+small_08,ref_adamant_401223,0,9,994276,0,958,182,0,1,1,
+small_09,base,0,0,1203968,1082,0,175,0,1,2,
+small_09,io11,0,1,1074476,1039,0,176,0,1,1,
+small_09,io11_phases,0,2,1082032,1045,0,183,0,1,1,setup 0.099;parse 0.041;pack 0.006;multiply 0.030;output 0.017;
+small_09,io11d,0,3,1118970,0,1081,180,0,1,1,
+small_09,io11d_phases,0,4,1106551,0,1069,183,0,1,1,setup 0.097;parse 0.044;pack 0.007;multiply 0.031;output 0.017;
+small_09,io11l,0,5,1113187,0,1074,177,0,1,1,
+small_09,io11l_phases,0,6,1173798,0,1134,183,0,1,1,setup 0.019;parse 0.173;pack 0.013;multiply 0.040;output 0.023;
+small_09,io11s,0,7,1362276,1222,0,180,0,1,2,
+small_09,io11s_phases,0,8,1196704,0,1155,182,0,1,1,setup 0.105;parse 0.049;pack 0.010;multiply 0.036;output 0.019;
+small_09,ref_adamant_401223,0,9,1218489,1178,0,207,0,1,1,
+signed_overflow_00,base,0,0,1121260,1081,0,172,0,1,1,
+signed_overflow_00,io11,0,1,1129738,0,1091,174,0,1,1,
+signed_overflow_00,io11_phases,0,2,1054581,0,1017,179,0,1,1,setup 0.099;parse 0.021;pack 0.004;multiply 0.015;output 0.014;
+signed_overflow_00,io11d,0,3,1063181,1026,0,174,0,1,1,
+signed_overflow_00,io11d_phases,0,4,1154048,0,1038,181,0,1,2,setup 0.099;parse 0.018;pack 0.006;multiply 0.020;output 0.016;
+signed_overflow_00,io11l,0,5,1036501,988,0,174,0,1,1,
+signed_overflow_00,io11l_phases,0,6,1062485,0,1026,179,0,1,1,setup 0.018;parse 0.097;pack 0.007;multiply 0.018;output 0.016;
+signed_overflow_00,io11s,0,7,1032487,994,0,173,0,1,1,
+signed_overflow_00,io11s_phases,0,8,1039063,0,1002,178,0,1,1,setup 0.112;parse 0.023;pack 0.004;multiply 0.016;output 0.014;
+signed_overflow_00,ref_adamant_401223,0,9,966659,930,0,184,0,1,1,
+unsigned_overflow_00,base,0,0,1012267,0,977,170,0,1,1,
+unsigned_overflow_00,io11,0,1,1121888,1006,0,170,0,1,2,
+unsigned_overflow_00,io11_phases,0,2,1024775,988,0,175,0,1,1,setup 0.097;parse 0.017;pack 0.003;multiply 0.012;output 0.006;
+unsigned_overflow_00,io11d,0,3,1005449,968,0,172,0,1,1,
+unsigned_overflow_00,io11d_phases,0,4,1068164,0,1030,173,0,1,1,setup 0.105;parse 0.016;pack 0.003;multiply 0.014;output 0.006;
+unsigned_overflow_00,io11l,0,5,1030005,0,990,173,0,1,1,
+unsigned_overflow_00,io11l_phases,0,6,1032807,0,995,175,0,1,1,setup 0.017;parse 0.096;pack 0.004;multiply 0.013;output 0.007;
+unsigned_overflow_00,io11s,0,7,1031254,992,0,171,0,1,1,
+unsigned_overflow_00,io11s_phases,0,8,1181024,0,1140,176,0,1,1,setup 0.106;parse 0.016;pack 0.003;multiply 0.013;output 0.006;
+unsigned_overflow_00,ref_adamant_401223,0,9,1014007,0,975,176,0,1,1,
+unsigned_overflow_01,base,0,0,1092169,0,1053,167,0,1,1,
+unsigned_overflow_01,io11,0,1,1133200,1093,0,173,0,1,1,
+unsigned_overflow_01,io11_phases,0,2,1126175,0,1086,174,0,1,1,setup 0.104;parse 0.017;pack 0.003;multiply 0.013;output 0.007;
+unsigned_overflow_01,io11d,0,3,1096913,0,1056,170,0,1,1,
+unsigned_overflow_01,io11d_phases,0,4,1042268,1004,0,175,0,1,1,setup 0.097;parse 0.014;pack 0.003;multiply 0.017;output 0.007;
+unsigned_overflow_01,io11l,0,5,1056134,0,1018,170,0,1,1,
+unsigned_overflow_01,io11l_phases,0,6,1187291,530,530,174,0,1,2,setup 0.016;parse 0.097;pack 0.004;multiply 0.013;output 0.007;
+unsigned_overflow_01,io11s,0,7,1010345,0,973,168,0,1,1,
+unsigned_overflow_01,io11s_phases,0,8,1071069,0,1033,176,0,1,1,setup 0.129;parse 0.032;pack 0.003;multiply 0.012;output 0.006;
+unsigned_overflow_01,ref_adamant_401223,0,9,942610,906,0,174,0,1,1,

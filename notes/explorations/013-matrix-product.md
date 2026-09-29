@@ -1,7 +1,8 @@
 # 013 — Library Checker matrix_product (1024³ modular matrix multiplication)
 
 Date: 2026-09-29/30
-Status: complete (deliverable ready, not submitted)
+Status: complete. First deliverable judged (user): 53–54 ms (407073: 54/62/54 ms on the max cases,
+the 62 a one-case spike; resubmission 53 ms). I/O follow-up below: exploration-011 I/O.
 
 ## Question and target
 
@@ -165,3 +166,46 @@ round: [results/matrix-product](../results/matrix-product/README.md).
 Keep. Deliverable ready for the user to submit (judge estimate ≈ 53 ms vs 68 ms). The
 generator, harnesses and all variants stay in `work/matrix_product` for further work;
 remaining ideas are in [IDEAS.md](../IDEAS.md).
+
+## I/O follow-up (2026-09-30): exploration 011's I/O
+
+Judge result of the first deliverable (user, submissions 407073 and a resubmission): max cases
+54 / 62 / 54 ms (the 62 is the known one-case spike), then 53 ms — as estimated.
+The NTT side's fastest I/O is exploration 011's (convolution_mod_large), not 007's: parser
+`qp_parse_ms2` (128 KiB chunks cut into four lockstep streams, two tokens per stream step,
+007's `qp_parse_flat` as fallback and tail; 68 → 47 ms per 2^25 tokens there) and formatter
+`qp_fixed::blocks3<4>` (fixed 10-byte fields: right-aligned digits, space padded; 84 → 37 ms per
+2^25 values) with a 160 KiB buffer. matrix_product's checker is testlib `wcmp` too (token
+comparison), so padded fields are accepted. Both files are copied unchanged into
+`work/matrix_product/e2e/` (`fmt_bcd.inc` gains a separate `blocks3p`). The ms2 fast path needs
+calls larger than CH/2 + 64 tokens, so A and B are each parsed in one call, into the C region
+and the Strassen workspace (dead until the multiply; no extra memory), then packed as before.
+Outputs are now compared token-wise (launcher and stress test), like the judge.
+
+| EPYC 7763, max-case median ms (same jobs) | round 18 (2 jobs) | round 19 (2 jobs) |
+| --- | --- | --- |
+| leader 401223 | 74.7 / 74.9 | 73.9 / 74.3 |
+| submitted file (007 I/O) | 58.1 / 58.0 | 57.3 / 57.5 |
+| 011 I/O | 54.9 / 55.0 | — |
+| **011 I/O + lazily faulted arena** | 54.7 / 55.0 | **53.9 / 54.2** |
+| 011 I/O, output straight from the C tiles (no row gather) | 54.9 / 55.3 | — |
+| 011 I/O, 64 KiB output buffer | 55.1 / 55.3 | — |
+| fused parse→pack through a parser sink (lazy / populated arena) | — | 54.1 / 54.4, 54.4 / 54.8 |
+
+Phases (7763, 011 I/O + lazy arena): parse 4.2 (was 5.3), pack 1.2–1.4 (now includes the arena's
+first-touch faults), multiply 40.2–40.5, output 5.5 (was 7.0), ~2.6 ms outside main.
+Unsuccessful: formatting straight from the tiles (`blocks3p`), a sink-based parser that packs
+while parsing (`parse_sink.inc`: fused 5.4 ms vs 4.2 + 1.2 separate), a 64 KiB buffer.
+What remains of the I/O is mostly kernel work: `write()` into tmpfs (~4 ms for 10.5 MB),
+input page faults (~1 ms), exec/loading/teardown (~2.6 ms).
+
+Deliverable replaced (run [36643697758](https://github.com/7ue9ueue/QPoly/actions/runs/36643697758)):
+[yosupo_matrix_product.cpp](../../work/matrix_product/yosupo_matrix_product.cpp), SHA256
+`4ecc061da36f639ea68c654d4dfd603af3c80d42747fec5435073de5bc306dfc`, 129,609 bytes
+(`-DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_IO011 -DMP_LAZY_ARENA --asm-only sh_burst_p1`;
+judge-flag binary 5aa5099f… on EPYC 7763). The submitted version is kept as
+[yosupo_matrix_product_io007.cpp](../../work/matrix_product/yosupo_matrix_product_io007.cpp)
+(SHA256 6b771616…). 4 jobs: 22/22 official cases token-equal, 160-case stress token-identical.
+Max-case medians, THP madvise: EPYC 7763 **53.8 / 54.3 / 54.6 ms vs 57.3 / 57.8 / 58.2** for the
+submitted file (−3.5 ms, −6.1%) and 73.7 / 74.5 / 74.8 for 401223; 9V74 57.2 vs 61.3. THP `always`
+the same; `never` 60.6–61.7 vs 62.8–64.0. Judge estimate from the submitted file's 53 ms: ≈ 50 ms.

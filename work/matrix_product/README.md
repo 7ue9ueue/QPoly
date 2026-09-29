@@ -16,8 +16,9 @@ Records and results: [exploration 013](../../notes/explorations/013-matrix-produ
 | `strassen.hpp` | Strassen–Winograd recursions over a recursive-quadrant layout (three-temporary schedule, fused passes, hybrid). |
 | `gen_asm.py` → `asm_kernels.hpp`, `kernels/step3_asm.cpp` | Step 3: generated GCC inline-asm micro-kernels (direct and Winograd families, fold placement, row pairing, load hoisting) with tails; asm leaves inside the Strassen drivers. |
 | `kbench.cpp`, `probe.cpp` | L1-resident kernel throughput (core clock calibrated with a dependent add chain) and Zen 3 port probes for the kernel's instruction mix. |
-| `e2e/` | Judge-like end-to-end: `main_mp.cpp` (the program), `io007.hpp` (exploration-007 I/O, verbatim), `make_submission.py` (flattens to one file), `run_e2e.sh` + `launcher.c` + `init.c` (docker with judge limits, tmpfs cases, exact compile command, byte-exact output checks), `summarize_e2e.py`, `variants.txt`. |
+| `e2e/` | Judge-like end-to-end: `main_mp.cpp` (the program; switches below), `io007.hpp` (exploration-007 I/O, verbatim), `parse_ms2.inc` and `fmt_bcd.inc` (exploration-011 parser and fixed-width formatter, copied unchanged; `fmt_bcd.inc` adds `blocks3p`), `parse_sink.inc` (ms2 chunk loop handing values to a sink; measured, not used), `make_submission.py` (flattens to one file), `run_e2e.sh` + `launcher.c` + `init.c` (docker with judge limits, tmpfs cases, exact compile command, token-wise output checks like the judge's wcmp), `stress.py`, `summarize_e2e.py`, `variants.txt`. |
 | `cases.py` | Regenerates all 22 official cases from the pinned library-checker-problems commit and checks inputs and model outputs against `hash.json`. |
+| `yosupo_matrix_product.cpp` | The deliverable (exploration-011 I/O); `yosupo_matrix_product_io007.cpp` is the earlier, judged version (007 I/O, 53 ms). |
 | `run.sh`, `ci_config.sh`, `summarize.py` | CI entry (`.github/workflows/matrix-product.yml`, branch `claude/matrix-product`), per-round settings, per-CPU summaries. |
 
 ## Kernel contract (all registered variants)
@@ -44,3 +45,14 @@ zero. Single-threaded, not reentrant.
 Local (Rosetta, correctness only): `./build_local.sh && ../../build/matrix_product/bench_local --check=quick`.
 CI: edit `ci_config.sh` and `e2e/variants.txt`, push `claude/matrix-product`; artifacts per job.
 Summaries: `python3 summarize.py RUN_DIR BASELINE` and `e2e/summarize_e2e.py RESULTS`.
+
+## Program switches (`e2e/main_mp.cpp`)
+
+`MP_KERNEL` (asm kernel name), `MP_DEPTH_MAX` (Strassen depth cap), `MP_IO011` (exploration-011
+I/O: ms2 parser on whole matrices, `blocks3<4>` output, `MP_OBUF` buffer bytes, `MP_PARSE_CH`
+chunk bytes, `MP_OUT_DIRECT` format from tiles, `MP_SINK` fused parse→pack), `MP_CHUNKED`
+(007 I/O parsed in row chunks), `MP_LAZY_ARENA` (no up-front population), `MP_FUSED` /
+`MP_FUSE_DEPTH` (fused Strassen passes), `MP_EARLY_UNMAP`, `MP_FAST_EXIT`, `MP_PHASES`.
+The deliverable: `python3 e2e/make_submission.py e2e/main_mp.cpp yosupo_matrix_product.cpp
+-DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_IO011 -DMP_LAZY_ARENA --asm-only sh_burst_p1
+--header <the file's first 22 comment lines>`.
