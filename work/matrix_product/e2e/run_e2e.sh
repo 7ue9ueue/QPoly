@@ -7,7 +7,7 @@
 set -euo pipefail
 IMAGE=gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
 ROOT=$(git rev-parse --show-toplevel)
-E2E=$ROOT/work/matrix_product/e2e
+E2E_DIR=$ROOT/work/matrix_product/e2e
 RESULTS=$(realpath -m "$1")
 BUILD=$ROOT/build/mp_e2e
 CASES=/dev/shm/mp-cases  # Judge volumes live on tmpfs (/var/lib/docker is tmpfs there).
@@ -37,17 +37,17 @@ while read -r first rest; do
     python3 -c "import json,sys; open(sys.argv[2],'w').write(json.load(open(sys.argv[1]))['source'])" "$BUILD/$1.json" "$BUILD/src/$1.cpp"
     names="$names $1"
   else
-    python3 "$E2E/make_submission.py" "$E2E/main_mp.cpp" "$BUILD/src/$first.cpp" $rest > /dev/null
+    python3 "$E2E_DIR/make_submission.py" "$E2E_DIR/main_mp.cpp" "$BUILD/src/$first.cpp" $rest > /dev/null
     names="$names $first"
     if [ "${PHASES:-1}" = 1 ]; then
-      python3 "$E2E/make_submission.py" "$E2E/main_mp.cpp" "$BUILD/src/${first}_phases.cpp" $rest -DMP_PHASES > /dev/null
+      python3 "$E2E_DIR/make_submission.py" "$E2E_DIR/main_mp.cpp" "$BUILD/src/${first}_phases.cpp" $rest -DMP_PHASES > /dev/null
     fi
   fi
-done < "$E2E/variants.txt"
+done < "$E2E_DIR/variants.txt"
 (cd "$BUILD/src" && sha256sum *.cpp) > "$RESULTS/sources-sha256.txt"
 docker pull -q "$IMAGE" > /dev/null
 # Exact Library Checker C++23 command (library-checker-judge langs/langs.toml), source as main.cpp.
-docker run --rm -v "$BUILD":/build -v "$E2E":/e2e:ro "$IMAGE" bash -euc '
+docker run --rm -v "$BUILD":/build -v "$E2E_DIR":/e2e:ro "$IMAGE" bash -euc '
   cd /build; g++ --version | head -1 > bin/compiler.txt
   gcc -O2 -static /e2e/init.c -o bin/init
   gcc -O2 /e2e/launcher.c -o bin/launcher
@@ -85,4 +85,4 @@ if [ -n "$phased" ]; then
   launch phases "${REPS:-11}" 1 64 "$phased" 'c["case"].startswith("max_random")'
 fi
 echo "thp enabled (final): $(cat /sys/kernel/mm/transparent_hugepage/enabled)" >> "$RESULTS/environment.txt"
-python3 "$E2E/summarize_e2e.py" "$RESULTS" | tee "$RESULTS/summary.txt"
+python3 "$E2E_DIR/summarize_e2e.py" "$RESULTS" | tee "$RESULTS/summary.txt"
