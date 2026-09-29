@@ -183,3 +183,96 @@ void sw_simd(int n, int m, int k, const u32* a, const u32* b, u32* c) {
     });
 }
 }  // namespace mp::sw
+
+namespace mp::sw {
+// Fused passes for StrassenWinogradFused (centered A/B side, canonical C side).
+struct FusedOps {
+    static void spass(const u32* a11, const u32* a12, const u32* a21, const u32* a22, u32* s1, u32* s2, u32* s3, u32* s4, std::size_t len) {
+        std::size_t i = 0;
+        for (; i + 8 <= len; i += 8) {
+            const V x11 = _mm256_loadu_si256(reinterpret_cast<const V*>(a11 + i)), x12 = _mm256_loadu_si256(reinterpret_cast<const V*>(a12 + i));
+            const V x21 = _mm256_loadu_si256(reinterpret_cast<const V*>(a21 + i)), x22 = _mm256_loadu_si256(reinterpret_cast<const V*>(a22 + i));
+            const V v1 = center_reduce(_mm256_add_epi32(x21, x22));
+            const V v2 = center_reduce(_mm256_sub_epi32(v1, x11));
+            _mm256_storeu_si256(reinterpret_cast<V*>(s1 + i), v1);
+            _mm256_storeu_si256(reinterpret_cast<V*>(s2 + i), v2);
+            _mm256_storeu_si256(reinterpret_cast<V*>(s3 + i), center_reduce(_mm256_sub_epi32(x11, x21)));
+            _mm256_storeu_si256(reinterpret_cast<V*>(s4 + i), center_reduce(_mm256_sub_epi32(x12, v2)));
+        }
+        for (; i < len; ++i) {
+            const i32 x11 = i32(a11[i]), x12 = i32(a12[i]), x21 = i32(a21[i]), x22 = i32(a22[i]);
+            const i32 v1 = center_reduce(x21 + x22), v2 = center_reduce(v1 - x11);
+            s1[i] = u32(v1), s2[i] = u32(v2), s3[i] = u32(center_reduce(x11 - x21)), s4[i] = u32(center_reduce(x12 - v2));
+        }
+    }
+    static void tpass(const u32* b11, const u32* b12, const u32* b21, const u32* b22, u32* t1, u32* t2, u32* t3, u32* t4, std::size_t len) {
+        std::size_t i = 0;
+        for (; i + 8 <= len; i += 8) {
+            const V y11 = _mm256_loadu_si256(reinterpret_cast<const V*>(b11 + i)), y12 = _mm256_loadu_si256(reinterpret_cast<const V*>(b12 + i));
+            const V y21 = _mm256_loadu_si256(reinterpret_cast<const V*>(b21 + i)), y22 = _mm256_loadu_si256(reinterpret_cast<const V*>(b22 + i));
+            const V w1 = center_reduce(_mm256_sub_epi32(y12, y11));
+            const V w2 = center_reduce(_mm256_sub_epi32(y22, w1));
+            _mm256_storeu_si256(reinterpret_cast<V*>(t1 + i), w1);
+            _mm256_storeu_si256(reinterpret_cast<V*>(t2 + i), w2);
+            _mm256_storeu_si256(reinterpret_cast<V*>(t3 + i), center_reduce(_mm256_sub_epi32(y22, y12)));
+            _mm256_storeu_si256(reinterpret_cast<V*>(t4 + i), center_reduce(_mm256_sub_epi32(w2, y21)));
+        }
+        for (; i < len; ++i) {
+            const i32 y11 = i32(b11[i]), y12 = i32(b12[i]), y21 = i32(b21[i]), y22 = i32(b22[i]);
+            const i32 w1 = center_reduce(y12 - y11), w2 = center_reduce(y22 - w1);
+            t1[i] = u32(w1), t2[i] = u32(w2), t3[i] = u32(center_reduce(y22 - y12)), t4[i] = u32(center_reduce(w2 - y21));
+        }
+    }
+    // c11 = P1, c22 = P5, c12 = P6, c21 = P7 on entry (canonical); outputs canonical.
+    static void cpass(u32* c11, u32* c12, u32* c21, u32* c22, const u32* p2, const u32* p3, const u32* p4, std::size_t len) {
+        const V p = _mm256_set1_epi32(int(P));
+        auto red1 = [&](V x) { return _mm256_min_epu32(x, _mm256_sub_epi32(x, p)); };  // [0, 2P) -> [0, P)
+        std::size_t i = 0;
+        for (; i + 8 <= len; i += 8) {
+            const V q1 = _mm256_loadu_si256(reinterpret_cast<const V*>(c11 + i)), q6 = _mm256_loadu_si256(reinterpret_cast<const V*>(c12 + i));
+            const V q7 = _mm256_loadu_si256(reinterpret_cast<const V*>(c21 + i)), q5 = _mm256_loadu_si256(reinterpret_cast<const V*>(c22 + i));
+            const V q2 = _mm256_loadu_si256(reinterpret_cast<const V*>(p2 + i)), q3 = _mm256_loadu_si256(reinterpret_cast<const V*>(p3 + i));
+            const V q4 = _mm256_loadu_si256(reinterpret_cast<const V*>(p4 + i));
+            const V u2 = red1(_mm256_add_epi32(q1, q6));      // P1 + P6
+            const V u3 = red1(_mm256_add_epi32(u2, q7));      // U2 + P7
+            _mm256_storeu_si256(reinterpret_cast<V*>(c11 + i), red1(_mm256_add_epi32(q1, q2)));
+            _mm256_storeu_si256(reinterpret_cast<V*>(c12 + i), red1(_mm256_add_epi32(red1(_mm256_add_epi32(u2, q5)), q3)));
+            _mm256_storeu_si256(reinterpret_cast<V*>(c21 + i), red1(_mm256_add_epi32(_mm256_sub_epi32(u3, q4), p)));
+            _mm256_storeu_si256(reinterpret_cast<V*>(c22 + i), red1(_mm256_add_epi32(u3, q5)));
+        }
+        auto r1 = [](u32 x) { return x >= P ? x - P : x; };
+        for (; i < len; ++i) {
+            const u32 q1 = c11[i], q6 = c12[i], q7 = c21[i], q5 = c22[i];
+            const u32 u2 = r1(q1 + q6), u3 = r1(u2 + q7);
+            c11[i] = r1(q1 + p2[i]);
+            c12[i] = r1(r1(u2 + q5) + p3[i]);
+            c21[i] = r1(u3 - p4[i] + P);
+            c22[i] = r1(u3 + q5);
+        }
+    }
+};
+
+// sw_simd with the fused recursion (vectorized conversions, MR = 4, NR = 8 leaves).
+template <int D, class LeafT, int Phases = 7>
+void sw_fused(int n, int m, int k, const u32* a, const u32* b, u32* c) {
+    using SW = StrassenWinogradFused<LeafT, FusedOps>;
+    const std::size_t N = round_up(n, std::size_t(4) << D), M = round_up(m, std::size_t(2) << D),
+                      K = round_up(k, std::size_t(8) << D);
+    const std::size_t sa = round_up(N * M, 16), sb = round_up(M * K, 16), sc = round_up(N * K, 16);
+    u32* base = static_cast<u32*>(scratch((sa + sb + sc + SW::workspace(N, M, K, D)) * 4 + 64, 6));
+    u32 *pa = base, *pb = pa + sa, *pc = pb + sb, *work = pc + sc;
+    if (Phases & 1) {
+        for_each_leaf(pa, N, M, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+            pack_a_leaf4(a, n, m, blk, r0, c0, lr, lc);
+        });
+        for_each_leaf(pb, M, K, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+            pack_b_leaf8(b, m, k, blk, r0, c0, lr, lc);
+        });
+    }
+    if (Phases & 2) SW::multiply(pa, pb, pc, N, M, K, D, work);
+    if (Phases & 4)
+        for_each_leaf(pc, N, K, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+            unpack_c_leaf4x8(blk, n, k, c, r0, c0, lr, lc);
+        });
+}
+}  // namespace mp::sw

@@ -13,6 +13,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 import tomllib
 import urllib.request
 
@@ -28,8 +29,15 @@ work = dest / 'problem'
 
 
 def fetch(path, target):
-    with urllib.request.urlopen(RAW + path, timeout=60) as response:
-        target.write_bytes(response.read())
+    for attempt in range(6):
+        try:
+            with urllib.request.urlopen(RAW + path, timeout=60) as response:
+                target.write_bytes(response.read())
+            return
+        except OSError:
+            if attempt == 5:
+                raise
+            time.sleep(5 * (attempt + 1))
 
 
 fetch('common/random.h', work / 'common/random.h')

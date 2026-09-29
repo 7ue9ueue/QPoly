@@ -29,6 +29,13 @@ while read -r first rest; do
   [ -z "$first" ] || [ "${first:0:1}" = "#" ] && continue
   if [ "$first" = FILE ]; then
     set -- $rest; cp "$ROOT/$2" "$BUILD/src/$1.cpp"; names="$names $1"
+  elif [ "$first" = JUDGE ]; then
+    # Reference submission fetched from the judge API at run time (not stored in the repo).
+    set -- $rest
+    for attempt in 1 2 3 4 5; do
+      curl -sf "https://v3.api.judge.yosupo.jp/submissions/$2" -o "$BUILD/$1.json" && break; sleep 5; done
+    python3 -c "import json,sys; open(sys.argv[2],'w').write(json.load(open(sys.argv[1]))['source'])" "$BUILD/$1.json" "$BUILD/src/$1.cpp"
+    names="$names $1"
   else
     python3 "$E2E/make_submission.py" "$E2E/main_mp.cpp" "$BUILD/src/$first.cpp" $rest > /dev/null
     names="$names $first"

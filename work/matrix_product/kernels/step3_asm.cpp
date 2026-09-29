@@ -30,6 +30,7 @@ MP_KERN(wipp_s0, true)
 MP_KERN(wipp_i2, true)
 MP_KERN(wip_s0, true)
 MP_KERN(direct_g_s0, false)
+MP_KERN(wipp_sh, true)
 
 template <class K>
 MP_AI void tile(const u32* pa, const u32* pb, std::size_t m, const i32* alpha, const i32* beta, u32* c, std::size_t ldc) {
@@ -50,6 +51,11 @@ MP_AI void tile(const u32* pa, const u32* pb, std::size_t m, const i32* alpha, c
     if (rest) K::tail(pa + periods * K::period * 4, pb + periods * K::period * 8, long(rest), acc);
     for (int r = 0; r < 4; ++r) _mm256_storeu_si256(reinterpret_cast<V*>(c + r * ldc), finish_s(acc[2 * r], acc[2 * r + 1]));
 }
+
+struct NullLeafX {
+    using E = u32;
+    static void multiply(const u32*, const u32*, u32*, std::size_t, std::size_t, std::size_t) {}
+};
 
 template <class K>
 struct AsmLeaf {
@@ -110,3 +116,9 @@ MP_REGISTER(a24_sw4_wippi2, (sw_simd<4, 4, 1, 2, 7, true, AsmLeaf<K_wipp_i2>>), 
 MP_REGISTER(a33_sw3_wip, (sw_simd<3, 4, 1, 2, 7, true, AsmLeaf<K_wip_s0>>), "Strassen-Winograd depth 3, asm wip_s0 leaf");
 MP_REGISTER(a43_sw3_direct, (sw_simd<3, 4, 1, 2, 7, true, AsmLeaf<K_direct_g_s0>>), "Strassen-Winograd depth 3, asm direct_g leaf");
 MP_REGISTER(a44_sw4_direct, (sw_simd<4, 4, 1, 2, 7, true, AsmLeaf<K_direct_g_s0>>), "Strassen-Winograd depth 4, asm direct_g leaf");
+MP_REGISTER(f13_fused3_wippi2, (sw_fused<3, AsmLeaf<K_wipp_i2>>), "fused Strassen-Winograd depth 3, asm wipp_i2 leaf");
+MP_REGISTER(f14_fused4_wippi2, (sw_fused<4, AsmLeaf<K_wipp_i2>>), "fused Strassen-Winograd depth 4, asm wipp_i2 leaf");
+MP_REGISTER(f23_fused3_wippsh, (sw_fused<3, AsmLeaf<K_wipp_sh>>), "fused Strassen-Winograd depth 3, asm wipp_sh leaf");
+MP_REGISTER(a53_sw3_wippsh, (sw_simd<3, 4, 1, 2, 7, true, AsmLeaf<K_wipp_sh>>), "Strassen-Winograd depth 3, asm wipp_sh leaf");
+MP_REGISTER_DIAG(y13_fused3_adds_only, (sw_fused<3, NullLeafX, 2>), "fused depth-3 additions only");
+MP_REGISTER_DIAG(y14_fused4_adds_only, (sw_fused<4, NullLeafX, 2>), "fused depth-4 additions only");

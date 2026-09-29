@@ -85,7 +85,11 @@ struct Leaf {
                 tile(a + ip * 4 * m, b + jp * 8 * m, m, alpha + 4 * ip, beta + 8 * jp, c + (ip * kp + jp) * 32);
     }
 };
+#ifdef MP_FUSED
+using SW = StrassenWinogradFused<Leaf, FusedOps>;
+#else
 using SW = StrassenWinograd<Leaf, CenteredOps, CanonicalOps>;
+#endif
 
 // 2 MiB-aligned zero-initialized arena, populated before use (THP when available).
 u32* arena(std::size_t words) {

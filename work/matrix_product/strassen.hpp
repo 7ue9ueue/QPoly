@@ -89,3 +89,48 @@ void for_each_leaf(E* base, std::size_t rows, std::size_t cols, int depth, F&& f
 }
 
 }  // namespace mp
+
+namespace mp {
+// Fused variant: per level one pass computes S1..S4 (from A11..A22), one pass T1..T4, the
+// seven products go to C11 (P1), P2, P3, P4 buffers, C22 (P5), C12 (P6), C21 (P7), and one
+// pass forms all four C quadrants. Workspace per level: n*m (S) + m*k (T) + 3*n*k/4 (P2..P4).
+// Ops::spass(a11, a12, a21, a22, s1, s2, s3, s4, len), Ops::tpass(b11, b12, b21, b22, t1..t4,
+// len), Ops::cpass(c11, c12, c21, c22, p2, p3, p4, len) where c11/c22/c12/c21 hold
+// P1/P5/P6/P7 on entry and the C quadrants on exit.
+template <class Leaf, class Ops>
+struct StrassenWinogradFused {
+    using E = typename Leaf::E;
+    static std::size_t workspace(std::size_t n, std::size_t m, std::size_t k, int depth) {
+        std::size_t total = 0;
+        for (int d = depth; d > 0; --d) {
+            n /= 2, m /= 2, k /= 2;
+            total += 4 * n * m + 4 * m * k + 3 * n * k;
+        }
+        return total;
+    }
+    static void multiply(const E* a, const E* b, E* c, std::size_t n, std::size_t m, std::size_t k, int depth, E* work) {
+        if (depth == 0) {
+            Leaf::multiply(a, b, c, n, m, k);
+            return;
+        }
+        n /= 2, m /= 2, k /= 2;
+        const std::size_t sa = n * m, sb = m * k, sc = n * k;
+        const E *a11 = a, *a12 = a + sa, *a21 = a + 2 * sa, *a22 = a + 3 * sa;
+        const E *b11 = b, *b12 = b + sb, *b21 = b + 2 * sb, *b22 = b + 3 * sb;
+        E *c11 = c, *c12 = c + sc, *c21 = c + 2 * sc, *c22 = c + 3 * sc;
+        E *s1 = work, *s2 = s1 + sa, *s3 = s2 + sa, *s4 = s3 + sa;
+        E *t1 = s4 + sa, *t2 = t1 + sb, *t3 = t2 + sb, *t4 = t3 + sb;
+        E *p2 = t4 + sb, *p3 = p2 + sc, *p4 = p3 + sc, *next = p4 + sc;
+        Ops::spass(a11, a12, a21, a22, s1, s2, s3, s4, sa);
+        Ops::tpass(b11, b12, b21, b22, t1, t2, t3, t4, sb);
+        multiply(a11, b11, c11, n, m, k, depth - 1, next);  // P1
+        multiply(a12, b21, p2, n, m, k, depth - 1, next);   // P2
+        multiply(s4, b22, p3, n, m, k, depth - 1, next);    // P3
+        multiply(a22, t4, p4, n, m, k, depth - 1, next);    // P4
+        multiply(s1, t1, c22, n, m, k, depth - 1, next);    // P5
+        multiply(s2, t2, c12, n, m, k, depth - 1, next);    // P6
+        multiply(s3, t3, c21, n, m, k, depth - 1, next);    // P7
+        Ops::cpass(c11, c12, c21, c22, p2, p3, p4, sc);
+    }
+};
+}  // namespace mp

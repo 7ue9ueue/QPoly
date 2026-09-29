@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sample: [1, 2]
+        sample: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - name: End-to-end correctness and timing (exact judge compile command)
