@@ -1,0 +1,5 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: h32_hybrid3_fd2_shb h31_hybrid3_fd1_shb a63_sw3_shb f33_fused3_shb
+check mode=full variants=4 calls=20084 failures=0 time_s=7.1
+RESULT: PASS

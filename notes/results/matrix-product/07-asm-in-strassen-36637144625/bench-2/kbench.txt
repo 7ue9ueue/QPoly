@@ -1,0 +1,36 @@
+calibrated core clock: 3.216 GHz, depth m=64, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| s_sd_4x8_u8 | 114.8 | 5.769 | 5.547 | ok |
+| wipp_4x8_u1 | 112.0 | 5.627 | 5.686 | ok |
+| asm_direct_h0_s0 | 122.0 | 6.133 | 5.218 | ok |
+| asm_direct_g_s0 | 112.8 | 5.670 | 5.643 | ok |
+| asm_wipp_i2 | 107.1 | 5.383 | 5.945 | ok |
+| asm_wipp_sh | 105.5 | 5.303 | 6.034 | ok |
+| asm_wip_s0 | 111.0 | 5.576 | 5.738 | ok |
+| asm_wipp_s0 | 106.7 | 5.364 | 5.966 | ok |
+RESULT: PASS
+calibrated core clock: 3.217 GHz, depth m=128, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| s_sd_4x8_u8 | 221.8 | 5.574 | 5.741 | ok |
+| wipp_4x8_u1 | 216.5 | 5.442 | 5.880 | ok |
+| asm_direct_h0_s0 | 236.9 | 5.954 | 5.375 | ok |
+| asm_direct_g_s0 | 218.6 | 5.494 | 5.824 | ok |
+| asm_wipp_i2 | 205.3 | 5.158 | 6.203 | ok |
+| asm_wipp_sh | 201.3 | 5.059 | 6.325 | ok |
+| asm_wip_s0 | 212.5 | 5.341 | 5.992 | ok |
+| asm_wipp_s0 | 204.5 | 5.140 | 6.225 | ok |
+RESULT: PASS
+calibrated core clock: 3.217 GHz, depth m=1024, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| s_sd_4x8_u8 | 1728.8 | 5.432 | 5.891 | ok |
+| wipp_4x8_u1 | 1689.8 | 5.309 | 6.027 | ok |
+| asm_direct_h0_s0 | 1859.5 | 5.843 | 5.477 | ok |
+| asm_direct_g_s0 | 1700.4 | 5.343 | 5.990 | ok |
+| asm_wipp_i2 | 1584.4 | 4.978 | 6.428 | ok |
+| asm_wipp_sh | 1554.6 | 4.885 | 6.551 | ok |
+| asm_wip_s0 | 1648.6 | 5.180 | 6.178 | ok |
+| asm_wipp_s0 | 1577.8 | 4.958 | 6.455 | ok |
+RESULT: PASS

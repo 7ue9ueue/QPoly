@@ -1,0 +1,89 @@
+case,variant,rep,position,wall_ns,user_us,sys_us,minflt,majflt,nvcsw,nivcsw,stderr
+example_00,final,0,0,1725360,0,1644,163,0,1,2,
+example_00,mp_shb_d3_ck,0,1,1426167,1363,0,171,0,1,2,
+example_00,mp_shb_d3_ck_phases,0,2,1501611,0,1459,176,0,1,1,setup 0.068;parse+pack 0.024;multiply 0.009;output 0.004;
+example_00,ref_adamant_401223,0,3,1199725,1154,0,172,0,1,1,
+example_01,final,0,0,1175197,1135,0,162,0,1,1,
+example_01,mp_shb_d3_ck,0,1,1405566,680,680,167,0,1,1,
+example_01,mp_shb_d3_ck_phases,0,2,1180475,0,1139,175,0,1,1,setup 0.109;parse+pack 0.016;multiply 0.007;output 0.005;
+example_01,ref_adamant_401223,0,3,1089377,1049,0,172,0,1,1,
+example_02,final,0,0,1090028,0,1050,163,0,1,1,
+example_02,mp_shb_d3_ck,0,1,1090719,0,1051,169,0,1,1,
+example_02,mp_shb_d3_ck_phases,0,2,1216690,1116,0,174,0,1,2,setup 0.057;parse+pack 0.014;multiply 0.007;output 0.004;
+example_02,ref_adamant_401223,0,3,1115627,0,1068,170,0,1,1,
+random_00,final,0,0,42236527,29967,11986,361,0,1,3,
+random_00,mp_shb_d3_ck,0,1,26473388,22216,4039,370,0,1,1,
+random_00,mp_shb_d3_ck_phases,0,2,22276330,18136,4030,374,0,1,1,setup 0.441;parse+pack 2.816;multiply 14.124;output 2.681;
+random_00,ref_adamant_401223,0,3,28222593,23059,5013,2512,0,1,2,
+random_01,final,0,0,21452364,17448,3877,348,0,1,1,
+random_01,mp_shb_d3_ck,0,1,20561186,15574,4867,360,0,1,2,
+random_01,mp_shb_d3_ck_phases,0,2,20491871,18418,1938,358,0,1,2,setup 0.457;parse+pack 2.317;multiply 13.016;output 2.660;
+random_01,ref_adamant_401223,0,3,26452005,20467,5847,2885,0,1,2,
+random_02,final,0,0,15469255,12268,3067,342,0,1,2,
+random_02,mp_shb_d3_ck,0,1,14928578,12675,2112,349,0,1,3,
+random_02,mp_shb_d3_ck_phases,0,2,14940345,11859,2964,352,0,1,1,setup 0.300;parse+pack 2.176;multiply 8.913;output 1.612;
+random_02,ref_adamant_401223,0,3,23475574,16539,6810,3725,0,1,2,
+max_random_00,final,0,0,44715536,39522,5066,502,0,1,1,
+max_random_00,mp_shb_d3_ck,0,1,42681770,38588,3957,507,0,1,2,
+max_random_00,mp_shb_d3_ck_phases,0,2,40362233,32149,8037,512,0,1,3,setup 0.758;parse+pack 4.339;multiply 28.087;output 4.877;
+max_random_00,ref_adamant_401223,0,3,48554600,40346,8069,3746,0,1,2,
+max_random_01,final,0,0,43483691,39229,4023,503,0,1,2,
+max_random_01,mp_shb_d3_ck,0,1,43110096,39972,2997,509,0,1,2,
+max_random_01,mp_shb_d3_ck_phases,0,2,42789320,35683,6938,512,0,1,3,setup 0.752;parse+pack 5.110;multiply 29.410;output 5.025;
+max_random_01,ref_adamant_401223,0,3,50115883,37982,11994,3744,0,1,2,
+max_random_02,final,0,0,42896953,33767,8938,503,0,1,3,
+max_random_02,mp_shb_d3_ck,0,1,43686067,38487,5064,509,0,1,2,
+max_random_02,mp_shb_d3_ck_phases,0,2,42394102,37195,5026,513,0,1,3,setup 0.772;parse+pack 4.821;multiply 29.280;output 5.177;
+max_random_02,ref_adamant_401223,0,3,54011056,40905,12969,3746,0,1,1,
+small_00,final,0,0,1872523,1758,0,175,0,1,0,
+small_00,mp_shb_d3_ck,0,1,1654563,0,1562,184,0,1,1,
+small_00,mp_shb_d3_ck_phases,0,2,1539969,738,738,184,0,1,1,setup 0.081;parse+pack 0.036;multiply 0.030;output 0.052;
+small_00,ref_adamant_401223,0,3,1530996,1470,0,200,0,1,1,
+small_01,final,0,0,1388080,0,1332,168,0,1,1,
+small_01,mp_shb_d3_ck,0,1,1267958,1221,0,174,0,1,1,
+small_01,mp_shb_d3_ck_phases,0,2,1254477,0,1211,178,0,1,1,setup 0.062;parse+pack 0.037;multiply 0.017;output 0.026;
+small_01,ref_adamant_401223,0,3,1296581,627,627,193,0,1,1,
+small_02,final,0,0,1122869,1082,0,164,0,1,1,
+small_02,mp_shb_d3_ck,0,1,1133775,0,1092,167,0,1,1,
+small_02,mp_shb_d3_ck_phases,0,2,1185684,0,1135,175,0,1,2,setup 0.059;parse+pack 0.016;multiply 0.009;output 0.021;
+small_02,ref_adamant_401223,0,3,1126674,0,1083,179,0,1,1,
+small_03,final,0,0,1210982,0,1168,179,0,1,1,
+small_03,mp_shb_d3_ck,0,1,1198864,1155,0,182,0,1,1,
+small_03,mp_shb_d3_ck_phases,0,2,1205664,1164,0,187,0,1,1,setup 0.060;parse+pack 0.043;multiply 0.033;output 0.049;
+small_03,ref_adamant_401223,0,3,1362922,0,1319,257,0,1,1,
+small_04,final,0,0,1252315,0,1096,170,0,1,2,
+small_04,mp_shb_d3_ck,0,1,1108877,1067,0,173,0,1,1,
+small_04,mp_shb_d3_ck_phases,0,2,1128007,0,1085,178,0,1,1,setup 0.060;parse+pack 0.025;multiply 0.013;output 0.033;
+small_04,ref_adamant_401223,0,3,1153515,1113,0,187,0,1,1,
+small_05,final,0,0,1159754,0,1116,177,0,1,1,
+small_05,mp_shb_d3_ck,0,1,1156539,0,1116,185,0,1,1,
+small_05,mp_shb_d3_ck_phases,0,2,1197732,1153,0,188,0,1,1,setup 0.060;parse+pack 0.040;multiply 0.026;output 0.049;
+small_05,ref_adamant_401223,0,3,1453058,0,1303,213,0,1,1,
+small_06,final,0,0,1070930,0,1027,167,0,1,1,
+small_06,mp_shb_d3_ck,0,1,1085673,1046,0,170,0,1,1,
+small_06,mp_shb_d3_ck_phases,0,2,1106765,0,1064,176,0,1,1,setup 0.059;parse+pack 0.029;multiply 0.011;output 0.013;
+small_06,ref_adamant_401223,0,3,1111842,0,1072,187,0,1,1,
+small_07,final,0,0,1102138,0,1059,171,0,1,1,
+small_07,mp_shb_d3_ck,0,1,1104611,1063,0,176,0,1,1,
+small_07,mp_shb_d3_ck_phases,0,2,1289651,0,1120,179,0,1,2,setup 0.058;parse+pack 0.032;multiply 0.015;output 0.028;
+small_07,ref_adamant_401223,0,3,1194968,0,1155,196,0,1,1,
+small_08,final,0,0,1082647,1042,0,165,0,1,1,
+small_08,mp_shb_d3_ck,0,1,1064740,0,1022,172,0,1,1,
+small_08,mp_shb_d3_ck_phases,0,2,1253877,0,1074,176,0,1,2,setup 0.060;parse+pack 0.020;multiply 0.008;output 0.014;
+small_08,ref_adamant_401223,0,3,1077780,1038,0,182,0,1,1,
+small_09,final,0,0,1101076,0,1061,172,0,1,1,
+small_09,mp_shb_d3_ck,0,1,1096248,0,1057,174,0,1,1,
+small_09,mp_shb_d3_ck_phases,0,2,1116119,0,1076,181,0,1,1,setup 0.059;parse+pack 0.041;multiply 0.019;output 0.029;
+small_09,ref_adamant_401223,0,3,1179665,1139,0,206,0,1,1,
+signed_overflow_00,final,0,0,1044661,0,1002,167,0,1,1,
+signed_overflow_00,mp_shb_d3_ck,0,1,1218433,0,1041,172,0,1,2,
+signed_overflow_00,mp_shb_d3_ck_phases,0,2,1138943,0,1081,177,0,1,2,setup 0.060;parse+pack 0.019;multiply 0.010;output 0.013;
+signed_overflow_00,ref_adamant_401223,0,3,1063028,1023,0,182,0,1,1,
+unsigned_overflow_00,final,0,0,1041515,0,998,166,0,1,1,
+unsigned_overflow_00,mp_shb_d3_ck,0,1,1033824,995,0,170,0,1,1,
+unsigned_overflow_00,mp_shb_d3_ck_phases,0,2,1046904,1008,0,173,0,1,1,setup 0.057;parse+pack 0.013;multiply 0.008;output 0.005;
+unsigned_overflow_00,ref_adamant_401223,0,3,1030339,989,0,175,0,1,1,
+unsigned_overflow_01,final,0,0,1143650,0,1017,162,0,1,2,
+unsigned_overflow_01,mp_shb_d3_ck,0,1,1013203,974,0,167,0,1,1,
+unsigned_overflow_01,mp_shb_d3_ck_phases,0,2,1032181,0,994,171,0,1,1,setup 0.056;parse+pack 0.016;multiply 0.008;output 0.005;
+unsigned_overflow_01,ref_adamant_401223,0,3,1020453,0,981,175,0,1,1,

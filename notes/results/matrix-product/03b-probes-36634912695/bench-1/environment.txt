@@ -1,0 +1,9 @@
+date: 2026-09-29T21:41:45Z
+commit: b3c642b4236ccefc00387f5195918f0060af7292
+compiler: g++ (GCC) 15.2.0
+flags: -O2 -std=c++23 -march=native
+cpu: INTEL(R) XEON(R) PLATINUM 8573C
+mhz: 3466.762
+nproc: 4
+thp: [always] madvise never
+march_native:  -march= 		sapphirerapids

@@ -1,0 +1,13 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: a63_sw3_shb
+timing: reps=3 warmup=1 budget_s=12.0
+CSV,size,variant,rep,ms
+CSV,1024x1024x1024,a63_sw3_shb,0,41.2631
+CSV,1024x1024x1024,a63_sw3_shb,1,41.2545
+CSV,1024x1024x1024,a63_sw3_shb,2,41.2581
+
+| size | variant | median ms | min | max | n | GMAC/s |
+|---|---|---:|---:|---:|---:|---:|
+| 1024x1024x1024 | a63_sw3_shb | 41.258 | 41.255 | 41.263 | 3 | 26.03 |
+RESULT: PASS

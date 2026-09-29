@@ -1,0 +1,5 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: v06_s_sd_4x8_u4 w13_sw3_s4x8u4 w14_sw4_s4x8u4
+check mode=quick variants=3 calls=1683 failures=0 time_s=0.7
+RESULT: PASS

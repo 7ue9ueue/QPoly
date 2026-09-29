@@ -1,0 +1,33 @@
+calibrated core clock: 3.215 GHz, depth m=64, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| asm_sh_half_p0 | 110.5 | 5.554 | 5.762 | ok |
+| asm_sh_half_p1 | 109.8 | 5.518 | 5.800 | ok |
+| asm_sh_quarter_p0 | 109.9 | 5.520 | 5.798 | ok |
+| asm_sh_quarter_p1 | 109.3 | 5.492 | 5.826 | ok |
+| asm_sh_burst_p1 | 105.3 | 5.290 | 6.049 | ok |
+| asm_wipp_i2 | 107.1 | 5.380 | 5.948 | ok |
+| asm_wipp_sh | 106.0 | 5.325 | 6.010 | ok |
+RESULT: PASS
+calibrated core clock: 3.216 GHz, depth m=128, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| asm_sh_half_p0 | 208.7 | 5.243 | 6.103 | ok |
+| asm_sh_half_p1 | 207.8 | 5.220 | 6.130 | ok |
+| asm_sh_quarter_p0 | 208.0 | 5.225 | 6.124 | ok |
+| asm_sh_quarter_p1 | 208.3 | 5.233 | 6.116 | ok |
+| asm_sh_burst_p1 | 201.0 | 5.049 | 6.338 | ok |
+| asm_wipp_i2 | 205.1 | 5.152 | 6.211 | ok |
+| asm_wipp_sh | 201.5 | 5.063 | 6.320 | ok |
+RESULT: PASS
+calibrated core clock: 3.216 GHz, depth m=1024, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| asm_sh_half_p0 | 1594.0 | 5.006 | 6.392 | ok |
+| asm_sh_half_p1 | 1582.6 | 4.970 | 6.438 | ok |
+| asm_sh_quarter_p0 | 1591.8 | 5.000 | 6.401 | ok |
+| asm_sh_quarter_p1 | 1592.3 | 5.001 | 6.399 | ok |
+| asm_sh_burst_p1 | 1541.0 | 4.840 | 6.612 | ok |
+| asm_wipp_i2 | 1581.0 | 4.966 | 6.444 | ok |
+| asm_wipp_sh | 1546.9 | 4.858 | 6.587 | ok |
+RESULT: PASS

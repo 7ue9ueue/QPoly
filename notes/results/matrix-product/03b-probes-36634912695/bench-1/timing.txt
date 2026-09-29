@@ -1,0 +1,13 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: v06_s_sd_4x8_u4
+timing: reps=3 warmup=1 budget_s=12.0
+CSV,size,variant,rep,ms
+CSV,1024x1024x1024,v06_s_sd_4x8_u4,0,68.5070
+CSV,1024x1024x1024,v06_s_sd_4x8_u4,1,69.7354
+CSV,1024x1024x1024,v06_s_sd_4x8_u4,2,65.1946
+
+| size | variant | median ms | min | max | n | GMAC/s |
+|---|---|---:|---:|---:|---:|---:|
+| 1024x1024x1024 | v06_s_sd_4x8_u4 | 68.507 | 65.195 | 69.735 | 3 | 15.67 |
+RESULT: PASS

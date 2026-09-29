@@ -1,0 +1,5 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: w44_sw4_vec w52_sw2_wip w53_sw3_wip w54_sw4_wip
+check mode=full variants=4 calls=20084 failures=0 time_s=8.2
+RESULT: PASS

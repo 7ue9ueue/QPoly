@@ -1,0 +1,6 @@
+PASS 4 variants x 22 cases x 1 measured (+0 warmup) runs: exact output, exit 0
+PASS stress: 160 cases x 2 programs byte-identical to the model solution
+PASS 3 variants x 6 cases x 11 measured (+2 warmup) runs: exact output, exit 0
+PASS 3 variants x 6 cases x 11 measured (+2 warmup) runs: exact output, exit 0
+PASS 3 variants x 6 cases x 11 measured (+2 warmup) runs: exact output, exit 0
+PASS 1 variants x 3 cases x 11 measured (+1 warmup) runs: exact output, exit 0

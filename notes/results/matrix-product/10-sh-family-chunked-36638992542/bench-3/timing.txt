@@ -1,0 +1,15 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: a53_sw3_wippsh
+timing: reps=5 warmup=1 budget_s=12.0
+CSV,size,variant,rep,ms
+CSV,1024x1024x1024,a53_sw3_wippsh,0,42.8291
+CSV,1024x1024x1024,a53_sw3_wippsh,1,42.8857
+CSV,1024x1024x1024,a53_sw3_wippsh,2,43.2591
+CSV,1024x1024x1024,a53_sw3_wippsh,3,42.4499
+CSV,1024x1024x1024,a53_sw3_wippsh,4,42.5788
+
+| size | variant | median ms | min | max | n | GMAC/s |
+|---|---|---:|---:|---:|---:|---:|
+| 1024x1024x1024 | a53_sw3_wippsh | 42.829 | 42.450 | 43.259 | 5 | 25.07 |
+RESULT: PASS

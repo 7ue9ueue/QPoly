@@ -1,0 +1,7 @@
+calibrated core clock: 2.849 GHz, depth m=256, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| u_bs_4x8_u1 | 530.0 | 5.898 | 5.426 | ok |
+| s_sd_4x8_u1 | 481.7 | 5.361 | 5.969 | ok |
+| s_sd_4x8_u8 | 478.0 | 5.319 | 6.016 | ok |
+RESULT: PASS

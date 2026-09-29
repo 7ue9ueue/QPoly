@@ -1,0 +1,63 @@
+calibrated core clock: 3.215 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 4.001 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 4.001 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 4.961 | 4 |
+| 6 loads only | 2.999 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 5.079 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 5.150 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 5.087 | 4 |
+| step, bcast loads only | 5.030 | 4 |
+| step, dup loads only | 4.965 | 4 |
+| step sd grouped order | 5.049 | 4 |
+| step sd with vpmuludq | 5.105 | 4 |
+| 8 FMA (8 chains, lat 4) | 4.007 | 4 |
+| 4 imul+add + 4 FMA | 4.144 | 2-3 |
+| 2 steps direct (12 ld, 16 mul, 16 add) | 10.158 | 8 ideal, ~10 seen |
+| 2 steps Winograd pair (12 ld, 8 mul, 24 add) | 9.129 | 8 if the mix helps |
+| 2 steps Winograd packed B (10 ld, 8 mul, 16 add, 8 shift) | 8.867 | 8 |
+| Winograd pair arithmetic, regs only | 8.036 | 8 |
+| 2 steps direct, adds skewed one row | 10.008 | 8-10 |
+calibrated core clock: 3.215 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 4.001 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 4.001 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 4.965 | 4 |
+| 6 loads only | 2.997 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 5.097 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 5.146 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 5.077 | 4 |
+| step, bcast loads only | 5.031 | 4 |
+| step, dup loads only | 4.961 | 4 |
+| step sd grouped order | 5.002 | 4 |
+| step sd with vpmuludq | 5.081 | 4 |
+| 8 FMA (8 chains, lat 4) | 4.008 | 4 |
+| 4 imul+add + 4 FMA | 4.194 | 2-3 |
+| 2 steps direct (12 ld, 16 mul, 16 add) | 10.190 | 8 ideal, ~10 seen |
+| 2 steps Winograd pair (12 ld, 8 mul, 24 add) | 9.112 | 8 if the mix helps |
+| 2 steps Winograd packed B (10 ld, 8 mul, 16 add, 8 shift) | 8.867 | 8 |
+| Winograd pair arithmetic, regs only | 8.036 | 8 |
+| 2 steps direct, adds skewed one row | 10.006 | 8-10 |
+calibrated core clock: 3.216 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 4.004 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 4.004 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 4.961 | 4 |
+| 6 loads only | 2.998 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 5.084 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 5.148 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 5.082 | 4 |
+| step, bcast loads only | 5.032 | 4 |
+| step, dup loads only | 4.964 | 4 |
+| step sd grouped order | 5.004 | 4 |
+| step sd with vpmuludq | 5.085 | 4 |
+| 8 FMA (8 chains, lat 4) | 4.011 | 4 |
+| 4 imul+add + 4 FMA | 4.336 | 2-3 |
+| 2 steps direct (12 ld, 16 mul, 16 add) | 10.185 | 8 ideal, ~10 seen |
+| 2 steps Winograd pair (12 ld, 8 mul, 24 add) | 9.127 | 8 if the mix helps |
+| 2 steps Winograd packed B (10 ld, 8 mul, 16 add, 8 shift) | 8.859 | 8 |
+| Winograd pair arithmetic, regs only | 8.037 | 8 |
+| 2 steps direct, adds skewed one row | 10.009 | 8-10 |

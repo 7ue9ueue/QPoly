@@ -1,0 +1,225 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: a23_sw3_wippi2 a53_sw3_wippsh f13_fused3_wippi2 f14_fused4_wippi2 f23_fused3_wippsh x43_adds_only y13_fused3_adds_only x44_adds_only y14_fused4_adds_only
+timing: reps=11 warmup=1 budget_s=12.0
+CSV,size,variant,rep,ms
+CSV,1024x1024x1024,a23_sw3_wippi2,0,46.2121
+CSV,1024x1024x1024,a53_sw3_wippsh,0,46.1330
+CSV,1024x1024x1024,f13_fused3_wippi2,0,45.6889
+CSV,1024x1024x1024,f14_fused4_wippi2,0,46.5638
+CSV,1024x1024x1024,f23_fused3_wippsh,0,45.7516
+CSV,1024x1024x1024,x43_adds_only,0,3.6253
+CSV,1024x1024x1024,y13_fused3_adds_only,0,3.2242
+CSV,1024x1024x1024,x44_adds_only,0,5.8510
+CSV,1024x1024x1024,y14_fused4_adds_only,0,5.0200
+CSV,1024x1024x1024,a53_sw3_wippsh,1,46.1985
+CSV,1024x1024x1024,f13_fused3_wippi2,1,45.9055
+CSV,1024x1024x1024,f14_fused4_wippi2,1,45.8629
+CSV,1024x1024x1024,f23_fused3_wippsh,1,45.3705
+CSV,1024x1024x1024,x43_adds_only,1,3.5745
+CSV,1024x1024x1024,y13_fused3_adds_only,1,3.1926
+CSV,1024x1024x1024,x44_adds_only,1,5.8655
+CSV,1024x1024x1024,y14_fused4_adds_only,1,4.8427
+CSV,1024x1024x1024,a23_sw3_wippi2,1,46.5198
+CSV,1024x1024x1024,f13_fused3_wippi2,2,45.7816
+CSV,1024x1024x1024,f14_fused4_wippi2,2,45.8508
+CSV,1024x1024x1024,f23_fused3_wippsh,2,45.5025
+CSV,1024x1024x1024,x43_adds_only,2,3.5511
+CSV,1024x1024x1024,y13_fused3_adds_only,2,3.0843
+CSV,1024x1024x1024,x44_adds_only,2,5.8577
+CSV,1024x1024x1024,y14_fused4_adds_only,2,4.8745
+CSV,1024x1024x1024,a23_sw3_wippi2,2,46.5651
+CSV,1024x1024x1024,a53_sw3_wippsh,2,46.1772
+CSV,1024x1024x1024,f14_fused4_wippi2,3,45.9213
+CSV,1024x1024x1024,f23_fused3_wippsh,3,45.5549
+CSV,1024x1024x1024,x43_adds_only,3,3.5643
+CSV,1024x1024x1024,y13_fused3_adds_only,3,3.0820
+CSV,1024x1024x1024,x44_adds_only,3,5.8431
+CSV,1024x1024x1024,y14_fused4_adds_only,3,4.8307
+CSV,1024x1024x1024,a23_sw3_wippi2,3,46.3815
+CSV,1024x1024x1024,a53_sw3_wippsh,3,46.0060
+CSV,1024x1024x1024,f13_fused3_wippi2,3,45.8595
+CSV,1024x1024x1024,f23_fused3_wippsh,4,45.4568
+CSV,1024x1024x1024,x43_adds_only,4,3.4967
+CSV,1024x1024x1024,y13_fused3_adds_only,4,3.1519
+CSV,1024x1024x1024,x44_adds_only,4,5.8068
+CSV,1024x1024x1024,y14_fused4_adds_only,4,4.9076
+CSV,1024x1024x1024,a23_sw3_wippi2,4,47.1718
+CSV,1024x1024x1024,a53_sw3_wippsh,4,46.0321
+CSV,1024x1024x1024,f13_fused3_wippi2,4,45.8876
+CSV,1024x1024x1024,f14_fused4_wippi2,4,45.8227
+CSV,1024x1024x1024,x43_adds_only,5,3.5100
+CSV,1024x1024x1024,y13_fused3_adds_only,5,3.1136
+CSV,1024x1024x1024,x44_adds_only,5,5.7762
+CSV,1024x1024x1024,y14_fused4_adds_only,5,4.9287
+CSV,1024x1024x1024,a23_sw3_wippi2,5,46.4736
+CSV,1024x1024x1024,a53_sw3_wippsh,5,46.1160
+CSV,1024x1024x1024,f13_fused3_wippi2,5,45.6745
+CSV,1024x1024x1024,f14_fused4_wippi2,5,45.8906
+CSV,1024x1024x1024,f23_fused3_wippsh,5,45.5183
+CSV,1024x1024x1024,y13_fused3_adds_only,6,3.1370
+CSV,1024x1024x1024,x44_adds_only,6,5.8671
+CSV,1024x1024x1024,y14_fused4_adds_only,6,4.8763
+CSV,1024x1024x1024,a23_sw3_wippi2,6,46.4589
+CSV,1024x1024x1024,a53_sw3_wippsh,6,46.1230
+CSV,1024x1024x1024,f13_fused3_wippi2,6,45.8089
+CSV,1024x1024x1024,f14_fused4_wippi2,6,46.0029
+CSV,1024x1024x1024,f23_fused3_wippsh,6,45.5068
+CSV,1024x1024x1024,x43_adds_only,6,3.6130
+CSV,1024x1024x1024,x44_adds_only,7,5.6524
+CSV,1024x1024x1024,y14_fused4_adds_only,7,4.8722
+CSV,1024x1024x1024,a23_sw3_wippi2,7,46.6376
+CSV,1024x1024x1024,a53_sw3_wippsh,7,46.1566
+CSV,1024x1024x1024,f13_fused3_wippi2,7,45.7145
+CSV,1024x1024x1024,f14_fused4_wippi2,7,46.2693
+CSV,1024x1024x1024,f23_fused3_wippsh,7,45.7249
+CSV,1024x1024x1024,x43_adds_only,7,3.5813
+CSV,1024x1024x1024,y13_fused3_adds_only,7,3.1414
+CSV,1024x1024x1024,y14_fused4_adds_only,8,4.7784
+CSV,1024x1024x1024,a23_sw3_wippi2,8,46.7696
+CSV,1024x1024x1024,a53_sw3_wippsh,8,46.0879
+CSV,1024x1024x1024,f13_fused3_wippi2,8,45.8027
+CSV,1024x1024x1024,f14_fused4_wippi2,8,45.8258
+CSV,1024x1024x1024,f23_fused3_wippsh,8,45.5614
+CSV,1024x1024x1024,x43_adds_only,8,3.6217
+CSV,1024x1024x1024,y13_fused3_adds_only,8,3.1404
+CSV,1024x1024x1024,x44_adds_only,8,5.9412
+CSV,1024x1024x1024,a23_sw3_wippi2,9,46.2797
+CSV,1024x1024x1024,a53_sw3_wippsh,9,46.2226
+CSV,1024x1024x1024,f13_fused3_wippi2,9,45.8767
+CSV,1024x1024x1024,f14_fused4_wippi2,9,46.3131
+CSV,1024x1024x1024,f23_fused3_wippsh,9,45.4360
+CSV,1024x1024x1024,x43_adds_only,9,3.7246
+CSV,1024x1024x1024,y13_fused3_adds_only,9,3.2726
+CSV,1024x1024x1024,x44_adds_only,9,5.8353
+CSV,1024x1024x1024,y14_fused4_adds_only,9,4.9449
+CSV,1024x1024x1024,a53_sw3_wippsh,10,46.7205
+CSV,1024x1024x1024,f13_fused3_wippi2,10,46.0566
+CSV,1024x1024x1024,f14_fused4_wippi2,10,45.8346
+CSV,1024x1024x1024,f23_fused3_wippsh,10,45.5764
+CSV,1024x1024x1024,x43_adds_only,10,3.6158
+CSV,1024x1024x1024,y13_fused3_adds_only,10,3.1446
+CSV,1024x1024x1024,x44_adds_only,10,5.9014
+CSV,1024x1024x1024,y14_fused4_adds_only,10,5.0643
+CSV,1024x1024x1024,a23_sw3_wippi2,10,46.3821
+CSV,810x812x664,a23_sw3_wippi2,0,22.0371
+CSV,810x812x664,a53_sw3_wippsh,0,21.9661
+CSV,810x812x664,f13_fused3_wippi2,0,21.5224
+CSV,810x812x664,f14_fused4_wippi2,0,24.8972
+CSV,810x812x664,f23_fused3_wippsh,0,21.5012
+CSV,810x812x664,x43_adds_only,0,2.0535
+CSV,810x812x664,y13_fused3_adds_only,0,1.7421
+CSV,810x812x664,x44_adds_only,0,3.3371
+CSV,810x812x664,y14_fused4_adds_only,0,2.7652
+CSV,810x812x664,a53_sw3_wippsh,1,21.8539
+CSV,810x812x664,f13_fused3_wippi2,1,21.6146
+CSV,810x812x664,f14_fused4_wippi2,1,24.8763
+CSV,810x812x664,f23_fused3_wippsh,1,21.4029
+CSV,810x812x664,x43_adds_only,1,1.9979
+CSV,810x812x664,y13_fused3_adds_only,1,1.6887
+CSV,810x812x664,x44_adds_only,1,3.3483
+CSV,810x812x664,y14_fused4_adds_only,1,2.8440
+CSV,810x812x664,a23_sw3_wippi2,1,22.0903
+CSV,810x812x664,f13_fused3_wippi2,2,21.5869
+CSV,810x812x664,f14_fused4_wippi2,2,24.7649
+CSV,810x812x664,f23_fused3_wippsh,2,21.4047
+CSV,810x812x664,x43_adds_only,2,1.9759
+CSV,810x812x664,y13_fused3_adds_only,2,1.6754
+CSV,810x812x664,x44_adds_only,2,3.3711
+CSV,810x812x664,y14_fused4_adds_only,2,2.7861
+CSV,810x812x664,a23_sw3_wippi2,2,21.9758
+CSV,810x812x664,a53_sw3_wippsh,2,22.0129
+CSV,810x812x664,f14_fused4_wippi2,3,24.8887
+CSV,810x812x664,f23_fused3_wippsh,3,21.5749
+CSV,810x812x664,x43_adds_only,3,1.9543
+CSV,810x812x664,y13_fused3_adds_only,3,1.6573
+CSV,810x812x664,x44_adds_only,3,3.3572
+CSV,810x812x664,y14_fused4_adds_only,3,2.7962
+CSV,810x812x664,a23_sw3_wippi2,3,22.0925
+CSV,810x812x664,a53_sw3_wippsh,3,21.9210
+CSV,810x812x664,f13_fused3_wippi2,3,21.6731
+CSV,810x812x664,f23_fused3_wippsh,4,21.4952
+CSV,810x812x664,x43_adds_only,4,1.9769
+CSV,810x812x664,y13_fused3_adds_only,4,1.6428
+CSV,810x812x664,x44_adds_only,4,3.3212
+CSV,810x812x664,y14_fused4_adds_only,4,2.7454
+CSV,810x812x664,a23_sw3_wippi2,4,22.0196
+CSV,810x812x664,a53_sw3_wippsh,4,21.8451
+CSV,810x812x664,f13_fused3_wippi2,4,21.5100
+CSV,810x812x664,f14_fused4_wippi2,4,24.8842
+CSV,810x812x664,x43_adds_only,5,1.9953
+CSV,810x812x664,y13_fused3_adds_only,5,1.6623
+CSV,810x812x664,x44_adds_only,5,3.3441
+CSV,810x812x664,y14_fused4_adds_only,5,2.7760
+CSV,810x812x664,a23_sw3_wippi2,5,22.1579
+CSV,810x812x664,a53_sw3_wippsh,5,21.8715
+CSV,810x812x664,f13_fused3_wippi2,5,21.6140
+CSV,810x812x664,f14_fused4_wippi2,5,24.9576
+CSV,810x812x664,f23_fused3_wippsh,5,21.4989
+CSV,810x812x664,y13_fused3_adds_only,6,1.5922
+CSV,810x812x664,x44_adds_only,6,3.4071
+CSV,810x812x664,y14_fused4_adds_only,6,2.7474
+CSV,810x812x664,a23_sw3_wippi2,6,22.0281
+CSV,810x812x664,a53_sw3_wippsh,6,21.8487
+CSV,810x812x664,f13_fused3_wippi2,6,21.5407
+CSV,810x812x664,f14_fused4_wippi2,6,24.8297
+CSV,810x812x664,f23_fused3_wippsh,6,21.3660
+CSV,810x812x664,x43_adds_only,6,1.9600
+CSV,810x812x664,x44_adds_only,7,3.1013
+CSV,810x812x664,y14_fused4_adds_only,7,2.7867
+CSV,810x812x664,a23_sw3_wippi2,7,22.1017
+CSV,810x812x664,a53_sw3_wippsh,7,21.8516
+CSV,810x812x664,f13_fused3_wippi2,7,21.6366
+CSV,810x812x664,f14_fused4_wippi2,7,24.9500
+CSV,810x812x664,f23_fused3_wippsh,7,21.4514
+CSV,810x812x664,x43_adds_only,7,1.9716
+CSV,810x812x664,y13_fused3_adds_only,7,1.6620
+CSV,810x812x664,y14_fused4_adds_only,8,2.5203
+CSV,810x812x664,a23_sw3_wippi2,8,21.9959
+CSV,810x812x664,a53_sw3_wippsh,8,21.8636
+CSV,810x812x664,f13_fused3_wippi2,8,21.7676
+CSV,810x812x664,f14_fused4_wippi2,8,24.7281
+CSV,810x812x664,f23_fused3_wippsh,8,21.3621
+CSV,810x812x664,x43_adds_only,8,2.0358
+CSV,810x812x664,y13_fused3_adds_only,8,1.6651
+CSV,810x812x664,x44_adds_only,8,4.4570
+CSV,810x812x664,a23_sw3_wippi2,9,22.6179
+CSV,810x812x664,a53_sw3_wippsh,9,21.9856
+CSV,810x812x664,f13_fused3_wippi2,9,21.6087
+CSV,810x812x664,f14_fused4_wippi2,9,24.8087
+CSV,810x812x664,f23_fused3_wippsh,9,21.4302
+CSV,810x812x664,x43_adds_only,9,1.9856
+CSV,810x812x664,y13_fused3_adds_only,9,1.6890
+CSV,810x812x664,x44_adds_only,9,3.3679
+CSV,810x812x664,y14_fused4_adds_only,9,2.8277
+CSV,810x812x664,a53_sw3_wippsh,10,21.7890
+CSV,810x812x664,f13_fused3_wippi2,10,21.6104
+CSV,810x812x664,f14_fused4_wippi2,10,24.8790
+CSV,810x812x664,f23_fused3_wippsh,10,21.4820
+CSV,810x812x664,x43_adds_only,10,2.0118
+CSV,810x812x664,y13_fused3_adds_only,10,1.6785
+CSV,810x812x664,x44_adds_only,10,3.3883
+CSV,810x812x664,y14_fused4_adds_only,10,2.7584
+CSV,810x812x664,a23_sw3_wippi2,10,22.1425
+
+| size | variant | median ms | min | max | n | GMAC/s |
+|---|---|---:|---:|---:|---:|---:|
+| 1024x1024x1024 | a23_sw3_wippi2 | 46.474 | 46.212 | 47.172 | 11 | 23.10 |
+| 1024x1024x1024 | a53_sw3_wippsh | 46.133 | 46.006 | 46.720 | 11 | 23.27 |
+| 1024x1024x1024 | f13_fused3_wippi2 | 45.809 | 45.674 | 46.057 | 11 | 23.44 |
+| 1024x1024x1024 | f14_fused4_wippi2 | 45.891 | 45.823 | 46.564 | 11 | 23.40 |
+| 1024x1024x1024 | f23_fused3_wippsh | 45.518 | 45.371 | 45.752 | 11 | 23.59 |
+| 1024x1024x1024 | x43_adds_only | 3.581 | 3.497 | 3.725 | 11 | 299.82 |
+| 1024x1024x1024 | y13_fused3_adds_only | 3.141 | 3.082 | 3.273 | 11 | 341.80 |
+| 1024x1024x1024 | x44_adds_only | 5.851 | 5.652 | 5.941 | 11 | 183.51 |
+| 1024x1024x1024 | y14_fused4_adds_only | 4.876 | 4.778 | 5.064 | 11 | 220.20 |
+| 810x812x664 | a23_sw3_wippi2 | 22.090 | 21.976 | 22.618 | 11 | 19.77 |
+| 810x812x664 | a53_sw3_wippsh | 21.864 | 21.789 | 22.013 | 11 | 19.97 |
+| 810x812x664 | f13_fused3_wippi2 | 21.610 | 21.510 | 21.768 | 11 | 20.21 |
+| 810x812x664 | f14_fused4_wippi2 | 24.879 | 24.728 | 24.958 | 11 | 17.55 |
+| 810x812x664 | f23_fused3_wippsh | 21.451 | 21.362 | 21.575 | 11 | 20.36 |
+| 810x812x664 | x43_adds_only | 1.986 | 1.954 | 2.054 | 11 | 219.95 |
+| 810x812x664 | y13_fused3_adds_only | 1.665 | 1.592 | 1.742 | 11 | 262.28 |
+| 810x812x664 | x44_adds_only | 3.357 | 3.101 | 4.457 | 11 | 130.09 |
+| 810x812x664 | y14_fused4_adds_only | 2.776 | 2.520 | 2.844 | 11 | 157.32 |
+RESULT: PASS

@@ -1,0 +1,48 @@
+calibrated core clock: 20.520 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 23.676 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 31.060 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 32.737 | 4 |
+| 6 loads only | 13.025 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 35.707 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 35.263 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 37.383 | 4 |
+| step, bcast loads only | 33.289 | 4 |
+| step, dup loads only | 33.275 | 4 |
+| step sd grouped order | 33.650 | 4 |
+| step sd with vpmuludq | 35.111 | 4 |
+| 8 FMA (8 chains, lat 4) | 27.689 | 4 |
+| 4 imul+add + 4 FMA | 32.680 | 2-3 |
+calibrated core clock: 18.756 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 21.671 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 28.778 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 30.016 | 4 |
+| 6 loads only | 10.473 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 31.985 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 37.241 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 35.809 | 4 |
+| step, bcast loads only | 34.810 | 4 |
+| step, dup loads only | 33.253 | 4 |
+| step sd grouped order | 30.368 | 4 |
+| step sd with vpmuludq | 31.565 | 4 |
+| 8 FMA (8 chains, lat 4) | 25.494 | 4 |
+| 4 imul+add + 4 FMA | 26.129 | 2-3 |
+calibrated core clock: 18.588 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 21.453 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 28.542 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 32.912 | 4 |
+| 6 loads only | 11.724 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 33.915 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 32.666 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 35.345 | 4 |
+| step, bcast loads only | 30.392 | 4 |
+| step, dup loads only | 29.899 | 4 |
+| step sd grouped order | 31.058 | 4 |
+| step sd with vpmuludq | 31.252 | 4 |
+| 8 FMA (8 chains, lat 4) | 25.523 | 4 |
+| 4 imul+add + 4 FMA | 27.879 | 2-3 |

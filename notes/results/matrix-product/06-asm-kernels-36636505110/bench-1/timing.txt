@@ -1,0 +1,15 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: w44_sw4_vec
+timing: reps=5 warmup=1 budget_s=12.0
+CSV,size,variant,rep,ms
+CSV,1024x1024x1024,w44_sw4_vec,0,44.3118
+CSV,1024x1024x1024,w44_sw4_vec,1,44.0527
+CSV,1024x1024x1024,w44_sw4_vec,2,43.7261
+CSV,1024x1024x1024,w44_sw4_vec,3,43.7577
+CSV,1024x1024x1024,w44_sw4_vec,4,43.6987
+
+| size | variant | median ms | min | max | n | GMAC/s |
+|---|---|---:|---:|---:|---:|---:|
+| 1024x1024x1024 | w44_sw4_vec | 43.758 | 43.699 | 44.312 | 5 | 24.54 |
+RESULT: PASS

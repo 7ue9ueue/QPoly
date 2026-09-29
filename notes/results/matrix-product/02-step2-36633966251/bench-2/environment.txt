@@ -1,0 +1,9 @@
+date: 2026-09-29T21:33:04Z
+commit: adc36c796ae9c91747bdb4b8eba92365411261c5
+compiler: g++ (GCC) 15.2.0
+flags: -O2 -std=c++23 -march=native
+cpu: Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+mhz: 3488.354
+nproc: 4
+thp: [always] madvise never
+march_native:  -march= 		icelake-server

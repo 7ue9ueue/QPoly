@@ -1,0 +1,5 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: a01_gemm_wipp a02_gemm_direct_g a12_sw2_wipp a13_sw3_wipp a14_sw4_wipp a23_sw3_wippi2 a24_sw4_wippi2 a33_sw3_wip a43_sw3_direct a44_sw4_direct
+check mode=full variants=10 calls=50210 failures=0 time_s=12.2
+RESULT: PASS

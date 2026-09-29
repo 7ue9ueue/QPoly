@@ -1,0 +1,14 @@
+
+## timing-madvise.csv: median wall ms (min-max)
+
+| variant | max_random_00 | max_random_01 | max_random_02 | random_00 | random_01 | random_02 | max median |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| mp_wippi2_d3 | 61.41 (61.1-61.6) | 61.38 (61.3-61.8) | 61.47 (61.2-61.7) | 31.14 (30.9-31.5) | 30.10 (30.0-30.3) | 22.46 (22.0-23.0) | 61.47 |
+| mp_wippi2_d4 | 62.50 (62.2-62.8) | 62.37 (62.1-64.4) | 62.46 (62.1-62.9) | 31.24 (31.0-31.9) | 30.37 (30.1-30.8) | 22.65 (22.5-23.1) | 62.50 |
+| mp_wippsh_d3 | 61.23 (60.8-63.6) | 61.03 (60.7-61.5) | 61.20 (61.0-61.6) | 30.85 (30.7-31.0) | 30.15 (29.8-30.5) | 22.28 (22.2-22.7) | 61.23 |
+
+## phases (max_random cases), median ms
+
+mp_wippi2_d3_phases: setup 0.97, parse 5.17, pack 0.89, multiply 44.00, unpack 0.39, output 7.24, wall 61.40
+mp_wippi2_d4_phases: setup 0.97, parse 5.17, pack 0.88, multiply 44.52, unpack 0.44, output 7.18, wall 61.94
+mp_wippsh_d3_phases: setup 0.97, parse 5.15, pack 0.89, multiply 43.68, unpack 0.38, output 7.07, wall 61.00

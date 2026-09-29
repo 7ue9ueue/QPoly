@@ -1,0 +1,27 @@
+calibrated core clock: 3.216 GHz, depth m=128, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| asm_sh_burst_p1 | 200.8 | 5.045 | 6.343 | ok |
+| asm_wipp_sh | 201.4 | 5.059 | 6.325 | ok |
+
+leaf 128x128x128: | leaf | us/call | cycles per tile k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| leaf_shb_o0 | 105.76 | 5.190 | 6.166 | ok |
+| leaf_shb_o1 | 106.17 | 5.210 | 6.142 | ok |
+| leaf_shb_o0_pf | 108.94 | 5.346 | 5.986 | ok |
+| leaf_wippsh_o0 | 106.20 | 5.211 | 6.141 | ok |
+
+leaf 64x64x64: | leaf | us/call | cycles per tile k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| leaf_shb_o0 | 14.23 | 5.588 | 5.727 | ok |
+| leaf_shb_o1 | 14.21 | 5.579 | 5.735 | ok |
+| leaf_shb_o0_pf | 14.43 | 5.666 | 5.647 | ok |
+| leaf_wippsh_o0 | 14.28 | 5.606 | 5.708 | ok |
+
+leaf 256x256x256: | leaf | us/call | cycles per tile k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| leaf_shb_o0 | 817.51 | 5.015 | 6.381 | ok |
+| leaf_shb_o1 | 817.63 | 5.015 | 6.381 | ok |
+| leaf_shb_o0_pf | 859.04 | 5.269 | 6.073 | ok |
+| leaf_wippsh_o0 | 826.16 | 5.068 | 6.315 | ok |
+RESULT: PASS

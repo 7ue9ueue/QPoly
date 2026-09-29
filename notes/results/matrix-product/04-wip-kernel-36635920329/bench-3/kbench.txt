@@ -1,0 +1,36 @@
+calibrated core clock: 2.847 GHz, depth m=64, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| s_sd_4x8_u1 | 129.3 | 5.750 | 5.565 | ok |
+| s_sd_4x8_u8 | 125.1 | 5.565 | 5.750 | ok |
+| wip_4x8_u1 | 119.9 | 5.334 | 6.000 | ok |
+| wip_4x8_u2 | 124.0 | 5.516 | 5.801 | ok |
+| wip_4x8_u4 | 121.4 | 5.402 | 5.924 | ok |
+RESULT: PASS
+calibrated core clock: 2.847 GHz, depth m=128, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| s_sd_4x8_u1 | 246.2 | 5.476 | 5.844 | ok |
+| s_sd_4x8_u8 | 242.9 | 5.402 | 5.923 | ok |
+| wip_4x8_u1 | 229.4 | 5.103 | 6.271 | ok |
+| wip_4x8_u2 | 237.9 | 5.292 | 6.047 | ok |
+| wip_4x8_u4 | 235.0 | 5.228 | 6.121 | ok |
+RESULT: PASS
+calibrated core clock: 2.847 GHz, depth m=256, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| s_sd_4x8_u1 | 482.3 | 5.364 | 5.965 | ok |
+| s_sd_4x8_u8 | 478.0 | 5.317 | 6.019 | ok |
+| wip_4x8_u1 | 449.9 | 5.003 | 6.396 | ok |
+| wip_4x8_u2 | 469.2 | 5.218 | 6.132 | ok |
+| wip_4x8_u4 | 460.0 | 5.116 | 6.255 | ok |
+RESULT: PASS
+calibrated core clock: 2.847 GHz, depth m=1024, reps=20000
+| kernel | ns/call | cycles/k-step | MACs/cycle | check |
+|---|---:|---:|---:|---|
+| s_sd_4x8_u1 | 1902.3 | 5.289 | 6.050 | ok |
+| s_sd_4x8_u8 | 1900.0 | 5.283 | 6.057 | ok |
+| wip_4x8_u1 | 1792.5 | 4.984 | 6.420 | ok |
+| wip_4x8_u2 | 1858.3 | 5.167 | 6.193 | ok |
+| wip_4x8_u4 | 1832.7 | 5.096 | 6.279 | ok |
+RESULT: PASS

@@ -1,0 +1,5 @@
+compiler: 15.2.0
+flags: -O2 -std=c++23 -march=native
+variants: s00_naive s01_ijk_lazy s02_ikj_lazy s03_blocked_1024 s03_blocked_256 s04_tile4x8 s05_tile4x8_slab s11_sw1_tile s12_sw2_tile s13_sw3_tile s14_sw4_tile
+check mode=full variants=11 calls=55231 failures=0 time_s=72.8
+RESULT: PASS

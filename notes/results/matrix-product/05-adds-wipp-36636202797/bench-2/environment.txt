@@ -1,0 +1,9 @@
+date: 2026-09-29T21:53:50Z
+commit: 40ecbe6e2e0754b024700e9be0e85bfb078363d7
+compiler: g++ (GCC) 15.2.0
+flags: -O2 -std=c++23 -march=native
+cpu: AMD EPYC 9V74 80-Core Processor
+mhz: 2871.432
+nproc: 4
+thp: [always] madvise never
+march_native:  -march= 		znver3

@@ -1,0 +1,48 @@
+calibrated core clock: 3.216 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 4.008 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 4.004 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 4.950 | 4 |
+| 6 loads only | 2.998 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 5.073 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 5.147 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 5.108 | 4 |
+| step, bcast loads only | 5.028 | 4 |
+| step, dup loads only | 4.964 | 4 |
+| step sd grouped order | 5.002 | 4 |
+| step sd with vpmuludq | 5.087 | 4 |
+| 8 FMA (8 chains, lat 4) | 4.010 | 4 |
+| 4 imul+add + 4 FMA | 4.111 | 2-3 |
+calibrated core clock: 3.216 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 4.003 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 4.004 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 4.953 | 4 |
+| 6 loads only | 2.999 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 5.089 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 5.144 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 5.103 | 4 |
+| step, bcast loads only | 5.028 | 4 |
+| step, dup loads only | 4.965 | 4 |
+| step sd grouped order | 5.004 | 4 |
+| step sd with vpmuludq | 5.086 | 4 |
+| 8 FMA (8 chains, lat 4) | 4.008 | 4 |
+| 4 imul+add + 4 FMA | 4.139 | 2-3 |
+calibrated core clock: 3.215 GHz
+| probe | cycles/block | expected (port model) |
+|---|---:|---|
+| 8 vpmuldq (indep.) | 4.001 | 4 (FP0/FP3) |
+| 16 vpaddq (8 chains) | 4.003 | 4 (FP0-3) or chain-bound 2 |
+| 8 mul + 8 add, regs | 4.943 | 4 |
+| 6 loads only | 2.989 | 3 (2 loads/cycle) |
+| step sd: 6 loads + 16 | 5.083 | 4 if loads are free |
+| step pb: vpbroadcastd+vpsrlq | 5.150 | 5.25 (5 FP12 ops) |
+| step sd, 2 product regs | 5.080 | 4 |
+| step, bcast loads only | 5.027 | 4 |
+| step, dup loads only | 4.961 | 4 |
+| step sd grouped order | 5.006 | 4 |
+| step sd with vpmuludq | 5.095 | 4 |
+| 8 FMA (8 chains, lat 4) | 4.004 | 4 |
+| 4 imul+add + 4 FMA | 4.274 | 2-3 |

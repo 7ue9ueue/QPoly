@@ -1,0 +1,15 @@
+
+## timing-madvise.csv: median wall ms (min-max)
+
+| variant | max_random_00 | max_random_01 | max_random_02 | random_00 | random_01 | random_02 | max median |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| mp_wippi2_d4_fused | 60.04 (58.4-60.6) | 59.62 (58.6-60.7) | 59.17 (58.3-59.9) | 28.67 (28.3-29.0) | 27.53 (27.2-28.1) | 20.58 (20.0-21.2) | 60.04 |
+| mp_wippsh_d3 | 57.80 (57.6-58.4) | 57.93 (57.7-58.7) | 57.84 (57.5-58.3) | 28.14 (27.6-28.4) | 26.96 (26.4-27.3) | 19.90 (19.4-20.3) | 57.93 |
+| mp_wippsh_d3_fused | 60.30 (58.5-61.8) | 59.43 (58.4-60.5) | 59.40 (58.3-60.6) | 28.98 (28.1-29.2) | 27.47 (27.0-28.0) | 20.53 (19.9-21.3) | 60.30 |
+| ref_adamant_401223 | 69.69 (69.0-70.1) | 69.60 (68.7-71.8) | 69.08 (68.8-69.6) | 36.26 (36.0-36.6) | 35.31 (34.7-35.5) | 29.62 (29.2-30.2) | 69.69 |
+
+## phases (max_random cases), median ms
+
+mp_wippi2_d4_fused_phases: setup 1.80, parse 5.18, pack 0.67, multiply 44.45, unpack 0.35, output 4.14, wall 57.98
+mp_wippsh_d3_fused_phases: setup 1.76, parse 5.20, pack 0.75, multiply 44.43, unpack 0.33, output 4.15, wall 58.02
+mp_wippsh_d3_phases: setup 0.99, parse 5.17, pack 0.75, multiply 44.33, unpack 0.32, output 4.15, wall 57.07

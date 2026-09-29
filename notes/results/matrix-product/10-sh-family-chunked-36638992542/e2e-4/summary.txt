@@ -1,0 +1,17 @@
+
+## timing-madvise.csv: median wall ms (min-max)
+
+| variant | max_random_00 | max_random_01 | max_random_02 | random_00 | random_01 | random_02 | max median |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| mp_shhalfp1_d3_ck | 59.30 (59.1-59.8) | 59.35 (59.2-59.6) | 59.29 (59.2-60.0) | 29.81 (29.7-29.9) | 29.00 (28.9-29.3) | 21.43 (21.4-21.6) | 59.35 |
+| mp_wippsh_d3 | 58.46 (58.3-58.6) | 58.60 (58.5-59.0) | 58.79 (58.5-58.9) | 29.57 (29.5-29.7) | 28.61 (28.4-28.9) | 21.58 (21.3-21.7) | 58.79 |
+| mp_wippsh_d3_ck | 58.83 (58.2-59.0) | 58.53 (58.2-58.7) | 58.39 (58.3-58.6) | 29.33 (29.0-29.5) | 28.44 (28.3-28.6) | 21.19 (20.9-21.3) | 58.83 |
+| mp_wippsh_d4_ck | 59.56 (59.4-60.0) | 59.42 (59.0-59.6) | 59.38 (59.3-59.6) | 29.35 (29.2-29.4) | 28.80 (28.4-28.9) | 21.23 (21.1-21.3) | 59.56 |
+| ref_adamant_401223 | 74.63 (73.8-75.1) | 74.56 (74.1-75.3) | 74.40 (73.8-75.7) | 40.20 (39.8-41.1) | 39.61 (38.9-40.2) | 34.04 (33.7-34.3) | 74.63 |
+
+## phases (max_random cases), median ms
+
+mp_shhalfp1_d3_ck_phases: setup 0.95, parse+pack 6.47, multiply 41.87, output 7.16, wall 59.11
+mp_wippsh_d3_ck_phases: setup 0.96, parse+pack 6.46, multiply 41.03, output 7.23, wall 58.26
+mp_wippsh_d3_phases: setup 1.36, parse 5.37, pack 1.03, multiply 41.10, unpack 0.40, output 6.60, wall 58.47
+mp_wippsh_d4_ck_phases: setup 1.05, parse+pack 6.22, multiply 41.85, output 7.63, wall 59.38
