@@ -14,6 +14,10 @@
 #pragma GCC optimize("O3")
 #endif
 #include "../e2e/io007.hpp"
+#ifdef MP_IO011
+#include "../e2e/parse_ms2.inc"
+#include "../e2e/fmt_bcd.inc"
+#endif
 #include "../common.hpp"
 #include "../simd.hpp"
 #include "../simd_kernel.hpp"
@@ -106,12 +110,14 @@ u32* arena(std::size_t words) {
 #ifdef MADV_HUGEPAGE
     madvise(p, bytes, MADV_HUGEPAGE);
 #endif
+#ifndef MP_LAZY_ARENA
     bool populated = false;
 #ifdef MADV_POPULATE_WRITE
     populated = madvise(p, bytes, MADV_POPULATE_WRITE) == 0;
 #endif
     if (!populated)
         for (std::size_t i = 0; i < bytes; i += 4096) static_cast<volatile char*>(p)[i] = 0;
+#endif
     return reinterpret_cast<u32*>(p);
 }
 
@@ -130,7 +136,17 @@ double t_now() { return std::chrono::duration<double, std::milli>(std::chrono::s
 #endif
 }  // namespace
 
-#ifdef MP_CHUNKED
+#ifdef MP_IO011
+void write_all(const char* d, std::size_t len) {
+    while (len) {
+        const ssize_t w = write(1, d, len);
+        if (w > 0) d += w, len -= std::size_t(w);
+        else if (w < 0 && errno == EINTR) continue;
+        else std::abort();
+    }
+}
+#endif
+#if defined(MP_CHUNKED) || defined(MP_IO011)
 // Leaf-block pointers of a matrix in recursive layout: ptr[bi * 2^D + bj].
 void leaf_table(u32* base, std::size_t rows, std::size_t cols, int D, u32** table) {
     const std::size_t lr = rows >> D, lc = cols >> D, side = std::size_t(1) << D;
@@ -144,14 +160,27 @@ int main() {
     double t_last = t_now();
 #endif
     fastio_unsafe_impl::input in;
+#ifndef MP_IO011
     static fastio_unsafe_impl::output out;
+#endif
     char* p = in.cursor();
     const int n = int(read_sse_short(p)), m = int(read_sse_short(p)), k = int(read_sse_short(p));
     if (n < 1 || m < 1 || k < 1 || n > 1024 || m > 1024 || k > 1024) return 1;
     const int D = depth_for(n, m, k);
     const std::size_t N = round_up(n, std::size_t(4) << D), M = round_up(m, std::size_t(2) << D),
                       K = round_up(k, std::size_t(8) << D);
-#ifdef MP_CHUNKED
+#if defined(MP_IO011)
+    // A's and B's row-major values are parsed into the C region and the Strassen workspace, both
+    // dead until the multiply, so the arena is no larger than the chunked variant's.
+    const std::size_t s_pa = round_up(N * M, 16), s_pb = round_up(M * K, 16),
+                      s_pc = round_up(std::max(N * K, std::size_t(n) * m), 16),
+                      s_w = round_up(std::max(SW::workspace(N, M, K, D), std::size_t(m) * k) + 16, 16), s_row = round_up(K + 64, 16);
+    u32* const pa = arena(s_pa + s_pb + s_pc + s_w + s_row);
+    u32 *const pb = pa + s_pa, *const pc = pb + s_pb, *const work = pc + s_pc, *const rowbuf = work + s_w;
+    static u32* tc[1 << 10];
+    leaf_table(pc, N, K, D, tc);
+    (void)rowbuf;
+#elif defined(MP_CHUNKED)
     const std::size_t s_pa = round_up(N * M, 16), s_pb = round_up(M * K, 16), s_pc = round_up(N * K, 16),
                       s_w = SW::workspace(N, M, K, D) + 16, s_row = round_up(std::max(4 * std::size_t(m), K), 16);
     u32* const pa = arena(s_pa + s_pb + s_pc + s_w + s_row);
@@ -170,7 +199,82 @@ int main() {
     u32 *const b_rm = a_rm + s_in, *const pa = b_rm + s_b, *const pb = pa + s_pa, *const pc = pb + s_pb, *const work = pc + s_pc;
 #endif
     MP_MARK("setup");
-#ifdef MP_CHUNKED
+#if defined(MP_IO011)
+#ifndef MP_PARSE_CH
+#define MP_PARSE_CH 131072
+#endif
+    constexpr auto parse = qp_parse_ms2::parse_tokens<MP_PARSE_CH, qp_parse_flat::parse_tokens>;
+    u32* const a_rm = pc;    // dead until the multiply writes C
+    u32* const b_rm = work;  // dead until the Strassen additions use it
+    p = parse(p, a_rm, std::size_t(n) * m);
+    p = parse(p, b_rm, std::size_t(m) * k);
+    MP_MARK("parse");
+    for_each_leaf(pa, N, M, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+        pack_a_leaf4(a_rm, n, m, blk, r0, c0, lr, lc);
+    });
+    for_each_leaf(pb, M, K, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+        pack_b_leaf8(b_rm, m, k, blk, r0, c0, lr, lc);
+    });
+    MP_MARK("pack");
+    SW::multiply(pa, pb, pc, N, M, K, D, work);
+    MP_MARK("multiply");
+    // Exploration-011 output: fixed 10-byte fields (right-aligned digits, space padded; the
+    // problem's checker is testlib wcmp, which compares tokens), a row's last separator becomes
+    // '\n'. The buffer is flushed before a 32-value block and before a row's remainder, so at most
+    // 326 (block) or 316 (remainder) bytes are written past obuf_size: the 512-byte slack.
+#ifndef MP_OBUF
+#define MP_OBUF 163840
+#endif
+    constexpr std::size_t obuf_size = MP_OBUF;
+    alignas(4096) static char obuf[obuf_size + 512];
+    char* c = obuf;
+    const std::size_t side = std::size_t(1) << D, lc_r = N >> D, lc_c = K >> D;
+    for (int i = 0; i < n; ++i) {
+        const std::size_t bi = std::size_t(i) / lc_r, r = std::size_t(i) % lc_r, prow = r / 4, rr = r % 4;
+#ifdef MP_OUT_DIRECT
+        // Row i as runs of 8 consecutive values (one 4x8 tile row each), formatted in place.
+        const u32* src[4];
+        int g = 0, j = 0;
+        auto flush_if = [&]() { if (c >= obuf + obuf_size) { write_all(obuf, std::size_t(c - obuf)); c = obuf; } };
+        for (std::size_t bj = 0; bj < side && j + 8 <= k; ++bj) {
+            const u32* tiles = tc[bi * side + bj] + prow * (lc_c / 8) * 32 + rr * 8;
+            for (std::size_t q = 0; q < lc_c / 8 && j + 8 <= k; ++q, j += 8) {
+                src[g++] = tiles + q * 32;
+                if (g == 4) {
+                    flush_if();
+                    qp_fixed::blocks3p<4>(src, c);
+                    c += 320, g = 0;
+                }
+            }
+        }
+        flush_if();
+        for (int t = 0; t < g; ++t, c += 80) qp_fixed::blocks3p<1>(src + t, c);
+        for (; j < k; ++j, c += 10) {   // < 8 values left: they start a tile row
+            const std::size_t bj = std::size_t(j) / lc_c, jj = std::size_t(j) % lc_c;
+            qp_fixed::one(tc[bi * side + bj][prow * (lc_c / 8) * 32 + (jj / 8) * 32 + rr * 8 + jj % 8], c);
+        }
+#else
+        // Gather row i from its 4x8 tiles into an L1 row buffer, then blocks of 32 values.
+        for (std::size_t bj = 0; bj < side; ++bj) {
+            const u32* tiles = tc[bi * side + bj] + prow * (lc_c / 8) * 32 + rr * 8;
+            u32* dst = rowbuf + bj * lc_c;
+            for (std::size_t j = 0; j < lc_c; j += 8)
+                _mm256_storeu_si256(reinterpret_cast<V*>(dst + j), _mm256_loadu_si256(reinterpret_cast<const V*>(tiles + (j / 8) * 32)));
+        }
+        int j = 0;
+        for (; j + 32 <= k; j += 32) {
+            if (c >= obuf + obuf_size) { write_all(obuf, std::size_t(c - obuf)); c = obuf; }
+            qp_fixed::blocks3<4>(rowbuf + j, c);
+            c += 320;
+        }
+        if (c >= obuf + obuf_size) { write_all(obuf, std::size_t(c - obuf)); c = obuf; }
+        for (; j + 8 <= k; j += 8, c += 80) qp_fixed::blocks3<1>(rowbuf + j, c);
+        for (; j < k; ++j, c += 10) qp_fixed::one(rowbuf[j], c);
+#endif
+        c[-1] = '\n';
+    }
+    write_all(obuf, std::size_t(c - obuf));
+#elif defined(MP_CHUNKED)
     const std::size_t side = std::size_t(1) << D, la_r = N >> D, la_c = M >> D, lb_r = M >> D, lb_c = K >> D,
                       lc_r = N >> D, lc_c = K >> D;
     // A: four rows at a time -> one 4-row panel in every leaf of that leaf row (padding stays zero).
@@ -258,7 +362,9 @@ int main() {
         for (int j = 1; j < k; ++j) write_sep(out, cur, end, row[j], ' ');
     }
 #endif
+#ifndef MP_IO011
     out.finish(cur);
+#endif
     MP_MARK("output");
 #ifdef MP_FAST_EXIT
     _exit(0);  // everything is flushed; skip destructors (input munmap) and exit handlers

@@ -3,8 +3,9 @@
 // "warmups W", "evict MiB", "init PATH", "outdir DIR", "variant NAME PATH",
 // "case NAME INPUT EXPECTED". Each run unlinks the output, optionally evicts caches, and
 // times posix_spawn(init IN OUT ./variant) until wait4 returns (exec, loading, page faults,
-// write() into a new file and teardown included). Every output must be byte-identical to
-// EXPECTED with exit status 0. Variant order rotates each repetition and reverses on odd
+// write() into a new file and teardown included). Every output must equal EXPECTED as a
+// sequence of whitespace-separated tokens (testlib wcmp, the problem's checker; byte-identical
+// outputs trivially pass) with exit status 0. Variant order rotates each repetition and reverses on odd
 // ones. The variant's stderr (phase marks of MP_PHASES builds) is stored in the last column
 // with ';' separators.
 #define _GNU_SOURCE
@@ -52,6 +53,20 @@ static char* slurp(const char* path, size_t* size) {
     data[done] = 0;
     *size = done;
     return data;
+}
+// testlib wcmp semantics: equal sequences of tokens (maximal runs of bytes > ' ').
+static int same_tokens(const char* a, size_t na, const char* b, size_t nb) {
+    size_t i = 0, j = 0;
+    for (;;) {
+        while (i < na && (unsigned char)a[i] <= ' ') ++i;
+        while (j < nb && (unsigned char)b[j] <= ' ') ++j;
+        if (i == na || j == nb) return i == na && j == nb;
+        while (i < na && j < nb && (unsigned char)a[i] > ' ' && (unsigned char)b[j] > ' ') {
+            if (a[i] != b[j]) return 0;
+            ++i, ++j;
+        }
+        if ((i < na && (unsigned char)a[i] > ' ') || (j < nb && (unsigned char)b[j] > ' ')) return 0;
+    }
 }
 static void evict(void) {
     static volatile unsigned char* buffer;
@@ -118,7 +133,8 @@ int main(int argc, char** argv) {
                 size_t got_size, err_size;
                 chmod(out_path, 0600);  // Created with mode 0 like the judge; readable when not root.
                 char* got = slurp(out_path, &got_size);
-                if (got_size != expected_size || memcmp(got, expected, got_size) != 0) {
+                if ((got_size != expected_size || memcmp(got, expected, got_size) != 0) &&
+                    !same_tokens(got, got_size, expected, expected_size)) {
                     fprintf(stderr, "case %s variant %s (%zu vs %zu bytes)\n", case_name[c], variant_name[k], got_size, expected_size);
                     fail("output mismatch", case_name[c]);
                 }
@@ -137,7 +153,7 @@ int main(int argc, char** argv) {
         fflush(results);
     }
     fclose(results);
-    printf("PASS %d variants x %d cases x %d measured (+%d warmup) runs: exact output, exit 0\n",
+    printf("PASS %d variants x %d cases x %d measured (+%d warmup) runs: tokens equal (wcmp), exit 0\n",
            variants, cases, reps, warmups);
     return 0;
 }

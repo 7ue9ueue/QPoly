@@ -4,8 +4,8 @@
 Generates deterministic inputs in the official format (random shapes from 1 to 1024 with a
 bias to small, odd, power-of-two and Strassen-padding boundaries; random, all-extreme and
 mixed-extreme values), runs every program with the input as a regular file (mmap path) and,
-for a subset, through a pipe (fallback path), and requires byte-identical output to the
-reference (the official model solution). Exits non-zero on the first mismatch.
+for a subset, through a pipe (fallback path), and requires the same whitespace-separated
+tokens as the reference (the official model solution), i.e. the problem's testlib wcmp checker. Exits non-zero on the first mismatch.
 """
 import os
 import random
@@ -69,12 +69,12 @@ for idx, (n, m, k, mode) in enumerate(cases):
     for b in bins:
         with open(path, 'rb') as f:
             got = subprocess.run([b], stdin=f, capture_output=True, check=True).stdout
-        if got != want:
+        if got != want and got.split() != want.split():
             print(f'FAIL {os.path.basename(b)} case {idx} n={n} m={m} k={k} mode={mode}')
             sys.exit(1)
         if idx % 8 == 0:  # pipe input exercises the non-mmap reader
             got = subprocess.run([b], input=data, capture_output=True, check=True).stdout
-            if got != want:
+            if got != want and got.split() != want.split():
                 print(f'FAIL(pipe) {os.path.basename(b)} case {idx} n={n} m={m} k={k} mode={mode}')
                 sys.exit(1)
-print(f'PASS stress: {len(cases)} cases x {len(bins)} programs byte-identical to the model solution')
+print(f'PASS stress: {len(cases)} cases x {len(bins)} programs token-identical to the model solution')
