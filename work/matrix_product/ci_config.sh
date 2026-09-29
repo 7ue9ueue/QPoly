@@ -1,11 +1,11 @@
 # Settings read by run.sh (edit per experiment round).
-# Round 3: kernel microbenchmark (L1-resident, cycles per k-step) and the phase split of the
-# Strassen+SIMD path (conversion/packing vs multiply vs unpacking).
-CHECK=quick
-CHECK_VARIANTS=v06_s_sd_4x8_u4,w13_sw3_s4x8u4,w14_sw4_s4x8u4
-KBENCH_DEPTHS="64 128 256 1024"
-KBENCH_KERNELS=all
-TIME_VARIANTS=v06_s_sd_4x8_u4,w13_sw3_s4x8u4,w14_sw4_s4x8u4,x13_pack_only,x13_unpack_only,x13_mul_only
+# Round 3b: port probes for the kernel instruction mix (no timing of GEMM variants).
+PROBE=1
+CHECK=none
+CHECK_VARIANTS=v06_s_sd_4x8_u4
+KBENCH_DEPTHS="256"
+KBENCH_KERNELS=s_sd_4x8_u1,s_sd_4x8_u8,u_bs_4x8_u1
+TIME_VARIANTS=v06_s_sd_4x8_u4
 SIZES=1024x1024x1024
-REPS=15
+REPS=3
 BUDGET=12

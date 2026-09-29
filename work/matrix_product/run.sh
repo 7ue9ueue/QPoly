@@ -23,6 +23,10 @@ mkdir -p "$out/build"
 $CXX $FLAGS -DMP_FLAGS="\"$FLAGS\"" bench.cpp kernels/*.cpp -o "$out/build/bench"
 sha256sum bench.cpp common.hpp strassen.hpp kernels/*.cpp kernels/*.hpp 2>/dev/null > "$out/sources-sha256.txt" || true
 $CXX $FLAGS kbench.cpp -o "$out/build/kbench"
+$CXX $FLAGS probe.cpp -o "$out/build/probe"
+if [ "${PROBE:-0}" = 1 ]; then
+  for i in 1 2 3; do taskset -c "${CPU_PIN:-0}" "$out/build/probe"; done | tee "$out/probe.txt"
+fi
 cpu=${CPU_PIN:-0}
 run() { taskset -c "$cpu" "$out/build/bench" "$@"; }
 if [ -n "${KBENCH_DEPTHS:-}" ]; then
@@ -32,8 +36,8 @@ if [ -n "${KBENCH_DEPTHS:-}" ]; then
   done
   ! grep -q 'RESULT: FAIL' "$out/kbench.txt"
 fi
-run --check="$CHECK" --variants="$CHECK_VARIANTS" | tee "$out/check.txt"
-grep -q '^RESULT: PASS' "$out/check.txt"
+[ "$CHECK" = none ] || run --check="$CHECK" --variants="$CHECK_VARIANTS" | tee "$out/check.txt"
+[ "$CHECK" = none ] || grep -q "^RESULT: PASS" "$out/check.txt"
 run --check=none --variants="$TIME_VARIANTS" --sizes="$SIZES" --reps="$REPS" --budget="$BUDGET" | tee "$out/timing.txt"
 grep -q '^RESULT: PASS' "$out/timing.txt"
 grep '^|' "$out/timing.txt" > "$out/table.md"
