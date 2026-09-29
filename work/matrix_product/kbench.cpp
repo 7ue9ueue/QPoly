@@ -16,6 +16,7 @@
 
 #include "simd.hpp"
 #include "simd_kernel.hpp"
+#include "asm_kernels.hpp"
 
 using namespace mp;
 using namespace mp::simd;
@@ -29,6 +30,24 @@ template <int U2>
 void kwip(const u32* pa, const u32* pb, int m, u32* c, int ldc) { micro_wip<U2>(pa, pb, m, g_alpha, g_beta, c, ldc, 4, 8); }
 template <int U2>
 void kwipp(const u32* pa, const u32* pb, int m, u32* c, int ldc) { micro_wipp<U2>(pa, pb, m, g_alpha, g_beta, c, ldc, 4, 8); }
+// Asm tile: accumulators from zero (direct) or the Winograd corrections (wip*), then finish.
+template <void (*K)(const u32*, const u32*, long, V (&)[8]), int Period, bool Wip>
+void kasm(const u32* pa, const u32* pb, int m, u32* c, int ldc) {
+    V acc[8];
+    if constexpr (Wip) {
+        const V be = _mm256_cvtepi32_epi64(_mm_setr_epi32(g_beta[0], g_beta[2], g_beta[4], g_beta[6]));
+        const V bo = _mm256_cvtepi32_epi64(_mm_setr_epi32(g_beta[1], g_beta[3], g_beta[5], g_beta[7]));
+        for (int r = 0; r < 4; ++r) {
+            const V ar = _mm256_set1_epi64x(g_alpha[r]);
+            acc[2 * r] = _mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(ar, be));
+            acc[2 * r + 1] = _mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(ar, bo));
+        }
+    } else {
+        for (auto& x : acc) x = _mm256_setzero_si256();
+    }
+    K(pa, pb, m / Period, acc);
+    for (int r = 0; r < 4; ++r) _mm256_storeu_si256(reinterpret_cast<V*>(c + std::size_t(r) * ldc), finish_s(acc[2 * r], acc[2 * r + 1]));
+}
 template <int Rep, int Load, int MR, int NRV, int U>
 void kmicro(const u32* pa, const u32* pb, int m, u32* c, int ldc) { micro<Rep, Load, MR, NRV, U>(pa, pb, m, c, ldc, MR, 8 * NRV); }
 
@@ -51,6 +70,8 @@ std::vector<Kernel>& kernels() {
         {"wip_4x8_u4", kwip<4>, 4, 8, 2},
         {"wipp_4x8_u1", kwipp<1>, 4, 8, 2},
         {"wipp_4x8_u2", kwipp<2>, 4, 8, 2},
+#define MP_KASM(name, period) {"asm_" #name, kasm<asm_##name, period, #name[0] == 'w'>, 4, 8, #name[0] == 'w' ? 2 : 1},
+        MP_ASM_KERNELS(MP_KASM)
     };
     return k;
 }
