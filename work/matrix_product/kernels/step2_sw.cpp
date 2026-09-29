@@ -85,8 +85,63 @@ struct SimdLeaf {
     }
 };
 
-template <int D, int MR, int NRV, int U, int Phases = 7>  // Phases bit mask: 1 pack, 2 multiply, 4 unpack
+// Vectorized conversions for MR = 4, NR = 8 leaves; scalar fallback for partial chunks.
+void pack_a_leaf4(const u32* a, int n, int m, u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+    for (std::size_t p = 0; p < lr / 4; ++p) {
+        u32* dst = blk + p * lc * 4;
+        const std::size_t gr = r0 + 4 * p;
+        std::size_t t = 0;
+        if (gr + 4 <= std::size_t(n)) {
+            const u32* src = a + gr * m + c0;
+            for (; t + 8 <= lc && c0 + t + 8 <= std::size_t(m); t += 8) {
+                V x[4];
+                for (int i = 0; i < 4; ++i)
+                    x[i] = center8(to_mont8(_mm256_loadu_si256(reinterpret_cast<const V*>(src + std::size_t(i) * m + t))));
+                transpose4x8_store(x[0], x[1], x[2], x[3], dst + t * 4);
+            }
+        }
+        for (; t < lc; ++t)
+            for (int i = 0; i < 4; ++i) {
+                const std::size_t row = gr + i, col = c0 + t;
+                dst[t * 4 + i] = row < std::size_t(n) && col < std::size_t(m) ? u32(center(to_mont(a[row * m + col]))) : 0;
+            }
+    }
+}
+void pack_b_leaf8(const u32* b, int m, int k, u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+    for (std::size_t j = 0; j < lc / 8; ++j) {
+        u32* dst = blk + j * lr * 8;
+        const std::size_t gc = c0 + 8 * j;
+        for (std::size_t t = 0; t < lr; ++t) {
+            const std::size_t gr = r0 + t;
+            if (gr < std::size_t(m) && gc + 8 <= std::size_t(k)) {
+                _mm256_storeu_si256(reinterpret_cast<V*>(dst + t * 8),
+                                    center8(_mm256_loadu_si256(reinterpret_cast<const V*>(b + gr * k + gc))));
+            } else {
+                for (int q = 0; q < 8; ++q)
+                    dst[t * 8 + q] = gr < std::size_t(m) && gc + q < std::size_t(k) ? u32(center(b[gr * k + gc + q])) : 0;
+            }
+        }
+    }
+}
+void unpack_c_leaf4x8(const u32* blk, int n, int k, u32* c, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+    const std::size_t kp = lc / 8;
+    for (std::size_t p = 0; p < lr / 4; ++p)
+        for (std::size_t j = 0; j < kp; ++j) {
+            const u32* tile = blk + (p * kp + j) * 32;
+            for (int i = 0; i < 4; ++i) {
+                const std::size_t row = r0 + 4 * p + i, col = c0 + 8 * j;
+                if (row >= std::size_t(n)) break;
+                if (col + 8 <= std::size_t(k))
+                    _mm256_storeu_si256(reinterpret_cast<V*>(c + row * k + col), _mm256_loadu_si256(reinterpret_cast<const V*>(tile + i * 8)));
+                else
+                    for (std::size_t q = 0; col + q < std::size_t(k); ++q) c[row * k + col + q] = tile[i * 8 + q];
+            }
+        }
+}
+
+template <int D, int MR, int NRV, int U, int Phases = 7, bool Vec = false>  // Phases bit mask: 1 pack, 2 multiply, 4 unpack
 void sw_simd(int n, int m, int k, const u32* a, const u32* b, u32* c) {
+    static_assert(!Vec || (MR == 4 && NRV == 1));
     using Leaf = SimdLeaf<MR, NRV, U>;
     using SW = StrassenWinograd<Leaf, CenteredOps, CanonicalOps>;
     constexpr int NR = Leaf::NR;
@@ -95,6 +150,22 @@ void sw_simd(int n, int m, int k, const u32* a, const u32* b, u32* c) {
     const std::size_t sa = round_up(N * M, 16), sb = round_up(M * K, 16), sc = round_up(N * K, 16);
     u32* base = static_cast<u32*>(scratch((sa + sb + sc + SW::workspace(N, M, K, D)) * 4 + 64, 3));
     u32 *pa = base, *pb = pa + sa, *pc = pb + sb, *work = pc + sc;
+    if constexpr (Vec) {
+        if (Phases & 1) {
+            for_each_leaf(pa, N, M, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+                pack_a_leaf4(a, n, m, blk, r0, c0, lr, lc);
+            });
+            for_each_leaf(pb, M, K, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+                pack_b_leaf8(b, m, k, blk, r0, c0, lr, lc);
+            });
+        }
+        if (Phases & 2) SW::multiply(pa, pb, pc, N, M, K, D, work);
+        if (Phases & 4)
+            for_each_leaf(pc, N, K, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+                unpack_c_leaf4x8(blk, n, k, c, r0, c0, lr, lc);
+            });
+        return;
+    }
     if (Phases & 1) for_each_leaf(pa, N, M, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
         for (std::size_t r = 0; r < lr; ++r) {
             u32* dst = blk + (r / MR) * (lc * MR) + (r % MR);
@@ -135,3 +206,7 @@ MP_REGISTER(w33_sw3_s2x16u2, (sw_simd<3, 2, 2, 2>), "Strassen-Winograd depth 3 o
 MP_REGISTER_DIAG(x13_pack_only, (sw_simd<3, 4, 1, 4, 1>), "w13 input conversion/packing only");
 MP_REGISTER_DIAG(x13_unpack_only, (sw_simd<3, 4, 1, 4, 4>), "w13 output unpacking only");
 MP_REGISTER_DIAG(x13_mul_only, (sw_simd<3, 4, 1, 4, 2>), "w13 Strassen multiply only (packed inputs from the last call)");
+MP_REGISTER(w43_sw3_vec, (sw_simd<3, 4, 1, 4, 7, true>), "w13 with vectorized conversions");
+MP_REGISTER(w44_sw4_vec, (sw_simd<4, 4, 1, 4, 7, true>), "w14 with vectorized conversions");
+MP_REGISTER_DIAG(x43_pack_only, (sw_simd<3, 4, 1, 4, 1, true>), "w43 input conversion/packing only");
+MP_REGISTER_DIAG(x43_unpack_only, (sw_simd<3, 4, 1, 4, 4, true>), "w43 output unpacking only");

@@ -101,6 +101,34 @@ PROBE(p_fma8, "vfmadd231pd %%ymm8, %%ymm10, %%ymm0\n\tvfmadd231pd %%ymm8, %%ymm1
 PROBE(p_mix_int_fma, MA(0,10,8) MA(1,10,9) MA(2,11,8) MA(3,11,9)
                      "vfmadd231pd %%ymm8, %%ymm12, %%ymm4\n\tvfmadd231pd %%ymm9, %%ymm12, %%ymm5\n\t"
                      "vfmadd231pd %%ymm8, %%ymm13, %%ymm6\n\tvfmadd231pd %%ymm9, %%ymm13, %%ymm7\n\t")
+
+// ---- round 2: blocks of TWO k-steps ----
+// Direct kernel, two k-steps.
+PROBE(p2_direct, LOADS STEP_REG LOADS STEP_REG)
+// Winograd inner-product pair: acc[r][v] += (a[r][2s] + b[2s+1][v]) * (a[r][2s+1] + b[2s][v]).
+// ymm8/9 = b[2s] even/odd, ymm10/11 = b[2s+1] even/odd, ymm12/13 = a[r][2s], a[r][2s+1].
+#define WIP_R(E, O, OFF) "vbroadcastss " #OFF "(%1), %%ymm12\n\tvbroadcastss " #OFF "+16(%1), %%ymm13\n\t" \
+    "vpaddd %%ymm10, %%ymm12, %%ymm14\n\tvpaddd %%ymm8, %%ymm13, %%ymm15\n\tvpmuldq %%ymm15, %%ymm14, %%ymm14\n\tvpaddq %%ymm14, %%ymm" #E ", %%ymm" #E "\n\t" \
+    "vpaddd %%ymm11, %%ymm12, %%ymm14\n\tvpaddd %%ymm9, %%ymm13, %%ymm15\n\tvpmuldq %%ymm15, %%ymm14, %%ymm14\n\tvpaddq %%ymm14, %%ymm" #O ", %%ymm" #O "\n\t"
+#define WIP_LOADS "vmovsldup 64(%1), %%ymm8\n\tvmovshdup 64(%1), %%ymm9\n\tvmovsldup 96(%1), %%ymm10\n\tvmovshdup 96(%1), %%ymm11\n\t"
+PROBE(p2_wip, WIP_LOADS WIP_R(0, 1, 0) WIP_R(2, 3, 4) WIP_R(4, 5, 8) WIP_R(6, 7, 12))
+// Packed-B form: s = a + b[2s+1] (8 lanes), t = a' + b[2s]; even = s*t, odd = (s>>32)*(t>>32).
+#define WIPP_R(E, O, OFF) "vbroadcastss " #OFF "(%1), %%ymm12\n\tvbroadcastss " #OFF "+16(%1), %%ymm13\n\t" \
+    "vpaddd %%ymm10, %%ymm12, %%ymm14\n\tvpaddd %%ymm8, %%ymm13, %%ymm15\n\t" \
+    "vpmuldq %%ymm15, %%ymm14, %%ymm12\n\tvpaddq %%ymm12, %%ymm" #E ", %%ymm" #E "\n\t" \
+    "vpsrlq $32, %%ymm14, %%ymm14\n\tvpsrlq $32, %%ymm15, %%ymm15\n\tvpmuldq %%ymm15, %%ymm14, %%ymm14\n\tvpaddq %%ymm14, %%ymm" #O ", %%ymm" #O "\n\t"
+#define WIPP_LOADS "vmovdqu 64(%1), %%ymm8\n\tvmovdqu 96(%1), %%ymm10\n\t"
+PROBE(p2_wip_packed, WIPP_LOADS WIPP_R(0, 1, 0) WIPP_R(2, 3, 4) WIPP_R(4, 5, 8) WIPP_R(6, 7, 12))
+// Register-only WIP arithmetic (no loads) to isolate the pipe mix: 16 vpaddd + 8 vpmuldq + 8 vpaddq.
+#define WIPR_R(E, O) "vpaddd %%ymm10, %%ymm12, %%ymm14\n\tvpaddd %%ymm8, %%ymm13, %%ymm15\n\tvpmuldq %%ymm15, %%ymm14, %%ymm14\n\tvpaddq %%ymm14, %%ymm" #E ", %%ymm" #E "\n\t" \
+    "vpaddd %%ymm11, %%ymm12, %%ymm14\n\tvpaddd %%ymm9, %%ymm13, %%ymm15\n\tvpmuldq %%ymm15, %%ymm14, %%ymm14\n\tvpaddq %%ymm14, %%ymm" #O ", %%ymm" #O "\n\t"
+PROBE(p2_wip_regs, WIPR_R(0, 1) WIPR_R(2, 3) WIPR_R(4, 5) WIPR_R(6, 7))
+// Direct kernel with the multiplies of each row issued one row ahead of their adds
+// (uses ymm14/15 as a 2-deep product pipeline; rows alternate registers).
+#define DP(ACC_E, ACC_O, X, T0, T1) "vpaddq %%ymm" #T0 ", %%ymm" #ACC_E ", %%ymm" #ACC_E "\n\tvpaddq %%ymm" #T1 ", %%ymm" #ACC_O ", %%ymm" #ACC_O "\n\t" \
+    "vpmuldq %%ymm8, %%ymm" #X ", %%ymm" #T0 "\n\tvpmuldq %%ymm9, %%ymm" #X ", %%ymm" #T1 "\n\t"
+PROBE(p2_direct_skew, LOADS DP(0,1,10,14,15) DP(2,3,11,14,15) DP(4,5,12,14,15) DP(6,7,13,14,15)
+                      LOADS DP(0,1,10,14,15) DP(2,3,11,14,15) DP(4,5,12,14,15) DP(6,7,13,14,15))
 }  // namespace
 
 int main() {
@@ -121,6 +149,11 @@ int main() {
         {"step sd with vpmuludq", p_step_sd_u, "4"},
         {"8 FMA (8 chains, lat 4)", p_fma8, "4"},
         {"4 imul+add + 4 FMA", p_mix_int_fma, "2-3"},
+        {"2 steps direct (12 ld, 16 mul, 16 add)", p2_direct, "8 ideal, ~10 seen"},
+        {"2 steps Winograd pair (12 ld, 8 mul, 24 add)", p2_wip, "8 if the mix helps"},
+        {"2 steps Winograd packed B (10 ld, 8 mul, 16 add, 8 shift)", p2_wip_packed, "8"},
+        {"Winograd pair arithmetic, regs only", p2_wip_regs, "8"},
+        {"2 steps direct, adds skewed one row", p2_direct_skew, "8-10"},
     };
     for (auto& pr : probes) {
         double best = 1e30;

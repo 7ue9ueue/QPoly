@@ -82,3 +82,33 @@ MP_AI V finish_u(V e, V o) {  // e, o < 4P*2^32
     return _mm256_min_epu32(v, _mm256_sub_epi32(v, p));
 }
 }  // namespace mp::simd
+
+namespace mp::simd {
+// ---- vectorized conversions (8 lanes) ----
+// canonical x -> x * 2^32 mod P (canonical), Shoup multiplication by the constant R1.
+MP_AI V to_mont8(V x) {
+    const V s = _mm256_set1_epi64x(R1_SHOUP);
+    const V qe = _mm256_srli_epi64(_mm256_mul_epu32(x, s), 32);
+    const V qo = _mm256_mul_epu32(_mm256_srli_epi64(x, 32), s);
+    const V q = _mm256_blend_epi32(qe, qo, 0xAA);  // floor(x * R1_SHOUP / 2^32)
+    const V p = _mm256_set1_epi32(int(P));
+    const V r = _mm256_sub_epi32(_mm256_mullo_epi32(x, _mm256_set1_epi32(int(R1))), _mm256_mullo_epi32(q, p));  // [0, 2P)
+    return _mm256_min_epu32(r, _mm256_sub_epi32(r, p));
+}
+// canonical -> centered [-H, H].
+MP_AI V center8(V x) {
+    const V gt = _mm256_cmpgt_epi32(x, _mm256_set1_epi32(int(H)));
+    return _mm256_sub_epi32(x, _mm256_and_si256(gt, _mm256_set1_epi32(int(P))));
+}
+// 4 rows of 8 -> 32 values in [t][row] order (t = column index), stored at dst (unaligned).
+MP_AI void transpose4x8_store(V r0, V r1, V r2, V r3, u32* dst) {
+    const V a = _mm256_unpacklo_epi32(r0, r1), b = _mm256_unpacklo_epi32(r2, r3);  // t0,t1 | t4,t5
+    const V c = _mm256_unpackhi_epi32(r0, r1), d = _mm256_unpackhi_epi32(r2, r3);  // t2,t3 | t6,t7
+    const V t04 = _mm256_unpacklo_epi64(a, b), t15 = _mm256_unpackhi_epi64(a, b);
+    const V t26 = _mm256_unpacklo_epi64(c, d), t37 = _mm256_unpackhi_epi64(c, d);
+    _mm256_storeu_si256(reinterpret_cast<V*>(dst), _mm256_permute2x128_si256(t04, t15, 0x20));       // t0 t1
+    _mm256_storeu_si256(reinterpret_cast<V*>(dst + 8), _mm256_permute2x128_si256(t26, t37, 0x20));   // t2 t3
+    _mm256_storeu_si256(reinterpret_cast<V*>(dst + 16), _mm256_permute2x128_si256(t04, t15, 0x31));  // t4 t5
+    _mm256_storeu_si256(reinterpret_cast<V*>(dst + 24), _mm256_permute2x128_si256(t26, t37, 0x31));  // t6 t7
+}
+}  // namespace mp::simd
