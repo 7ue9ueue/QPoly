@@ -206,6 +206,12 @@ int main() {
             }
         }
     }
+#ifdef MP_EARLY_UNMAP
+    if (in.mapping_ != MAP_FAILED) {  // input fully consumed: release the 21 MB file mapping now
+        munmap(in.mapping_, in.mapping_size_);
+        in.mapping_ = MAP_FAILED;
+    }
+#endif
     MP_MARK("parse+pack");
     SW::multiply(pa, pb, pc, N, M, K, D, work);
     MP_MARK("multiply");
