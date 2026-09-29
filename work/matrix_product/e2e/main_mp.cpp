@@ -17,6 +17,9 @@
 #ifdef MP_IO011
 #include "../e2e/parse_ms2.inc"
 #include "../e2e/fmt_bcd.inc"
+#ifdef MP_SINK
+#include "../e2e/parse_sink.inc"
+#endif
 #endif
 #include "../common.hpp"
 #include "../simd.hpp"
@@ -172,9 +175,14 @@ int main() {
 #if defined(MP_IO011)
     // A's and B's row-major values are parsed into the C region and the Strassen workspace, both
     // dead until the multiply, so the arena is no larger than the chunked variant's.
+#ifdef MP_SINK
+    const std::size_t s_pa = round_up(N * M, 16), s_pb = round_up(M * K, 16), s_pc = round_up(N * K, 16),
+                      s_w = SW::workspace(N, M, K, D) + 16, s_row = round_up(std::max(4 * std::size_t(m), K) + 64, 16);
+#else
     const std::size_t s_pa = round_up(N * M, 16), s_pb = round_up(M * K, 16),
                       s_pc = round_up(std::max(N * K, std::size_t(n) * m), 16),
                       s_w = round_up(std::max(SW::workspace(N, M, K, D), std::size_t(m) * k) + 16, 16), s_row = round_up(K + 64, 16);
+#endif
     u32* const pa = arena(s_pa + s_pb + s_pc + s_w + s_row);
     u32 *const pb = pa + s_pa, *const pc = pb + s_pb, *const work = pc + s_pc, *const rowbuf = work + s_w;
     static u32* tc[1 << 10];
@@ -203,6 +211,72 @@ int main() {
 #ifndef MP_PARSE_CH
 #define MP_PARSE_CH 131072
 #endif
+#ifdef MP_SINK
+    // Parse and pack in one pass: the chunk parser hands each run of values to a sink that fills
+    // an L1 row buffer (4 rows of A, 1 row of B) and packs complete rows into their leaf panels.
+    {
+        static u32* ta[1 << 10];
+        static u32* tb[1 << 10];
+        leaf_table(pa, N, M, D, ta);
+        leaf_table(pb, M, K, D, tb);
+        const std::size_t side = std::size_t(1) << D, la_r = N >> D, la_c = M >> D, lb_r = M >> D, lb_c = K >> D;
+        std::size_t row = 0, col = 0;
+        auto pack_a_rows = [&](std::size_t i0, std::size_t rows) {   // rows i0 .. i0 + rows - 1 in rowbuf
+            if (rows < 4) std::memset(rowbuf + rows * m, 0, (4 - rows) * std::size_t(m) * 4);
+            const std::size_t bi = i0 / la_r, pr = (i0 % la_r) / 4;
+            for (std::size_t bj = 0; bj < side; ++bj) {
+                u32* dst = ta[bi * side + bj] + pr * la_c * 4;
+                const std::size_t c0 = bj * la_c;
+                std::size_t t = 0;
+                for (; t + 8 <= la_c && c0 + t + 8 <= std::size_t(m); t += 8) {
+                    V x[4];
+                    for (int r = 0; r < 4; ++r)
+                        x[r] = center8(to_mont8(_mm256_loadu_si256(reinterpret_cast<const V*>(rowbuf + std::size_t(r) * m + c0 + t))));
+                    transpose4x8_store(x[0], x[1], x[2], x[3], dst + t * 4);
+                }
+                for (; t < la_c && c0 + t < std::size_t(m); ++t)
+                    for (int r = 0; r < 4; ++r) dst[t * 4 + r] = u32(center(to_mont(rowbuf[std::size_t(r) * m + c0 + t])));
+            }
+        };
+        auto sink_a = [&](const u32* v, std::size_t cnt) {
+            while (cnt) {
+                const std::size_t take = std::min(cnt, std::size_t(m) - col);
+                std::memcpy(rowbuf + (row % 4) * m + col, v, take * 4);
+                v += take, cnt -= take, col += take;
+                if (col == std::size_t(m)) {
+                    col = 0, ++row;
+                    if (row % 4 == 0 || row == std::size_t(n)) pack_a_rows((row - 1) & ~std::size_t(3), (row - 1) % 4 + 1);
+                }
+            }
+        };
+        p = qp_parse_ms2::parse_tokens_sink<MP_PARSE_CH, qp_parse_flat::parse_tokens>(p, std::size_t(n) * m, sink_a);
+        row = 0, col = 0;
+        auto pack_b_row = [&](std::size_t t) {   // row t of B in rowbuf -> one row of each 8-column panel
+            const std::size_t bi = t / lb_r, lt = t % lb_r;
+            for (std::size_t bj = 0; bj < side; ++bj) {
+                u32* blk = tb[bi * side + bj];
+                const std::size_t c0 = bj * lb_c;
+                for (std::size_t j = 0; j < lb_c && c0 + j < std::size_t(k); j += 8) {
+                    u32* dst = blk + j * lb_r + lt * 8;
+                    if (c0 + j + 8 <= std::size_t(k))
+                        _mm256_storeu_si256(reinterpret_cast<V*>(dst), center8(_mm256_loadu_si256(reinterpret_cast<const V*>(rowbuf + c0 + j))));
+                    else
+                        for (std::size_t q = 0; c0 + j + q < std::size_t(k); ++q) dst[q] = u32(center(rowbuf[c0 + j + q]));
+                }
+            }
+        };
+        auto sink_b = [&](const u32* v, std::size_t cnt) {
+            while (cnt) {
+                const std::size_t take = std::min(cnt, std::size_t(k) - col);
+                std::memcpy(rowbuf + col, v, take * 4);
+                v += take, cnt -= take, col += take;
+                if (col == std::size_t(k)) col = 0, pack_b_row(row++);
+            }
+        };
+        p = qp_parse_ms2::parse_tokens_sink<MP_PARSE_CH, qp_parse_flat::parse_tokens>(p, std::size_t(m) * k, sink_b);
+    }
+    MP_MARK("parse+pack");
+#else
     constexpr auto parse = qp_parse_ms2::parse_tokens<MP_PARSE_CH, qp_parse_flat::parse_tokens>;
     u32* const a_rm = pc;    // dead until the multiply writes C
     u32* const b_rm = work;  // dead until the Strassen additions use it
@@ -216,6 +290,7 @@ int main() {
         pack_b_leaf8(b_rm, m, k, blk, r0, c0, lr, lc);
     });
     MP_MARK("pack");
+#endif
     SW::multiply(pa, pb, pc, N, M, K, D, work);
     MP_MARK("multiply");
     // Exploration-011 output: fixed 10-byte fields (right-aligned digits, space padded; the
