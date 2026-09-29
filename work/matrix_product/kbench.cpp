@@ -22,8 +22,11 @@ using namespace mp::simd;
 
 namespace {
 using KFn = void (*)(const u32* pa, const u32* pb, int m, u32* c, int ldc);
-struct Kernel { const char* name; KFn fn; int mr, nr, rep; };  // rep: 1 = centered/Montgomery inputs
+struct Kernel { const char* name; KFn fn; int mr, nr, rep; };  // rep: 1 = centered/Montgomery inputs, 2 = WIP
 
+i32 g_alpha[4], g_beta[8];
+template <int U2>
+void kwip(const u32* pa, const u32* pb, int m, u32* c, int ldc) { micro_wip<U2>(pa, pb, m, g_alpha, g_beta, c, ldc, 4, 8); }
 template <int Rep, int Load, int MR, int NRV, int U>
 void kmicro(const u32* pa, const u32* pb, int m, u32* c, int ldc) { micro<Rep, Load, MR, NRV, U>(pa, pb, m, c, ldc, MR, 8 * NRV); }
 
@@ -41,6 +44,9 @@ std::vector<Kernel>& kernels() {
         {"s_sd_2x16_u1", kmicro<1, 1, 2, 2, 1>, 2, 16, 1},
         {"s_sd_2x16_u2", kmicro<1, 1, 2, 2, 2>, 2, 16, 1},
         {"s_sd_3x16_u1", kmicro<1, 1, 3, 2, 1>, 3, 16, 1},
+        {"wip_4x8_u1", kwip<1>, 4, 8, 2},
+        {"wip_4x8_u2", kwip<2>, 4, 8, 2},
+        {"wip_4x8_u4", kwip<4>, 4, 8, 2},
     };
     return k;
 }
@@ -94,10 +100,11 @@ int main(int argc, char** argv) {
         std::vector<u32> araw(std::size_t(m) * k.mr), braw(std::size_t(m) * k.nr);
         for (auto& x : araw) x = rnd() % P;
         for (auto& x : braw) x = rnd() % P;
-        u32* pa = static_cast<u32*>(std::aligned_alloc(64, araw.size() * 4 + 64));
-        u32* pb = static_cast<u32*>(std::aligned_alloc(64, braw.size() * 4 + 64));
+        u32* pa = static_cast<u32*>(std::aligned_alloc(64, (araw.size() * 4 + 127) / 64 * 64));
+        u32* pb = static_cast<u32*>(std::aligned_alloc(64, (braw.size() * 4 + 127) / 64 * 64));
         for (std::size_t i = 0; i < araw.size(); ++i) { const u32 x = to_mont(araw[i]); pa[i] = k.rep ? u32(center(x)) : x; }
         for (std::size_t i = 0; i < braw.size(); ++i) pb[i] = k.rep ? u32(center(braw[i])) : braw[i];
+        if (k.rep == 2) wip_alpha4(pa, m, g_alpha), wip_beta8(pb, m, g_beta);
         std::vector<u32> c(std::size_t(k.mr) * k.nr);
         k.fn(pa, pb, m, c.data(), k.nr);
         bool ok = true;

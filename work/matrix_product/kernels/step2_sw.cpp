@@ -73,6 +73,22 @@ struct CanonicalOps {
     }
 };
 
+// Winograd inner-product leaf (4 x 8 tiles); m even (padding uses U >= 2).
+struct WipLeaf {
+    using E = u32;
+    static constexpr int NR = 8;
+    static void multiply(const u32* a, const u32* b, u32* c, std::size_t n, std::size_t m, std::size_t k) {
+        const std::size_t np = n / 4, kp = k / 8;
+        i32* alpha = static_cast<i32*>(scratch((n + k) * 4 + 64, 4));
+        i32* beta = alpha + n;
+        for (std::size_t ip = 0; ip < np; ++ip) wip_alpha4(a + ip * 4 * m, int(m), alpha + 4 * ip);
+        for (std::size_t jp = 0; jp < kp; ++jp) wip_beta8(b + jp * 8 * m, int(m), beta + 8 * jp);
+        for (std::size_t jp = 0; jp < kp; ++jp)
+            for (std::size_t ip = 0; ip < np; ++ip)
+                micro_wip<1>(a + ip * 4 * m, b + jp * 8 * m, int(m), alpha + 4 * ip, beta + 8 * jp, c + (ip * kp + jp) * 32, 8, 4, 8);
+    }
+};
+
 template <int MR, int NRV, int U>
 struct SimdLeaf {
     using E = u32;
@@ -139,10 +155,10 @@ void unpack_c_leaf4x8(const u32* blk, int n, int k, u32* c, std::size_t r0, std:
         }
 }
 
-template <int D, int MR, int NRV, int U, int Phases = 7, bool Vec = false>  // Phases bit mask: 1 pack, 2 multiply, 4 unpack
+template <int D, int MR, int NRV, int U, int Phases = 7, bool Vec = false, class LeafT = SimdLeaf<MR, NRV, U>>  // Phases: 1 pack, 2 multiply, 4 unpack
 void sw_simd(int n, int m, int k, const u32* a, const u32* b, u32* c) {
     static_assert(!Vec || (MR == 4 && NRV == 1));
-    using Leaf = SimdLeaf<MR, NRV, U>;
+    using Leaf = LeafT;
     using SW = StrassenWinograd<Leaf, CenteredOps, CanonicalOps>;
     constexpr int NR = Leaf::NR;
     const std::size_t N = round_up(n, std::size_t(MR) << D), M = round_up(m, std::size_t(U) << D),
@@ -210,3 +226,6 @@ MP_REGISTER(w43_sw3_vec, (sw_simd<3, 4, 1, 4, 7, true>), "w13 with vectorized co
 MP_REGISTER(w44_sw4_vec, (sw_simd<4, 4, 1, 4, 7, true>), "w14 with vectorized conversions");
 MP_REGISTER_DIAG(x43_pack_only, (sw_simd<3, 4, 1, 4, 1, true>), "w43 input conversion/packing only");
 MP_REGISTER_DIAG(x43_unpack_only, (sw_simd<3, 4, 1, 4, 4, true>), "w43 output unpacking only");
+MP_REGISTER(w53_sw3_wip, (sw_simd<3, 4, 1, 2, 7, true, WipLeaf>), "Strassen-Winograd depth 3 over the Winograd inner-product 4x8 kernel");
+MP_REGISTER(w54_sw4_wip, (sw_simd<4, 4, 1, 2, 7, true, WipLeaf>), "Strassen-Winograd depth 4 over the Winograd inner-product 4x8 kernel");
+MP_REGISTER(w52_sw2_wip, (sw_simd<2, 4, 1, 2, 7, true, WipLeaf>), "Strassen-Winograd depth 2 over the Winograd inner-product 4x8 kernel");
