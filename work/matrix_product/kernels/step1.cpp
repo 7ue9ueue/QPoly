@@ -162,11 +162,30 @@ struct TileLeaf {
     }
 };
 
+// i-k-j leaf (s02's loop on a leaf block; row accumulators live in scratch slot 2).
+struct IkjLeaf {
+    using E = u32;
+    static void multiply(const u32* a, const u32* b, u32* c, std::size_t n, std::size_t m, std::size_t k) {
+        u64* acc = static_cast<u64*>(scratch(k * 8, 2));
+        for (std::size_t i = 0; i < n; ++i) {
+            std::fill(acc, acc + k, 0);
+            for (std::size_t t = 0; t < m; ++t) {
+                const u64 x = a[i * m + t];
+                const u32* br = b + t * k;
+                for (std::size_t j = 0; j < k; ++j) acc[j] += x * br[j];
+                if ((t & 15) == 15)
+                    for (std::size_t j = 0; j < k; ++j) acc[j] = fold(acc[j]);
+            }
+            for (std::size_t j = 0; j < k; ++j) c[i * k + j] = u32(acc[j] % P);
+        }
+    }
+};
+
 std::size_t round_up(std::size_t x, std::size_t r) { return (x + r - 1) / r * r; }
 
-template <int D>
+template <int D, class Leaf = TileLeaf>
 void s1_strassen(int n, int m, int k, const u32* a, const u32* b, u32* c) {
-    using SW = StrassenWinograd<TileLeaf, CanonOps>;
+    using SW = StrassenWinograd<Leaf, CanonOps>;
     const std::size_t N = round_up(n, std::size_t(4) << D), M = round_up(m, std::size_t(1) << D),
                       K = round_up(k, std::size_t(8) << D);
     u32* base = static_cast<u32*>(scratch((N * M + M * K + N * K + SW::workspace(N, M, K, D)) * 4, 0));
@@ -201,3 +220,8 @@ MP_REGISTER(s11_sw1_tile, s1_strassen<1>, "Strassen-Winograd depth 1 over s04 ti
 MP_REGISTER(s12_sw2_tile, s1_strassen<2>, "Strassen-Winograd depth 2 over s04 tile");
 MP_REGISTER(s13_sw3_tile, s1_strassen<3>, "Strassen-Winograd depth 3 over s04 tile");
 MP_REGISTER(s14_sw4_tile, s1_strassen<4>, "Strassen-Winograd depth 4 over s04 tile");
+MP_REGISTER(s15_sw5_tile, s1_strassen<5>, "Strassen-Winograd depth 5 over s04 tile");
+MP_REGISTER(s22_sw2_ikj, (s1_strassen<2, IkjLeaf>), "Strassen-Winograd depth 2 over the i-k-j leaf");
+MP_REGISTER(s23_sw3_ikj, (s1_strassen<3, IkjLeaf>), "Strassen-Winograd depth 3 over the i-k-j leaf");
+MP_REGISTER(s24_sw4_ikj, (s1_strassen<4, IkjLeaf>), "Strassen-Winograd depth 4 over the i-k-j leaf");
+MP_REGISTER(s25_sw5_ikj, (s1_strassen<5, IkjLeaf>), "Strassen-Winograd depth 5 over the i-k-j leaf");
