@@ -31,6 +31,7 @@ MP_KERN(wipp_i2, true)
 MP_KERN(wip_s0, true)
 MP_KERN(direct_g_s0, false)
 MP_KERN(wipp_sh, true)
+MP_KERN(sh_burst_p1, true)
 
 template <class K>
 MP_AI void tile(const u32* pa, const u32* pb, std::size_t m, const i32* alpha, const i32* beta, u32* c, std::size_t ldc) {
@@ -122,3 +123,30 @@ MP_REGISTER(f23_fused3_wippsh, (sw_fused<3, AsmLeaf<K_wipp_sh>>), "fused Strasse
 MP_REGISTER(a53_sw3_wippsh, (sw_simd<3, 4, 1, 2, 7, true, AsmLeaf<K_wipp_sh>>), "Strassen-Winograd depth 3, asm wipp_sh leaf");
 MP_REGISTER_DIAG(y13_fused3_adds_only, (sw_fused<3, NullLeafX, 2>), "fused depth-3 additions only");
 MP_REGISTER_DIAG(y14_fused4_adds_only, (sw_fused<4, NullLeafX, 2>), "fused depth-4 additions only");
+
+namespace {
+template <int D, int FD, class LeafT>
+void sw_hybrid(int n, int m, int k, const u32* a, const u32* b, u32* c) {
+    using SW = StrassenWinogradHybrid<LeafT, CenteredOps, CanonicalOps, FusedOps, FD>;
+    const std::size_t N = round_up(n, std::size_t(4) << D), M = round_up(m, std::size_t(2) << D),
+                      K = round_up(k, std::size_t(8) << D);
+    const std::size_t sa = round_up(N * M, 16), sb = round_up(M * K, 16), sc = round_up(N * K, 16);
+    u32* base = static_cast<u32*>(scratch((sa + sb + sc + SW::workspace(N, M, K, D)) * 4 + 64, 7));
+    u32 *pa = base, *pb = pa + sa, *pc = pb + sb, *work = pc + sc;
+    for_each_leaf(pa, N, M, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+        pack_a_leaf4(a, n, m, blk, r0, c0, lr, lc);
+    });
+    for_each_leaf(pb, M, K, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+        pack_b_leaf8(b, m, k, blk, r0, c0, lr, lc);
+    });
+    SW::multiply(pa, pb, pc, N, M, K, D, work);
+    for_each_leaf(pc, N, K, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t lr, std::size_t lc) {
+        unpack_c_leaf4x8(blk, n, k, c, r0, c0, lr, lc);
+    });
+}
+}  // namespace
+MP_REGISTER(h32_hybrid3_fd2_shb, (sw_hybrid<3, 2, AsmLeaf<K_sh_burst_p1>>), "hybrid d3 (fused below the top), asm sh_burst_p1 leaf");
+MP_REGISTER(h31_hybrid3_fd1_shb, (sw_hybrid<3, 1, AsmLeaf<K_sh_burst_p1>>), "hybrid d3 (fused at the last level only), asm sh_burst_p1 leaf");
+MP_REGISTER(a63_sw3_shb, (sw_simd<3, 4, 1, 2, 7, true, AsmLeaf<K_sh_burst_p1>>), "Strassen-Winograd depth 3, asm sh_burst_p1 leaf");
+MP_REGISTER(f33_fused3_shb, (sw_fused<3, AsmLeaf<K_sh_burst_p1>>), "fused Strassen-Winograd depth 3, asm sh_burst_p1 leaf");
+

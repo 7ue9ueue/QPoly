@@ -1,6 +1,6 @@
 # NAME [-DKEY=VALUE ...]  (flattened from main_mp.cpp), FILE NAME PATH, or JUDGE NAME SUBMISSION_ID
 JUDGE ref_adamant_401223 401223
-mp_wippsh_d3 -DMP_KERNEL=wipp_sh -DMP_DEPTH_MAX=3
-mp_wippsh_d3_ck -DMP_KERNEL=wipp_sh -DMP_DEPTH_MAX=3 -DMP_CHUNKED
-mp_wippsh_d4_ck -DMP_KERNEL=wipp_sh -DMP_DEPTH_MAX=4 -DMP_CHUNKED
-mp_shhalfp1_d3_ck -DMP_KERNEL=sh_half_p1 -DMP_DEPTH_MAX=3 -DMP_CHUNKED
+mp_shb_d3 -DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3
+mp_shb_d3_ck -DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_CHUNKED
+mp_shb_d3_ck_h2 -DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_CHUNKED -DMP_FUSE_DEPTH=2
+mp_shb_d3_ck_h1 -DMP_KERNEL=sh_burst_p1 -DMP_DEPTH_MAX=3 -DMP_CHUNKED -DMP_FUSE_DEPTH=1

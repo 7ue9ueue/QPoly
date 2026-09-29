@@ -134,3 +134,52 @@ struct StrassenWinogradFused {
     }
 };
 }  // namespace mp
+
+namespace mp {
+// Hybrid: levels with depth > FuseDepth use the three-temporary schedule of StrassenWinograd
+// (small workspace, used at the top where blocks are large), deeper levels the fused passes.
+template <class Leaf, class OpsAB, class OpsC, class Fused, int FuseDepth>
+struct StrassenWinogradHybrid {
+    using E = typename Leaf::E;
+    using Low = StrassenWinogradFused<Leaf, Fused>;
+    static std::size_t workspace(std::size_t n, std::size_t m, std::size_t k, int depth) {
+        if (depth <= FuseDepth) return Low::workspace(n, m, k, depth);
+        n /= 2, m /= 2, k /= 2;
+        return n * m + m * k + n * k + workspace(n, m, k, depth - 1);
+    }
+    static void multiply(const E* a, const E* b, E* c, std::size_t n, std::size_t m, std::size_t k, int depth, E* work) {
+        if (depth <= FuseDepth) {
+            Low::multiply(a, b, c, n, m, k, depth, work);
+            return;
+        }
+        n /= 2, m /= 2, k /= 2;
+        const std::size_t sa = n * m, sb = m * k, sc = n * k;
+        const E *a11 = a, *a12 = a + sa, *a21 = a + 2 * sa, *a22 = a + 3 * sa;
+        const E *b11 = b, *b12 = b + sb, *b21 = b + 2 * sb, *b22 = b + 3 * sb;
+        E *c11 = c, *c12 = c + sc, *c21 = c + 2 * sc, *c22 = c + 3 * sc;
+        E *x = work, *y = x + sa, *z = y + sb, *next = z + sc;
+        OpsAB::sub(a11, a21, x, sa);
+        OpsAB::sub(b22, b12, y, sb);
+        multiply(x, y, c21, n, m, k, depth - 1, next);
+        OpsAB::add(a21, a22, x, sa);
+        OpsAB::sub(b12, b11, y, sb);
+        multiply(x, y, c22, n, m, k, depth - 1, next);
+        OpsAB::sub(x, a11, x, sa);
+        OpsAB::sub(b22, y, y, sb);
+        multiply(x, y, c12, n, m, k, depth - 1, next);
+        OpsAB::sub(a12, x, x, sa);
+        multiply(x, b22, z, n, m, k, depth - 1, next);
+        multiply(a11, b11, c11, n, m, k, depth - 1, next);
+        OpsC::add(c11, c12, c12, sc);
+        OpsC::add(c12, c21, c21, sc);
+        OpsC::add(c12, c22, c12, sc);
+        OpsC::add(c21, c22, c22, sc);
+        OpsC::add(c12, z, c12, sc);
+        OpsAB::sub(y, b21, y, sb);
+        multiply(a22, y, z, n, m, k, depth - 1, next);
+        OpsC::sub(c21, z, c21, sc);
+        multiply(a12, b21, z, n, m, k, depth - 1, next);
+        OpsC::add(c11, z, c11, sc);
+    }
+};
+}  // namespace mp

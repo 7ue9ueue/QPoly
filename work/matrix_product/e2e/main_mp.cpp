@@ -85,8 +85,10 @@ struct Leaf {
                 tile(a + ip * 4 * m, b + jp * 8 * m, m, alpha + 4 * ip, beta + 8 * jp, c + (ip * kp + jp) * 32);
     }
 };
-#ifdef MP_FUSED
+#if defined(MP_FUSED)
 using SW = StrassenWinogradFused<Leaf, FusedOps>;
+#elif defined(MP_FUSE_DEPTH)
+using SW = StrassenWinogradHybrid<Leaf, CenteredOps, CanonicalOps, FusedOps, MP_FUSE_DEPTH>;
 #else
 using SW = StrassenWinograd<Leaf, CenteredOps, CanonicalOps>;
 #endif
@@ -148,7 +150,7 @@ int main() {
                       K = round_up(k, std::size_t(8) << D);
 #ifdef MP_CHUNKED
     const std::size_t s_pa = round_up(N * M, 16), s_pb = round_up(M * K, 16), s_pc = round_up(N * K, 16),
-                      s_w = SW::workspace(N, M, K, D) + 16, s_row = round_up(4 * std::size_t(std::max(m, k)), 16);
+                      s_w = SW::workspace(N, M, K, D) + 16, s_row = round_up(std::max(4 * std::size_t(m), K), 16);
     u32* const pa = arena(s_pa + s_pb + s_pc + s_w + s_row);
     u32 *const pb = pa + s_pa, *const pc = pb + s_pb, *const work = pc + s_pc, *const rowbuf = work + s_w;
     static u32* ta[1 << 10];
@@ -210,17 +212,16 @@ int main() {
     char* cur = out.begin();
     char* const end = out.end();
     for (int i = 0; i < n; ++i) {
+        // Gather row i from its 4x8 tiles into an L1 row buffer, then the sequential writer.
         const std::size_t bi = std::size_t(i) / lc_r, r = std::size_t(i) % lc_r, prow = r / 4, rr = r % 4;
-        char sep = '\n';
         for (std::size_t bj = 0; bj < side; ++bj) {
             const u32* tiles = tc[bi * side + bj] + prow * (lc_c / 8) * 32 + rr * 8;
-            const std::size_t c0 = bj * lc_c;
-            for (std::size_t j = 0; j < lc_c && c0 + j < std::size_t(k); j += 8) {
-                const u32* v = tiles + (j / 8) * 32;
-                const std::size_t w = std::min<std::size_t>(8, std::size_t(k) - c0 - j);
-                for (std::size_t q = 0; q < w; ++q) write_sep(out, cur, end, v[q], sep), sep = ' ';
-            }
+            u32* dst = rowbuf + bj * lc_c;
+            for (std::size_t j = 0; j < lc_c; j += 8)
+                _mm256_storeu_si256(reinterpret_cast<V*>(dst + j), _mm256_loadu_si256(reinterpret_cast<const V*>(tiles + (j / 8) * 32)));
         }
+        write_sep(out, cur, end, rowbuf[0], '\n');
+        for (int j = 1; j < k; ++j) write_sep(out, cur, end, rowbuf[j], ' ');
     }
 #else
     p = qp_parse_flat::parse_tokens(p, a_rm, std::size_t(n) * m);
