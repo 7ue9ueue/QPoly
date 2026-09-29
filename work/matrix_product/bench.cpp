@@ -156,6 +156,7 @@ bool run_case(const Variant& v, int n, int m, int k, Pattern pa, Pattern pb, u64
               const u32* a, const u32* b, const u32* ref, u32* c) {
     std::memset(c, 0xA5, std::size_t(n) * k * 4);
     v.fn(n, m, k, a, b, c);
+    if (!v.checked) return true;  // diagnostic variant: timing only
     ++checked_cases;
     for (std::size_t i = 0; i < std::size_t(n) * k; ++i) {
         if (c[i] != ref[i]) {
@@ -327,7 +328,7 @@ int main(int argc, char** argv) {
         vs.push_back(&*it);
     }
     if (opt.list) {
-        for (auto& v : reg) std::printf("%s\t%s\n", v.name, v.note);
+        for (auto& v : reg) std::printf("%s\t%s%s\n", v.name, v.checked ? "" : "[diagnostic, unchecked] ", v.note);
         return 0;
     }
     std::printf("compiler: %s\n", __VERSION__);
@@ -337,7 +338,11 @@ int main(int argc, char** argv) {
     std::printf("variants:");
     for (auto* v : vs) std::printf(" %s", v->name);
     std::printf("\n");
-    if (opt.check != "none") run_checks(vs, opt.check);
+    if (opt.check != "none") {
+        std::vector<const Variant*> cv;
+        for (auto* v : vs) if (v->checked) cv.push_back(v);
+        run_checks(cv, opt.check);
+    }
     if (!opt.sizes.empty()) run_timing(vs, opt);
     if (failures) std::printf("RESULT: FAIL (%d mismatches)\n", failures);
     else std::printf("RESULT: PASS\n");

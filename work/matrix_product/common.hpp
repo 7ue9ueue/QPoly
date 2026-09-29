@@ -21,10 +21,11 @@ struct Variant {
     const char* name;
     Fn fn;
     const char* note;
+    bool checked = true;  // false: diagnostic timing-only variant (e.g. conversions alone)
 };
 std::vector<Variant>& registry();
 struct Reg {
-    Reg(const char* name, Fn fn, const char* note) { registry().push_back({name, fn, note}); }
+    Reg(const char* name, Fn fn, const char* note, bool checked = true) { registry().push_back({name, fn, note, checked}); }
 };
 
 // Grow-only, 2 MiB-aligned anonymous memory (THP hint where available), one buffer per
@@ -33,3 +34,4 @@ void* scratch(std::size_t bytes, int slot = 0);
 }  // namespace mp
 
 #define MP_REGISTER(id, fn, note) static mp::Reg mp_reg_##id(#id, fn, note)
+#define MP_REGISTER_DIAG(id, fn, note) static mp::Reg mp_reg_##id(#id, fn, note, false)

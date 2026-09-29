@@ -22,8 +22,16 @@ cd "$here"
 mkdir -p "$out/build"
 $CXX $FLAGS -DMP_FLAGS="\"$FLAGS\"" bench.cpp kernels/*.cpp -o "$out/build/bench"
 sha256sum bench.cpp common.hpp strassen.hpp kernels/*.cpp kernels/*.hpp 2>/dev/null > "$out/sources-sha256.txt" || true
+$CXX $FLAGS kbench.cpp -o "$out/build/kbench"
 cpu=${CPU_PIN:-0}
 run() { taskset -c "$cpu" "$out/build/bench" "$@"; }
+if [ -n "${KBENCH_DEPTHS:-}" ]; then
+  : > "$out/kbench.txt"
+  for d in $KBENCH_DEPTHS; do
+    taskset -c "$cpu" "$out/build/kbench" --m="$d" --kernels="${KBENCH_KERNELS:-all}" | tee -a "$out/kbench.txt"
+  done
+  ! grep -q 'RESULT: FAIL' "$out/kbench.txt"
+fi
 run --check="$CHECK" --variants="$CHECK_VARIANTS" | tee "$out/check.txt"
 grep -q '^RESULT: PASS' "$out/check.txt"
 run --check=none --variants="$TIME_VARIANTS" --sizes="$SIZES" --reps="$REPS" --budget="$BUDGET" | tee "$out/timing.txt"
