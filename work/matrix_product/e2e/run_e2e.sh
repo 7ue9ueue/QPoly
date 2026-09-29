@@ -13,6 +13,8 @@ BUILD=$ROOT/build/mp_e2e
 CASES=/dev/shm/mp-cases  # Judge volumes live on tmpfs (/var/lib/docker is tmpfs there).
 CPU=${CPU:-$(( $(nproc) - 1 ))}
 mkdir -p "$RESULTS" "$BUILD/bin" "$BUILD/src" "$CASES/out"
+source "$ROOT/work/matrix_product/ci_config.sh"
+if [ "${E2E:-1}" = 0 ]; then echo "e2e disabled in ci_config.sh" > "$RESULTS/summary.txt"; exit 0; fi
 set_thp() { echo "$1" | sudo tee /sys/kernel/mm/transparent_hugepage/enabled >/dev/null; }
 {
   echo "revision $(git rev-parse HEAD)"; echo "pinned cpu $CPU"; uname -a; lscpu

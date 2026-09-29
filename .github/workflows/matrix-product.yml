@@ -34,7 +34,6 @@ jobs:
           retention-days: 30
   e2e:
     # Judge-like end-to-end runs: host runner + docker (gcc 15.2 image, judge limits, tmpfs cases).
-    if: ${{ vars.MP_E2E != '0' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
