@@ -136,6 +136,59 @@ MP_AI void micro_wip(const u32* pa, const u32* pb, int m, const i32* alpha, cons
     }
 }
 
+
+// Packed-B Winograd variant: s = a_2s + b_2s+1 and t = a_2s+1 + b_2s over all 8 columns at once;
+// even columns multiply the low words directly, odd columns after vpsrlq (FP1/FP2 shifts
+// instead of extra adds; two plain B loads per k-pair instead of four dup loads).
+template <int U2>
+MP_AI void micro_wipp(const u32* pa, const u32* pb, int m, const i32* alpha, const i32* beta, u32* c, int ldc, int rows, int cols) {
+    static_assert(8 % U2 == 0);
+    V acc[4][2];
+    {
+        const V be = _mm256_cvtepi32_epi64(_mm_setr_epi32(beta[0], beta[2], beta[4], beta[6]));
+        const V bo = _mm256_cvtepi32_epi64(_mm_setr_epi32(beta[1], beta[3], beta[5], beta[7]));
+#pragma GCC unroll 4
+        for (int r = 0; r < 4; ++r) {
+            const V ar = _mm256_set1_epi64x(alpha[r]);
+            acc[r][0] = _mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(ar, be));
+            acc[r][1] = _mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(ar, bo));
+        }
+    }
+    for (int t0 = 0; t0 < m; t0 += 16) {
+        const int te = std::min(m, t0 + 16);
+        for (int t = t0; t < te; t += 2 * U2) {
+#pragma GCC unroll 8
+            for (int u = 0; u < U2; ++u) {
+                const std::size_t k0 = std::size_t(t + 2 * u), k1 = k0 + 1;
+                const V b0 = _mm256_loadu_si256(reinterpret_cast<const V*>(pb + k0 * 8));
+                const V b1 = _mm256_loadu_si256(reinterpret_cast<const V*>(pb + k1 * 8));
+#pragma GCC unroll 4
+                for (int r = 0; r < 4; ++r) {
+                    const V x0 = bcast(pa + k0 * 4 + r), x1 = bcast(pa + k1 * 4 + r);
+                    const V s = _mm256_add_epi32(x0, b1), q = _mm256_add_epi32(x1, b0);
+                    acc[r][0] = _mm256_add_epi64(acc[r][0], _mm256_mul_epi32(s, q));
+                    asm("" : "+x"(acc[r][0]));
+                    acc[r][1] = _mm256_add_epi64(acc[r][1], _mm256_mul_epi32(_mm256_srli_epi64(s, 32), _mm256_srli_epi64(q, 32)));
+                    asm("" : "+x"(acc[r][1]));
+                }
+            }
+        }
+        if (te < m) {
+#pragma GCC unroll 4
+            for (int r = 0; r < 4; ++r) acc[r][0] = fold_s(acc[r][0]), acc[r][1] = fold_s(acc[r][1]);
+        }
+    }
+    if (rows == 4 && cols == 8) {
+#pragma GCC unroll 4
+        for (int r = 0; r < 4; ++r)
+            _mm256_storeu_si256(reinterpret_cast<V*>(c + std::size_t(r) * ldc), finish_s(acc[r][0], acc[r][1]));
+    } else {
+        alignas(32) u32 tmp[4][8];
+        for (int r = 0; r < 4; ++r) _mm256_store_si256(reinterpret_cast<V*>(tmp[r]), finish_s(acc[r][0], acc[r][1]));
+        for (int r = 0; r < rows; ++r) std::memcpy(c + std::size_t(r) * ldc, tmp[r], std::size_t(cols) * 4);
+    }
+}
+
 // Corrections for the Winograd kernel. A panel [t][4] -> alpha[4]; B panel [t][8] -> beta[8];
 // m even. Products <= H^2, 32 per fold keep |acc| < 2^63; results are centered residues.
 MP_AI i32 centered_mod(i64 x) {

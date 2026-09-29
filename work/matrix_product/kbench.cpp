@@ -27,6 +27,8 @@ struct Kernel { const char* name; KFn fn; int mr, nr, rep; };  // rep: 1 = cente
 i32 g_alpha[4], g_beta[8];
 template <int U2>
 void kwip(const u32* pa, const u32* pb, int m, u32* c, int ldc) { micro_wip<U2>(pa, pb, m, g_alpha, g_beta, c, ldc, 4, 8); }
+template <int U2>
+void kwipp(const u32* pa, const u32* pb, int m, u32* c, int ldc) { micro_wipp<U2>(pa, pb, m, g_alpha, g_beta, c, ldc, 4, 8); }
 template <int Rep, int Load, int MR, int NRV, int U>
 void kmicro(const u32* pa, const u32* pb, int m, u32* c, int ldc) { micro<Rep, Load, MR, NRV, U>(pa, pb, m, c, ldc, MR, 8 * NRV); }
 
@@ -47,6 +49,8 @@ std::vector<Kernel>& kernels() {
         {"wip_4x8_u1", kwip<1>, 4, 8, 2},
         {"wip_4x8_u2", kwip<2>, 4, 8, 2},
         {"wip_4x8_u4", kwip<4>, 4, 8, 2},
+        {"wipp_4x8_u1", kwipp<1>, 4, 8, 2},
+        {"wipp_4x8_u2", kwipp<2>, 4, 8, 2},
     };
     return k;
 }

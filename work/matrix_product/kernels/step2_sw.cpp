@@ -89,6 +89,13 @@ struct WipLeaf {
     }
 };
 
+// Diagnostic: a leaf that does nothing (times the Strassen additions alone).
+struct NullLeaf {
+    using E = u32;
+    static constexpr int NR = 8;
+    static void multiply(const u32*, const u32*, u32*, std::size_t, std::size_t, std::size_t) {}
+};
+
 template <int MR, int NRV, int U>
 struct SimdLeaf {
     using E = u32;
@@ -229,3 +236,6 @@ MP_REGISTER_DIAG(x43_unpack_only, (sw_simd<3, 4, 1, 4, 4, true>), "w43 output un
 MP_REGISTER(w53_sw3_wip, (sw_simd<3, 4, 1, 2, 7, true, WipLeaf>), "Strassen-Winograd depth 3 over the Winograd inner-product 4x8 kernel");
 MP_REGISTER(w54_sw4_wip, (sw_simd<4, 4, 1, 2, 7, true, WipLeaf>), "Strassen-Winograd depth 4 over the Winograd inner-product 4x8 kernel");
 MP_REGISTER(w52_sw2_wip, (sw_simd<2, 4, 1, 2, 7, true, WipLeaf>), "Strassen-Winograd depth 2 over the Winograd inner-product 4x8 kernel");
+MP_REGISTER_DIAG(x44_adds_only, (sw_simd<4, 4, 1, 4, 2, true, NullLeaf>), "w44 Strassen additions only (leaf products skipped)");
+MP_REGISTER_DIAG(x43_adds_only, (sw_simd<3, 4, 1, 4, 2, true, NullLeaf>), "w43 Strassen additions only (leaf products skipped)");
+MP_REGISTER_DIAG(x42_adds_only, (sw_simd<2, 4, 1, 4, 2, true, NullLeaf>), "depth-2 Strassen additions only (leaf products skipped)");
