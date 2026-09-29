@@ -40,8 +40,8 @@ MP_AI i32 center(u32 x) { return x > H ? i32(x) - i32(P) : i32(x); }
 
 // ---- loads (all pure load-port ops on Zen 3 when the memory form is kept) ----
 MP_AI V bcast(const void* p) { return _mm256_castps_si256(_mm256_broadcast_ss(static_cast<const float*>(p))); }
-MP_AI V ldup(const void* p) { return _mm256_castps_si256(_mm256_moveldup_ps(_mm256_load_ps(static_cast<const float*>(p)))); }
-MP_AI V hdup(const void* p) { return _mm256_castps_si256(_mm256_movehdup_ps(_mm256_load_ps(static_cast<const float*>(p)))); }
+MP_AI V ldup(const void* p) { return _mm256_castps_si256(_mm256_moveldup_ps(_mm256_loadu_ps(static_cast<const float*>(p)))); }
+MP_AI V hdup(const void* p) { return _mm256_castps_si256(_mm256_movehdup_ps(_mm256_loadu_ps(static_cast<const float*>(p)))); }
 // Hide pointer identity so GCC keeps two memory-form dup loads instead of CSE-ing them into
 // one load plus two register shuffles (FP1/FP2 ops).
 template <class T> MP_AI T* opaque(T* p) { asm("" : "+r"(p)); return p; }

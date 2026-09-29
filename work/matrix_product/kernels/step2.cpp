@@ -17,6 +17,7 @@
 #endif
 #include "../common.hpp"
 #include "../simd.hpp"
+#include "../simd_kernel.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -27,79 +28,14 @@ using namespace mp::simd;
 namespace {
 std::size_t round_up(std::size_t x, std::size_t r) { return (x + r - 1) / r * r; }
 
-template <int Rep, int Load, int MR, int NRV, int U>
-MP_AI void micro(const u32* pa, const u32* pb, int m, u32* c, int ldc, int rows, int cols) {
-    constexpr int NR = 8 * NRV, Q = 2 * NRV, F = Rep ? 32 : 8;
-    static_assert(F % U == 0);
-    V acc[MR][Q];
-#pragma GCC unroll 16
-    for (int r = 0; r < MR; ++r)
-#pragma GCC unroll 4
-        for (int q = 0; q < Q; ++q) acc[r][q] = _mm256_setzero_si256();
-    const u32* pbo = opaque(pb);
-    for (int t0 = 0; t0 < m; t0 += F) {
-        const int te = std::min(m, t0 + F);
-        for (int t = t0; t < te; t += U) {
-#pragma GCC unroll 8
-            for (int u = 0; u < U; ++u) {
-                V bv[Q];
-#pragma GCC unroll 2
-                for (int v = 0; v < NRV; ++v) {
-                    const u32* p = pb + std::size_t(t + u) * NR + 8 * v;
-                    if constexpr (Load == 1) {
-                        bv[2 * v] = ldup(p);
-                        bv[2 * v + 1] = hdup(pbo + std::size_t(t + u) * NR + 8 * v);
-                    } else {
-                        const V raw = _mm256_load_si256(reinterpret_cast<const V*>(p));
-                        bv[2 * v] = raw;
-                        bv[2 * v + 1] = _mm256_srli_epi64(raw, 32);
-                    }
-                }
-#pragma GCC unroll 16
-                for (int r = 0; r < MR; ++r) {
-                    const u32* ap = pa + std::size_t(t + u) * MR + r;
-                    const V x = Load == 1 ? bcast(ap) : _mm256_set1_epi32(int(*ap));
-#pragma GCC unroll 4
-                    for (int q = 0; q < Q; ++q) {
-                        acc[r][q] = _mm256_add_epi64(acc[r][q], Rep ? _mm256_mul_epi32(x, bv[q]) : _mm256_mul_epu32(x, bv[q]));
-                        asm("" : "+x"(acc[r][q]));  // keep one add chain per accumulator (no reassociation/spills)
-                    }
-                }
-            }
-        }
-        if (te < m) {
-#pragma GCC unroll 16
-            for (int r = 0; r < MR; ++r)
-#pragma GCC unroll 4
-                for (int q = 0; q < Q; ++q) acc[r][q] = Rep ? fold_s(acc[r][q]) : shrink_u(acc[r][q]);
-        }
-    }
-    if (rows == MR && cols == NR) {
-#pragma GCC unroll 16
-        for (int r = 0; r < MR; ++r)
-#pragma GCC unroll 2
-            for (int v = 0; v < NRV; ++v) {
-                const V out = Rep ? finish_s(acc[r][2 * v], acc[r][2 * v + 1]) : finish_u(acc[r][2 * v], acc[r][2 * v + 1]);
-                _mm256_storeu_si256(reinterpret_cast<V*>(c + std::size_t(r) * ldc + 8 * v), out);
-            }
-    } else {
-        alignas(32) u32 tmp[MR][NR];
-        for (int r = 0; r < MR; ++r)
-            for (int v = 0; v < NRV; ++v) {
-                const V out = Rep ? finish_s(acc[r][2 * v], acc[r][2 * v + 1]) : finish_u(acc[r][2 * v], acc[r][2 * v + 1]);
-                _mm256_store_si256(reinterpret_cast<V*>(&tmp[r][8 * v]), out);
-            }
-        for (int r = 0; r < rows; ++r) std::memcpy(c + std::size_t(r) * ldc, tmp[r], std::size_t(cols) * 4);
-    }
-}
-
 template <int Rep, int Load, int MR, int NRV, int U, int NC>
 void gemm(int n, int m, int k, const u32* a, const u32* b, u32* c) {
     constexpr int NR = 8 * NRV;
     static_assert(NC % NR == 0);
     const std::size_t N = round_up(n, MR), K = round_up(k, NR), M = round_up(m, U);
-    u32* pa = static_cast<u32*>(scratch((N * M + K * M) * 4 + 64, 1));
-    u32* pb = pa + N * M;
+    const std::size_t sa = round_up(N * M, 16);  // keep the B panels 64-byte aligned
+    u32* pa = static_cast<u32*>(scratch((sa + K * M) * 4 + 64, 1));
+    u32* pb = pa + sa;
     // Pack A: panel p holds rows p*MR.. as [t][r]; Montgomery factor, representation.
     for (std::size_t p = 0; p < N / MR; ++p) {
         u32* dst = pa + p * MR * M;
