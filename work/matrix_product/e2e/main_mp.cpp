@@ -125,6 +125,15 @@ double t_now() { return std::chrono::duration<double, std::milli>(std::chrono::s
 #endif
 }  // namespace
 
+#ifdef MP_CHUNKED
+// Leaf-block pointers of a matrix in recursive layout: ptr[bi * 2^D + bj].
+void leaf_table(u32* base, std::size_t rows, std::size_t cols, int D, u32** table) {
+    const std::size_t lr = rows >> D, lc = cols >> D, side = std::size_t(1) << D;
+    for_each_leaf(base, rows, cols, D, [&](u32* blk, std::size_t r0, std::size_t c0, std::size_t, std::size_t) {
+        table[(r0 / lr) * side + c0 / lc] = blk;
+    });
+}
+#endif
 int main() {
 #ifdef MP_PHASES
     double t_last = t_now();
@@ -137,12 +146,83 @@ int main() {
     const int D = depth_for(n, m, k);
     const std::size_t N = round_up(n, std::size_t(4) << D), M = round_up(m, std::size_t(2) << D),
                       K = round_up(k, std::size_t(8) << D);
+#ifdef MP_CHUNKED
+    const std::size_t s_pa = round_up(N * M, 16), s_pb = round_up(M * K, 16), s_pc = round_up(N * K, 16),
+                      s_w = SW::workspace(N, M, K, D) + 16, s_row = round_up(4 * std::size_t(std::max(m, k)), 16);
+    u32* const pa = arena(s_pa + s_pb + s_pc + s_w + s_row);
+    u32 *const pb = pa + s_pa, *const pc = pb + s_pb, *const work = pc + s_pc, *const rowbuf = work + s_w;
+    static u32* ta[1 << 10];
+    static u32* tb[1 << 10];
+    static u32* tc[1 << 10];
+    leaf_table(pa, N, M, D, ta);
+    leaf_table(pb, M, K, D, tb);
+    leaf_table(pc, N, K, D, tc);
+#else
     const std::size_t s_in = round_up(std::max(std::size_t(n) * m, std::size_t(n) * k), 16),
                       s_b = round_up(std::size_t(m) * k, 16), s_pa = round_up(N * M, 16), s_pb = round_up(M * K, 16),
                       s_pc = round_up(N * K, 16), s_w = SW::workspace(N, M, K, D) + 16;
     u32* const a_rm = arena(s_in + s_b + s_pa + s_pb + s_pc + s_w);
     u32 *const b_rm = a_rm + s_in, *const pa = b_rm + s_b, *const pb = pa + s_pa, *const pc = pb + s_pb, *const work = pc + s_pc;
+#endif
     MP_MARK("setup");
+#ifdef MP_CHUNKED
+    const std::size_t side = std::size_t(1) << D, la_r = N >> D, la_c = M >> D, lb_r = M >> D, lb_c = K >> D,
+                      lc_r = N >> D, lc_c = K >> D;
+    // A: four rows at a time -> one 4-row panel in every leaf of that leaf row (padding stays zero).
+    for (int i0 = 0; i0 < n; i0 += 4) {
+        const int rows = std::min(4, n - i0);
+        p = qp_parse_flat::parse_tokens(p, rowbuf, std::size_t(rows) * m);
+        if (rows < 4) std::memset(rowbuf + std::size_t(rows) * m, 0, std::size_t(4 - rows) * m * 4);
+        const std::size_t bi = std::size_t(i0) / la_r, pr = (std::size_t(i0) % la_r) / 4;
+        for (std::size_t bj = 0; bj < side; ++bj) {
+            u32* dst = ta[bi * side + bj] + pr * la_c * 4;
+            const std::size_t c0 = bj * la_c;
+            std::size_t t = 0;
+            for (; t + 8 <= la_c && c0 + t + 8 <= std::size_t(m); t += 8) {
+                V x[4];
+                for (int r = 0; r < 4; ++r)
+                    x[r] = center8(to_mont8(_mm256_loadu_si256(reinterpret_cast<const V*>(rowbuf + std::size_t(r) * m + c0 + t))));
+                transpose4x8_store(x[0], x[1], x[2], x[3], dst + t * 4);
+            }
+            for (; t < la_c && c0 + t < std::size_t(m); ++t)
+                for (int r = 0; r < 4; ++r) dst[t * 4 + r] = u32(center(to_mont(rowbuf[std::size_t(r) * m + c0 + t])));
+        }
+    }
+    // B: one row at a time -> one row of every 8-column panel of that leaf row.
+    for (int t = 0; t < m; ++t) {
+        p = qp_parse_flat::parse_tokens(p, rowbuf, std::size_t(k));
+        const std::size_t bi = std::size_t(t) / lb_r, lt = std::size_t(t) % lb_r;
+        for (std::size_t bj = 0; bj < side; ++bj) {
+            u32* blk = tb[bi * side + bj];
+            const std::size_t c0 = bj * lb_c;
+            for (std::size_t j = 0; j < lb_c && c0 + j < std::size_t(k); j += 8) {
+                u32* dst = blk + j * lb_r + lt * 8;
+                if (c0 + j + 8 <= std::size_t(k))
+                    _mm256_storeu_si256(reinterpret_cast<V*>(dst), center8(_mm256_loadu_si256(reinterpret_cast<const V*>(rowbuf + c0 + j))));
+                else
+                    for (std::size_t q = 0; c0 + j + q < std::size_t(k); ++q) dst[q] = u32(center(rowbuf[c0 + j + q]));
+            }
+        }
+    }
+    MP_MARK("parse+pack");
+    SW::multiply(pa, pb, pc, N, M, K, D, work);
+    MP_MARK("multiply");
+    char* cur = out.begin();
+    char* const end = out.end();
+    for (int i = 0; i < n; ++i) {
+        const std::size_t bi = std::size_t(i) / lc_r, r = std::size_t(i) % lc_r, prow = r / 4, rr = r % 4;
+        char sep = '\n';
+        for (std::size_t bj = 0; bj < side; ++bj) {
+            const u32* tiles = tc[bi * side + bj] + prow * (lc_c / 8) * 32 + rr * 8;
+            const std::size_t c0 = bj * lc_c;
+            for (std::size_t j = 0; j < lc_c && c0 + j < std::size_t(k); j += 8) {
+                const u32* v = tiles + (j / 8) * 32;
+                const std::size_t w = std::min<std::size_t>(8, std::size_t(k) - c0 - j);
+                for (std::size_t q = 0; q < w; ++q) write_sep(out, cur, end, v[q], sep), sep = ' ';
+            }
+        }
+    }
+#else
     p = qp_parse_flat::parse_tokens(p, a_rm, std::size_t(n) * m);
     p = qp_parse_flat::parse_tokens(p, b_rm, std::size_t(m) * k);
     MP_MARK("parse");
@@ -167,6 +247,7 @@ int main() {
         write_sep(out, cur, end, row[0], '\n');
         for (int j = 1; j < k; ++j) write_sep(out, cur, end, row[j], ' ');
     }
+#endif
     out.finish(cur);
     MP_MARK("output");
     return 0;

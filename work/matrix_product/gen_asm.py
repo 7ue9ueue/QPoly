@@ -113,6 +113,56 @@ def wipp_period_variant(mode):
     return ins
 
 
+
+def wipp_sh_rows(k0, k1, rows, pair):
+    """sh-form Winograd pair arithmetic for the given rows of one k-pair (B in ymm8/ymm9)."""
+    ins = []
+    if not pair:
+        for r in rows:
+            ins += [f"vbroadcastss {16 * k0 + 4 * r}(%[pa]), %%ymm10", f"vbroadcastss {16 * k1 + 4 * r}(%[pa]), %%ymm11",
+                    "vpaddd %%ymm9, %%ymm10, %%ymm12", "vpaddd %%ymm8, %%ymm11, %%ymm13",
+                    "vpsrlq $32, %%ymm12, %%ymm14", "vpsrlq $32, %%ymm13, %%ymm15",
+                    "vpmuldq %%ymm13, %%ymm12, %%ymm12", "vpmuldq %%ymm15, %%ymm14, %%ymm14",
+                    f"vpaddq %%ymm12, {ACC[2 * r]}, {ACC[2 * r]}", f"vpaddq %%ymm14, {ACC[2 * r + 1]}, {ACC[2 * r + 1]}"]
+    else:
+        # two rows: all four sums first, then shifts and multiplies (ymm10..15 + 2 reuses)
+        r0, r1 = rows
+        ins += [f"vbroadcastss {16 * k0 + 4 * r0}(%[pa]), %%ymm10", f"vbroadcastss {16 * k1 + 4 * r0}(%[pa]), %%ymm11",
+                "vpaddd %%ymm9, %%ymm10, %%ymm12", "vpaddd %%ymm8, %%ymm11, %%ymm13",
+                f"vbroadcastss {16 * k0 + 4 * r1}(%[pa]), %%ymm10", f"vbroadcastss {16 * k1 + 4 * r1}(%[pa]), %%ymm11",
+                "vpaddd %%ymm9, %%ymm10, %%ymm14", "vpaddd %%ymm8, %%ymm11, %%ymm15",
+                "vpsrlq $32, %%ymm12, %%ymm10", "vpsrlq $32, %%ymm13, %%ymm11",
+                "vpmuldq %%ymm13, %%ymm12, %%ymm12", "vpmuldq %%ymm11, %%ymm10, %%ymm10",
+                f"vpaddq %%ymm12, {ACC[2 * r0]}, {ACC[2 * r0]}", f"vpaddq %%ymm10, {ACC[2 * r0 + 1]}, {ACC[2 * r0 + 1]}",
+                "vpsrlq $32, %%ymm14, %%ymm10", "vpsrlq $32, %%ymm15, %%ymm11",
+                "vpmuldq %%ymm15, %%ymm14, %%ymm14", "vpmuldq %%ymm11, %%ymm10, %%ymm10",
+                f"vpaddq %%ymm14, {ACC[2 * r1]}, {ACC[2 * r1]}", f"vpaddq %%ymm10, {ACC[2 * r1 + 1]}, {ACC[2 * r1 + 1]}"]
+    return ins
+
+
+def wipp_sh_period(fold_mode, pair):
+    """8 k-pairs; fold_mode: 'none' (caller bursts at the top), 'half' (accumulators 0-3 after
+    k-pair 3, 4-7 after k-pair 7), 'quarter' (two accumulators after k-pairs 1, 3, 5, 7)."""
+    ins = []
+    for s_ in range(8):
+        k0, k1 = 2 * s_, 2 * s_ + 1
+        ins += [f"vmovdqu {32 * k0}(%[pb]), %%ymm8", f"vmovdqu {32 * k1}(%[pb]), %%ymm9"]
+        if pair:
+            ins += wipp_sh_rows(k0, k1, (0, 1), True) + wipp_sh_rows(k0, k1, (2, 3), True)
+        else:
+            ins += wipp_sh_rows(k0, k1, range(4), False)
+        group = None
+        if fold_mode == "half" and s_ in (3, 7):
+            group = range(4) if s_ == 3 else range(4, 8)
+        if fold_mode == "quarter" and s_ % 2 == 1:
+            j = s_ // 2
+            group = (2 * j, 2 * j + 1)
+        if group is not None:
+            ins += ["vpxor %%xmm12, %%xmm12, %%xmm12"]
+            for i in group:
+                ins += fold(ACC[i], "%%ymm13", "%%ymm12")
+    return ins
+
 def wip_period(packed, hoist, spread):
     """One 8-k-pair period (16 steps) of the Winograd kernel."""
     ins = []
@@ -220,6 +270,15 @@ def main():
         name = f"direct_g_s{spread}"
         out.append(emit_kernel(name, direct_period_g(spread), 32, spread))
         kernels.append((name, 32))
+    # sh-form family: fold placement and row pairing (fold_mode none = burst at the top).
+    for fm in ("half", "quarter"):
+        for pair in (0, 1):
+            name = f"sh_{fm}_p{pair}"
+            out.append(emit_kernel(name, wipp_sh_period(fm, pair), 16, True))
+            kernels.append((name, 16))
+    name = "sh_burst_p1"
+    out.append(emit_kernel(name, wipp_sh_period("none", 1), 16, False))
+    kernels.append((name, 16))
     for mode in ("i2", "sh"):
         name = f"wipp_{mode}"
         out.append(emit_kernel(name, wipp_period_variant(mode), 16, 0))
@@ -229,12 +288,16 @@ def main():
             name = f"wip{'p' if packed else ''}_s{spread}"
             out.append(emit_kernel(name, wip_period(packed, 0, spread), 16, spread))
             kernels.append((name, 16))
-    # Tails for the kernels used by the Strassen leaves.
-    out.append(emit_tail("wipp_s0", first_unit(wip_period(1, 0, 0), "vmovdqu 64("), 2))
-    out.append(emit_tail("wipp_i2", first_unit(wipp_period_variant("i2"), "vmovdqu 64("), 2))
-    out.append(emit_tail("wipp_sh", first_unit(wipp_period_variant("sh"), "vmovdqu 64("), 2))
-    out.append(emit_tail("wip_s0", first_unit(wip_period(0, 0, 0), "vmovsldup 64("), 2))
-    out.append(emit_tail("direct_g_s0", first_unit(direct_period_g(0), "vbroadcastss 16(%[pa])"), 1))
+    # Tails for every kernel: one burst fold, then single units. Any correct one-unit body
+    # works (the tail only runs after a fold), so the Winograd families share the sh-form
+    # k-pair and the direct family the GCC-order k-step.
+    wip_unit = first_unit(wipp_period_variant("sh"), "vmovdqu 64(")
+    direct_unit = first_unit(direct_period_g(0), "vbroadcastss 16(%[pa])")
+    for name, period in kernels:
+        if name.startswith("direct"):
+            out.append(emit_tail(name, direct_unit, 1))
+        else:
+            out.append(emit_tail(name, wip_unit, 2))
     out.append('}  // namespace mp::simd')
     out.append('#define MP_ASM_KERNELS(X) ' + ' '.join(f'X({n}, {p})' for n, p in kernels))
     (HERE / 'asm_kernels.hpp').write_text('\n'.join(out) + '\n')

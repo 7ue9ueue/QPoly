@@ -70,7 +70,7 @@ std::vector<Kernel>& kernels() {
         {"wip_4x8_u4", kwip<4>, 4, 8, 2},
         {"wipp_4x8_u1", kwipp<1>, 4, 8, 2},
         {"wipp_4x8_u2", kwipp<2>, 4, 8, 2},
-#define MP_KASM(name, period) {"asm_" #name, kasm<asm_##name, period, #name[0] == 'w'>, 4, 8, #name[0] == 'w' ? 2 : 1},
+#define MP_KASM(name, period) {"asm_" #name, kasm<asm_##name, period, #name[0] != 'd'>, 4, 8, #name[0] != 'd' ? 2 : 1},
         MP_ASM_KERNELS(MP_KASM)
     };
     return k;
