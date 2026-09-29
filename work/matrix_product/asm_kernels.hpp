@@ -2,6 +2,12 @@
 #pragma once
 #include "simd.hpp"
 
+#ifdef MP_ASM_ALIGN
+#define MP_ASM_ALIGN_DIRECTIVE ".p2align " MP_ASM_ALIGN "\n\t"
+#else
+#define MP_ASM_ALIGN_DIRECTIVE ""
+#endif
+
 namespace mp::simd {
 
 // direct_h0_s0: 704 instructions per 32-step period.
@@ -9,6 +15,7 @@ MP_AI void asm_direct_h0_s0(const u32* pa, const u32* pb, long periods, V (&acc)
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
         "jmp 2f\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vpxor %%xmm12, %%xmm12, %%xmm12\n\t"
         "vpsrlq $32, %[a0], %%ymm13\n\t"
@@ -764,6 +771,7 @@ constexpr int asm_direct_h0_s0_period = 32;
 MP_AI void asm_direct_h0_s1(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovsldup 0(%[pb]), %%ymm8\n\t"
         "vmovshdup 0(%[pb]), %%ymm9\n\t"
@@ -1526,6 +1534,7 @@ MP_AI void asm_direct_h1_s0(const u32* pa, const u32* pb, long periods, V (&acc)
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
         "jmp 2f\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vpxor %%xmm12, %%xmm12, %%xmm12\n\t"
         "vpsrlq $32, %[a0], %%ymm13\n\t"
@@ -2281,6 +2290,7 @@ constexpr int asm_direct_h1_s0_period = 32;
 MP_AI void asm_direct_h1_s1(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovsldup 0(%[pb]), %%ymm8\n\t"
         "vmovshdup 0(%[pb]), %%ymm9\n\t"
@@ -3043,6 +3053,7 @@ MP_AI void asm_direct_g_s0(const u32* pa, const u32* pb, long periods, V (&acc)[
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
         "jmp 2f\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vpxor %%xmm12, %%xmm12, %%xmm12\n\t"
         "vpsrlq $32, %[a0], %%ymm13\n\t"
@@ -3798,6 +3809,7 @@ constexpr int asm_direct_g_s0_period = 32;
 MP_AI void asm_sh_half_p0(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -4185,6 +4197,7 @@ constexpr int asm_sh_half_p0_period = 16;
 MP_AI void asm_sh_half_p1(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -4572,6 +4585,7 @@ constexpr int asm_sh_half_p1_period = 16;
 MP_AI void asm_sh_quarter_p0(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -4961,6 +4975,7 @@ constexpr int asm_sh_quarter_p0_period = 16;
 MP_AI void asm_sh_quarter_p1(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -5351,6 +5366,7 @@ MP_AI void asm_sh_burst_p1(const u32* pa, const u32* pb, long periods, V (&acc)[
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
         "jmp 2f\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vpxor %%xmm12, %%xmm12, %%xmm12\n\t"
         "vpsrlq $32, %[a0], %%ymm13\n\t"
@@ -5739,6 +5755,7 @@ MP_AI void asm_wipp_i2(const u32* pa, const u32* pb, long periods, V (&acc)[8]) 
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
         "jmp 2f\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vpxor %%xmm12, %%xmm12, %%xmm12\n\t"
         "vpsrlq $32, %[a0], %%ymm13\n\t"
@@ -6127,6 +6144,7 @@ MP_AI void asm_wipp_sh(const u32* pa, const u32* pb, long periods, V (&acc)[8]) 
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
         "jmp 2f\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vpxor %%xmm12, %%xmm12, %%xmm12\n\t"
         "vpsrlq $32, %[a0], %%ymm13\n\t"
@@ -6515,6 +6533,7 @@ MP_AI void asm_wip_s0(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
         "jmp 2f\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vpxor %%xmm12, %%xmm12, %%xmm12\n\t"
         "vpsrlq $32, %[a0], %%ymm13\n\t"
@@ -6918,6 +6937,7 @@ constexpr int asm_wip_s0_period = 16;
 MP_AI void asm_wip_s1(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovsldup 0(%[pb]), %%ymm8\n\t"
         "vmovshdup 0(%[pb]), %%ymm9\n\t"
@@ -7328,6 +7348,7 @@ MP_AI void asm_wipp_s0(const u32* pa, const u32* pb, long periods, V (&acc)[8]) 
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
         "jmp 2f\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vpxor %%xmm12, %%xmm12, %%xmm12\n\t"
         "vpsrlq $32, %[a0], %%ymm13\n\t"
@@ -7715,6 +7736,7 @@ constexpr int asm_wipp_s0_period = 16;
 MP_AI void asm_wipp_s1(const u32* pa, const u32* pb, long periods, V (&acc)[8]) {
     static const V c32 = _mm256_set1_epi64x(C32);
     asm volatile(
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm10\n\t"
@@ -8140,6 +8162,7 @@ MP_AI void asm_direct_h0_s0_tail(const u32* pa, const u32* pb, long units, V (&a
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vbroadcastss 0(%[pa]), %%ymm10\n\t"
         "vmovsldup 0(%[pb]), %%ymm8\n\t"
@@ -8211,6 +8234,7 @@ MP_AI void asm_direct_h0_s1_tail(const u32* pa, const u32* pb, long units, V (&a
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vbroadcastss 0(%[pa]), %%ymm10\n\t"
         "vmovsldup 0(%[pb]), %%ymm8\n\t"
@@ -8282,6 +8306,7 @@ MP_AI void asm_direct_h1_s0_tail(const u32* pa, const u32* pb, long units, V (&a
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vbroadcastss 0(%[pa]), %%ymm10\n\t"
         "vmovsldup 0(%[pb]), %%ymm8\n\t"
@@ -8353,6 +8378,7 @@ MP_AI void asm_direct_h1_s1_tail(const u32* pa, const u32* pb, long units, V (&a
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vbroadcastss 0(%[pa]), %%ymm10\n\t"
         "vmovsldup 0(%[pb]), %%ymm8\n\t"
@@ -8424,6 +8450,7 @@ MP_AI void asm_direct_g_s0_tail(const u32* pa, const u32* pb, long units, V (&ac
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vbroadcastss 0(%[pa]), %%ymm10\n\t"
         "vmovsldup 0(%[pb]), %%ymm8\n\t"
@@ -8495,6 +8522,7 @@ MP_AI void asm_sh_half_p0_tail(const u32* pa, const u32* pb, long units, V (&acc
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -8586,6 +8614,7 @@ MP_AI void asm_sh_half_p1_tail(const u32* pa, const u32* pb, long units, V (&acc
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -8677,6 +8706,7 @@ MP_AI void asm_sh_quarter_p0_tail(const u32* pa, const u32* pb, long units, V (&
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -8768,6 +8798,7 @@ MP_AI void asm_sh_quarter_p1_tail(const u32* pa, const u32* pb, long units, V (&
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -8859,6 +8890,7 @@ MP_AI void asm_sh_burst_p1_tail(const u32* pa, const u32* pb, long units, V (&ac
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -8950,6 +8982,7 @@ MP_AI void asm_wipp_i2_tail(const u32* pa, const u32* pb, long units, V (&acc)[8
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -9041,6 +9074,7 @@ MP_AI void asm_wipp_sh_tail(const u32* pa, const u32* pb, long units, V (&acc)[8
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -9132,6 +9166,7 @@ MP_AI void asm_wip_s0_tail(const u32* pa, const u32* pb, long units, V (&acc)[8]
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -9223,6 +9258,7 @@ MP_AI void asm_wip_s1_tail(const u32* pa, const u32* pb, long units, V (&acc)[8]
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -9314,6 +9350,7 @@ MP_AI void asm_wipp_s0_tail(const u32* pa, const u32* pb, long units, V (&acc)[8
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"
@@ -9405,6 +9442,7 @@ MP_AI void asm_wipp_s1_tail(const u32* pa, const u32* pb, long units, V (&acc)[8
         "vpmuldq %[c32], %%ymm13, %%ymm13\n\t"
         "vpblendd $0xAA, %%ymm12, %[a7], %[a7]\n\t"
         "vpaddq %%ymm13, %[a7], %[a7]\n\t"
+        MP_ASM_ALIGN_DIRECTIVE
         "1:\n\t"
         "vmovdqu 0(%[pb]), %%ymm8\n\t"
         "vmovdqu 32(%[pb]), %%ymm9\n\t"

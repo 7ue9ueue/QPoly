@@ -5,6 +5,7 @@
 # make_submission.py) and "FILE NAME PATH" (an existing single-file source, e.g. a deliverable).
 # Env: REPS (default 11), THP_MODES (default "madvise"), CPU (default last), PHASES (default 1).
 set -euo pipefail
+shopt -s nullglob
 IMAGE=gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
 ROOT=$(git rev-parse --show-toplevel)
 E2E_DIR=$ROOT/work/matrix_product/e2e
