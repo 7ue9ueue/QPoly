@@ -251,5 +251,8 @@ int main() {
 #endif
     out.finish(cur);
     MP_MARK("output");
+#ifdef MP_FAST_EXIT
+    _exit(0);  // everything is flushed; skip destructors (input munmap) and exit handlers
+#endif
     return 0;
 }

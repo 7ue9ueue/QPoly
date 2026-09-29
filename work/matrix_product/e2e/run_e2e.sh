@@ -75,6 +75,14 @@ for c in json.load(open('$CASES/cases.json'))['cases']:
 }
 set_thp madvise
 launch correctness 1 0 0 "$all" 'True'
+if [ "${STRESS:-0}" = 1 ]; then
+  stress_bins=""
+  for v in $(echo "$all" | grep -v -e '_phases$' -e '^ref_'); do stress_bins="$stress_bins /build/bin/$v"; done
+  docker run --rm -v "$BUILD":/build -v "$CASES":/casedir -v "$E2E_DIR":/e2e:ro "$IMAGE" bash -euc "
+    apt-get update -qq >/dev/null && apt-get install -y -qq python3 >/dev/null
+    python3 /e2e/stress.py /casedir/problem/correct /tmp/stress $stress_bins" | tee -a "$RESULTS/checks.txt"
+  grep -q '^PASS stress' "$RESULTS/checks.txt"
+fi
 LARGE='c["in_bytes"] > 1000000'
 for mode in ${THP_MODES:-madvise}; do
   set_thp "$mode"
