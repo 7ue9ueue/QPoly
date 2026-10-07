@@ -8,6 +8,9 @@
 //   bench_opt one NAME KIND N   run one parser N times (for perf stat)
 //   bench_opt cache [reps]      parsers on a cache-resident text (2^18 random tokens, ~2.6 MB, parsed
 //                               128 times per sample) vs 2^25 tokens from DRAM: ns/token
+//   bench_opt fmtunit [limit]   asm formatter (fmt_asm.inc) vs blocks3 for every value < limit (default 10^9),
+//                               random blocks for G = 2, 4 and edge values; exit 1 on any mismatch
+//   bench_opt fmttime [reps]    formatters on 2^25 values into a 160 KiB buffer (random, small < 2^24)
 //   bench_opt ablate [reps]     ms2 step-loop ablations (parse_ablate.inc modes 0-5), DRAM and cached text
 //   bench_opt ovl [reps]        overlap experiment: parse 2^24 random tokens with independent NTT
 //                               work interleaved (one unit per 8-token step) vs each alone
@@ -21,6 +24,7 @@
 #include "../io_large/fmt_bcd.inc"
 #include "parse_ms2s.inc"
 #include "parse_ms4.inc"
+#include "fmt_asm.inc"
 #include "core_tw.hpp"
 #include "parse_ablate.inc"
 #include <algorithm>
@@ -286,6 +290,70 @@ void ablate(int reps) {
     std::printf("# sink %llu\n", (unsigned long long)(sink & 1));
 }
 
+void fmt_unit(uint64_t limit) {
+    alignas(32) uint32_t v[32];
+    char a[400], b[400];
+    uint64_t checked = 0;
+    for (uint64_t x0 = 0; x0 < limit; x0 += 8) {
+        for (int i = 0; i < 8; ++i) v[i] = uint32_t(std::min<uint64_t>(x0 + i, limit - 1));
+        qp_fixed::blocks3<1>(v, a);
+        qp_fmt_asm::block8(v, b);
+        if (std::memcmp(a, b, 80) != 0) fail("asm block8 vs blocks3 at " + std::to_string(x0));
+        checked += 8;
+    }
+    std::mt19937 rng(17);
+    for (int t = 0; t < 2000000; ++t) {
+        for (int i = 0; i < 32; ++i) v[i] = (t & 1) ? rng() % 1000000000u : rng() % P;
+        qp_fixed::blocks3<4>(v, a);
+        qp_fmt_asm::blocks<4>(v, b);
+        if (std::memcmp(a, b, 320) != 0) fail("asm blocks<4> vs blocks3<4>");
+        qp_fmt_asm::blocks<2>(v, b); qp_fmt_asm::blocks<2>(v + 16, b + 160);
+        if (std::memcmp(a, b, 320) != 0) fail("asm blocks<2> vs blocks3<4>");
+    }
+    std::vector<uint32_t> edge = {0, 1, 9, 10, 11, 99, 100, 101, 998244352, 999999999};
+    for (uint32_t k = 10; k <= 100000000; k *= 10) for (int d = -2; d <= 2; ++d) edge.push_back(uint32_t(int64_t(k) + d));
+    for (uint32_t x : edge) {
+        for (int i = 0; i < 8; ++i) v[i] = x;
+        qp_fmt_asm::block8(v, b); qp_fixed::one(x, a);
+        for (int i = 0; i < 8; ++i) if (std::memcmp(b + 10 * i, a, 10) != 0) fail("asm edge " + std::to_string(x));
+        char want[16]; const int n = std::snprintf(want, sizeof want, "%u", x);
+        if (std::memcmp(a + 9 - n, want, size_t(n)) != 0 || a[9] != ' ') fail("reference layout " + std::to_string(x));
+    }
+    std::printf("PASS asm formatter: %llu values below %llu equal blocks3, 2M random 32-value groups (G = 4, 2), %zu edge values\n",
+                (unsigned long long)checked, (unsigned long long)limit, edge.size());
+}
+void fmt_time(int reps) {
+    const size_t n = size_t(1) << 25;
+    alignas(64) static char buf[163840 + 512];
+    const char* names[] = {"blocks3_4", "blocks3_2", "asm_1x4", "asm_2x2", "asm_4"};
+    const char* kinds[] = {"random", "small"};
+    for (int kind = 0; kind < 2; ++kind) {
+        auto v = values(n + 32, kind == 0 ? 0 : 4, 9);
+        std::vector<double> s[5]; uint64_t sink = 0;
+        for (int r = 0; r < reps + 1; ++r) for (int f0 = 0; f0 < 5; ++f0) {
+            const int f = (f0 + r) % 5;
+            char* c = buf; char* const e = buf + 163840;
+            const double t0 = now_ms();
+            for (size_t i = 0; i < n; i += 32) {
+                if (c >= e) { sink += uint64_t(c - buf); c = buf; }
+                const uint32_t* src = v.data() + i;
+                if (f == 0) qp_fixed::blocks3<4>(src, c);
+                else if (f == 1) { qp_fixed::blocks3<2>(src, c); qp_fixed::blocks3<2>(src + 16, c + 160); }
+                else if (f == 2) { qp_fmt_asm::block8(src, c); qp_fmt_asm::block8(src + 8, c + 80); qp_fmt_asm::block8(src + 16, c + 160); qp_fmt_asm::block8(src + 24, c + 240); }
+                else if (f == 3) { qp_fmt_asm::blocks<2>(src, c); qp_fmt_asm::blocks<2>(src + 16, c + 160); }
+                else qp_fmt_asm::blocks<4>(src, c);
+                c += 320;
+            }
+            const double t1 = now_ms();
+            sink += uint64_t(c - buf) + uint8_t(buf[7]);
+            if (r) s[f].push_back(t1 - t0);
+        }
+        for (int f = 0; f < 5; ++f)
+            std::printf("format,%s,%s,%.2f,%.3f ns/value,min %.2f (sink %llu)\n", names[f], kinds[kind], median(s[f]), median(s[f]) * 1e6 / double(n),
+                        *std::min_element(s[f].begin(), s[f].end()), (unsigned long long)(sink & 1));
+    }
+}
+
 void run_one(const std::string& name, int kind, int count) {
     const size_t n = size_t(1) << 25;
     std::vector<uint32_t> out(n + 64);
@@ -308,6 +376,8 @@ int main(int argc, char** argv) {
     if (cmd == "unit") { unit_parse(); std::printf("ALL OPT UNIT CHECKS PASSED\n"); }
     else if (cmd == "time") time_parsers(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "cache") cache_vs_dram(argc > 2 ? std::atoi(argv[2]) : 5);
+    else if (cmd == "fmtunit") { fmt_unit(argc > 2 ? std::strtoull(argv[2], nullptr, 10) : 1000000000ull); std::printf("ALL FMT UNIT CHECKS PASSED\n"); }
+    else if (cmd == "fmttime") fmt_time(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "ablate") ablate(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "ovl") overlap(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "one" && argc > 4) run_one(argv[2], std::atoi(argv[3]), std::atoi(argv[4]));

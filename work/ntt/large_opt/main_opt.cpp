@@ -5,6 +5,8 @@
 //   QO_PARSE  0: qp_parse_ms2<128 KiB> (deliverable); 1: qp_parse_ms2s<QO_SUB, QO_SKEW, QO_PF>
 //             (stream spacing QO_SUB + QO_SKEW bytes, optional prefetch; large_opt/parse_ms2s.inc);
 //             2: qp_parse_ms4<QO_SUB, QO_SKEW> (four tokens per stream step; large_opt/parse_ms4.inc).
+//   QO_FMT    0: qp_fixed::blocks3<4> (deliverable); 1, 2, 4: qp_fmt_asm::blocks<G> with G = QO_FMT
+//             (fmt_asm.inc, inline asm, constants as memory operands), 32 values per loop step.
 //   QO_TW     0: qlarge::Core (deliverable); 1: qopt::CoreTw (bottom twiddles generated on the fly,
 //             root tables of n/64 instead of n/16 entries; large_opt/core_tw.hpp), lengths >= 2^23.
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
@@ -18,6 +20,7 @@
 #include "../io_large/fmt_bcd.inc"
 #include "parse_ms2s.inc"
 #include "parse_ms4.inc"
+#include "fmt_asm.inc"
 #include "core_tw.hpp"
 #include <time.h>
 
@@ -35,6 +38,9 @@
 #endif
 #ifndef QO_TW
 #define QO_TW 0
+#endif
+#ifndef QO_FMT
+#define QO_FMT 0
 #endif
 
 #ifdef QPOLY_PROBE
@@ -132,7 +138,16 @@ int main() {
     unsigned i = 0;
     for (; i + 32 <= count; i += 32) {   // reads a[i .. i + 31] < count
         if (c >= obuf + obuf_size) { write_all(obuf, size_t(c - obuf)); c = obuf; }
+#if QO_FMT == 1
+        qp_fmt_asm::blocks<1>(a + i, c); qp_fmt_asm::blocks<1>(a + i + 8, c + 80);
+        qp_fmt_asm::blocks<1>(a + i + 16, c + 160); qp_fmt_asm::blocks<1>(a + i + 24, c + 240);
+#elif QO_FMT == 2
+        qp_fmt_asm::blocks<2>(a + i, c); qp_fmt_asm::blocks<2>(a + i + 16, c + 160);
+#elif QO_FMT == 4
+        qp_fmt_asm::blocks<4>(a + i, c);
+#else
         qp_fixed::blocks3<4>(a + i, c);
+#endif
         c += 320;
     }
     for (; i + 8 <= count; i += 8, c += 80) qp_fixed::blocks3<1>(a + i, c);
