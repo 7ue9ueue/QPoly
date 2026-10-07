@@ -1,0 +1,5 @@
+# CPU: AMD EPYC 9V74 80-Core Processor                
+# compiler: 15.2.0
+cache,m2,cached_ns_per_token,1.080,dram_ns_per_token,1.039
+cache,s0,cached_ns_per_token,1.089,dram_ns_per_token,1.048
+cache,s17h,cached_ns_per_token,1.224,dram_ns_per_token,1.031

@@ -1,0 +1,5 @@
+# CPU: INTEL(R) XEON(R) PLATINUM 8573C
+# compiler: 15.2.0
+cache,m2,cached_ns_per_token,1.459,dram_ns_per_token,1.672
+cache,s0,cached_ns_per_token,1.442,dram_ns_per_token,1.667
+cache,s17h,cached_ns_per_token,1.518,dram_ns_per_token,1.528

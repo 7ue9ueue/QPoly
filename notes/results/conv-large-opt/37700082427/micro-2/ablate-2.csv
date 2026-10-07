@@ -1,0 +1,9 @@
+# CPU: INTEL(R) XEON(R) PLATINUM 8573C
+# compiler: 15.2.0
+ablate,0,full_step,dram_ns_per_token,1.393,cached_ns_per_token,1.288
+ablate,1,no_stores,dram_ns_per_token,1.389,cached_ns_per_token,1.266
+ablate,2,two_only,dram_ns_per_token,1.315,cached_ns_per_token,1.179
+ablate,3,chain_only,dram_ns_per_token,1.190,cached_ns_per_token,1.037
+ablate,4,chain_win_row_shuf,dram_ns_per_token,1.256,cached_ns_per_token,1.115
+ablate,5,chain_win,dram_ns_per_token,1.187,cached_ns_per_token,1.047
+# sink 0

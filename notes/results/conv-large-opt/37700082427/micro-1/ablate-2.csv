@@ -1,0 +1,9 @@
+# CPU: AMD EPYC 9V74 80-Core Processor                
+# compiler: 15.2.0
+ablate,0,full_step,dram_ns_per_token,0.920,cached_ns_per_token,0.894
+ablate,1,no_stores,dram_ns_per_token,0.813,cached_ns_per_token,0.788
+ablate,2,two_only,dram_ns_per_token,0.785,cached_ns_per_token,0.758
+ablate,3,chain_only,dram_ns_per_token,0.640,cached_ns_per_token,0.602
+ablate,4,chain_win_row_shuf,dram_ns_per_token,0.746,cached_ns_per_token,0.721
+ablate,5,chain_win,dram_ns_per_token,0.678,cached_ns_per_token,0.637
+# sink 0

@@ -1,0 +1,5 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+cache,m2,cached_ns_per_token,1.472,dram_ns_per_token,1.408
+cache,s0,cached_ns_per_token,1.477,dram_ns_per_token,1.414
+cache,s17h,cached_ns_per_token,1.652,dram_ns_per_token,1.406

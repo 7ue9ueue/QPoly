@@ -3,7 +3,8 @@
 // with switches for the exploration-014 variants. All switches at their defaults reproduce the
 // deliverable's code path.
 //   QO_PARSE  0: qp_parse_ms2<128 KiB> (deliverable); 1: qp_parse_ms2s<QO_SUB, QO_SKEW, QO_PF>
-//             (stream spacing QO_SUB + QO_SKEW bytes, optional prefetch; large_opt/parse_ms2s.inc).
+//             (stream spacing QO_SUB + QO_SKEW bytes, optional prefetch; large_opt/parse_ms2s.inc);
+//             2: qp_parse_ms4<QO_SUB, QO_SKEW> (four tokens per stream step; large_opt/parse_ms4.inc).
 //   QO_TW     0: qlarge::Core (deliverable); 1: qopt::CoreTw (bottom twiddles generated on the fly,
 //             root tables of n/64 instead of n/16 entries; large_opt/core_tw.hpp), lengths >= 2^23.
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
@@ -16,6 +17,7 @@
 #include "../io_large/parse_ms2.inc"
 #include "../io_large/fmt_bcd.inc"
 #include "parse_ms2s.inc"
+#include "parse_ms4.inc"
 #include "core_tw.hpp"
 #include <time.h>
 
@@ -100,6 +102,8 @@ int main() {
     uint32_t *const b = a + arr, *const roots = b + arr, *const iroots = roots + tab;
 #if QO_PARSE == 1
     constexpr auto parse = qp_parse_ms2s::parse_tokens<QO_SUB, QO_SKEW, QO_PF, qp_parse_flat::parse_tokens>;
+#elif QO_PARSE == 2
+    constexpr auto parse = qp_parse_ms4::parse_tokens<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens>;
 #else
     constexpr auto parse = qp_parse_ms2::parse_tokens<131072, qp_parse_flat::parse_tokens>;
 #endif

@@ -20,6 +20,7 @@
 #include "../io_large/parse_ms2.inc"
 #include "../io_large/fmt_bcd.inc"
 #include "parse_ms2s.inc"
+#include "parse_ms4.inc"
 #include "core_tw.hpp"
 #include "parse_ablate.inc"
 #include <algorithm>
@@ -76,6 +77,9 @@ const NamedParser PARSERS[] = {
     {"s17h", qp_parse_ms2s::parse_tokens<65536, 1088, 0, TAIL>},   // 256 KiB chunks
     {"p0", qp_parse_ms2s::parse_tokens<32768, 0, 384, TAIL>},      // prefetch only
     {"s17p", qp_parse_ms2s::parse_tokens<32768, 1088, 384, TAIL>}, // skew + prefetch
+    {"q4", qp_parse_ms4::parse_tokens<32768, 0, TAIL>},            // four tokens per stream step
+    {"q4s", qp_parse_ms4::parse_tokens<32768, 1088, TAIL>},
+    {"q4h", qp_parse_ms4::parse_tokens<65536, 1088, TAIL>},
 };
 const NamedParser* find_parser(const std::string& name) {
     for (const auto& p : PARSERS) if (name == p.name) return &p;
@@ -242,7 +246,7 @@ void cache_vs_dram(int reps) {
     std::vector<uint32_t> out(big + 64);
     auto vs = values(small, 0, 5), vb = values(big, 0, 5);
     Text ts = make_text(vs, 0), tb = make_text(vb, 0);
-    for (const char* name : {"m2", "s0", "s17h"}) {
+    for (const char* name : {"m2", "s17h", "q4", "q4h"}) {
         const NamedParser* ps = find_parser(name);
         std::vector<double> c, d;
         for (int r = 0; r < reps + 1; ++r) {
