@@ -1,0 +1,7 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+kind,tables,lg,entry,median_ms,min_ms,max_ms,speedup_vs_core
+ntt,warm,25,core,207.989,207.373,208.590,1.0000
+ntt,warm,25,tw,219.338,218.682,219.826,0.9483
+ntt,fresh,25,core,209.472,209.364,210.737,1.0000
+ntt,fresh,25,tw,219.400,219.175,220.588,0.9547

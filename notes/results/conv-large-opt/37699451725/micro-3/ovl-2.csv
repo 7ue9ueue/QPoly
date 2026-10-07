@@ -1,0 +1,6 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+ovl,parse_alone,23.43,steps,2086897
+ovl,top,side_alone,5.64,parse_plus_side,26.85,extra_vs_parse,3.42,hidden_fraction,0.395
+ovl,r4_dram,side_alone,12.77,parse_plus_side,38.85,extra_vs_parse,15.42,hidden_fraction,-0.208
+ovl,r4_l2,side_alone,12.45,parse_plus_side,38.84,extra_vs_parse,15.41,hidden_fraction,-0.238

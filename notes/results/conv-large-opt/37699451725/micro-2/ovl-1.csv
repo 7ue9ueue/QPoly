@@ -1,0 +1,6 @@
+# CPU: AMD EPYC 9V74 80-Core Processor                
+# compiler: 15.2.0
+ovl,parse_alone,21.17,steps,2086897
+ovl,top,side_alone,4.56,parse_plus_side,23.62,extra_vs_parse,2.44,hidden_fraction,0.464
+ovl,r4_dram,side_alone,13.05,parse_plus_side,37.41,extra_vs_parse,16.23,hidden_fraction,-0.243
+ovl,r4_l2,side_alone,12.93,parse_plus_side,37.43,extra_vs_parse,16.25,hidden_fraction,-0.257

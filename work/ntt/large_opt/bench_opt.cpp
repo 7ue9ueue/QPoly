@@ -6,6 +6,9 @@
 //   bench_opt time [reps]       parsers on 2^25 tokens (random / nine_digit / single_digit), variants
 //                               interleaved in rotating order, median ms and ns/token per variant
 //   bench_opt one NAME KIND N   run one parser N times (for perf stat)
+//   bench_opt cache [reps]      parsers on a cache-resident text (2^18 random tokens, ~2.6 MB, parsed
+//                               128 times per sample) vs 2^25 tokens from DRAM: ns/token
+//   bench_opt ablate [reps]     ms2 step-loop ablations (parse_ablate.inc modes 0-5), DRAM and cached text
 //   bench_opt ovl [reps]        overlap experiment: parse 2^24 random tokens with independent NTT
 //                               work interleaved (one unit per 8-token step) vs each alone
 // Baseline: qp_parse_ms2 with 128 KiB chunks (the exploration-011 deliverable's parser).
@@ -18,6 +21,7 @@
 #include "../io_large/fmt_bcd.inc"
 #include "parse_ms2s.inc"
 #include "core_tw.hpp"
+#include "parse_ablate.inc"
 #include <algorithm>
 #include <chrono>
 #include <cpuid.h>
@@ -233,6 +237,51 @@ void overlap(int reps) {
     }
 }
 
+void cache_vs_dram(int reps) {
+    const size_t small = size_t(1) << 18, big = size_t(1) << 25;   // small: ~2.6 MB text, L3-resident
+    std::vector<uint32_t> out(big + 64);
+    auto vs = values(small, 0, 5), vb = values(big, 0, 5);
+    Text ts = make_text(vs, 0), tb = make_text(vb, 0);
+    for (const char* name : {"m2", "s0", "s17h"}) {
+        const NamedParser* ps = find_parser(name);
+        std::vector<double> c, d;
+        for (int r = 0; r < reps + 1; ++r) {
+            double t0 = now_ms();
+            for (int k = 0; k < 128; ++k) ps->fn(ts.begin(), out.data(), small);
+            double t1 = now_ms();
+            ps->fn(tb.begin(), out.data(), big);
+            double t2 = now_ms();
+            if (r) { c.push_back((t1 - t0) * 1e6 / (128.0 * double(small))); d.push_back((t2 - t1) * 1e6 / double(big)); }
+        }
+        std::printf("cache,%s,cached_ns_per_token,%.3f,dram_ns_per_token,%.3f\n", name, median(c), median(d));
+    }
+}
+
+template<int M> double ablate_once(Text& t, uint32_t* out, int times, uint64_t& sink) {
+    const double t0 = now_ms();
+    for (int k = 0; k < times; ++k) sink += qp_ablate::run<M>(t.begin(), t.len, out);
+    return now_ms() - t0;
+}
+void ablate(int reps) {
+    const size_t small = size_t(1) << 18, big = size_t(1) << 25;
+    std::vector<uint32_t> out(big + 64);
+    auto vs = values(small, 0, 5), vb = values(big, 0, 5);
+    Text ts = make_text(vs, 0), tb = make_text(vb, 0);
+    uint64_t sink = 0;
+    using F = double (*)(Text&, uint32_t*, int, uint64_t&);
+    const F fns[] = {ablate_once<0>, ablate_once<1>, ablate_once<2>, ablate_once<3>, ablate_once<4>, ablate_once<5>};
+    const char* what[] = {"full_step", "no_stores", "two_only", "chain_only", "chain_win_row_shuf", "chain_win"};
+    std::vector<double> dram[6], cached[6];
+    for (int r = 0; r < reps + 1; ++r) for (int m = 0; m < 6; ++m) {
+        const int i = (m + r) % 6;
+        const double d = fns[i](tb, out.data(), 1, sink), c = fns[i](ts, out.data(), 128, sink);
+        if (r) { dram[i].push_back(d * 1e6 / double(big)); cached[i].push_back(c * 1e6 / (128.0 * double(small))); }
+    }
+    for (int m = 0; m < 6; ++m)
+        std::printf("ablate,%d,%s,dram_ns_per_token,%.3f,cached_ns_per_token,%.3f\n", m, what[m], median(dram[m]), median(cached[m]));
+    std::printf("# sink %llu\n", (unsigned long long)(sink & 1));
+}
+
 void run_one(const std::string& name, int kind, int count) {
     const size_t n = size_t(1) << 25;
     std::vector<uint32_t> out(n + 64);
@@ -254,6 +303,8 @@ int main(int argc, char** argv) {
     const std::string cmd = argc > 1 ? argv[1] : "unit";
     if (cmd == "unit") { unit_parse(); std::printf("ALL OPT UNIT CHECKS PASSED\n"); }
     else if (cmd == "time") time_parsers(argc > 2 ? std::atoi(argv[2]) : 5);
+    else if (cmd == "cache") cache_vs_dram(argc > 2 ? std::atoi(argv[2]) : 5);
+    else if (cmd == "ablate") ablate(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "ovl") overlap(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "one" && argc > 4) run_one(argv[2], std::atoi(argv[3]), std::atoi(argv[4]));
     else fail("usage");

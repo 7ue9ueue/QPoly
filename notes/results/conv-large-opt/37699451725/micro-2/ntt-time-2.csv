@@ -1,0 +1,7 @@
+# CPU: AMD EPYC 9V74 80-Core Processor                
+# compiler: 15.2.0
+kind,tables,lg,entry,median_ms,min_ms,max_ms,speedup_vs_core
+ntt,warm,25,core,216.177,216.069,217.327,1.0000
+ntt,warm,25,tw,228.060,227.843,228.912,0.9479
+ntt,fresh,25,core,217.184,217.040,217.755,1.0000
+ntt,fresh,25,tw,228.515,227.877,229.038,0.9504
