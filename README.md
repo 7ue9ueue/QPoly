@@ -6,9 +6,11 @@ This is my NTT optimization showcase project. I am still actively working on it.
 
 The original implementation below was developed mostly by hand. Inspired by recent advances in AI coding, I have revisited the project to explore further optimization with AI assistance. These new implementations are in separate branches and have not yet been merged.
 
-As of September 27, 2026, the AI-assisted versions rank **#1 by execution time** on Library Checker for both:
+As of October 7, 2026, the AI-assisted versions rank **#1 by execution time** on Library Checker for both:
 
-- [Convolution](https://judge.yosupo.jp/submissions/?problem=convolution_mod&order=%2Btime&status=AC), **16 ms**, compared with 23 ms (**30% lower execution time**), the second fastest implementation. 
+Username: Aiyiyi
+
+- [Convolution](https://judge.yosupo.jp/submissions/?problem=convolution_mod&order=%2Btime&status=AC), **14 ms**, compared with 23 ms (**38% lower execution time**), the second fastest implementation. 
 - [Convolution (Large)](https://judge.yosupo.jp/submissions/?problem=convolution_mod_large&order=%2Btime&status=AC), **454 ms**, compared with 737 ms (**38% lower execution time**), the second fastest implementation. 
 
 ## My implementation
