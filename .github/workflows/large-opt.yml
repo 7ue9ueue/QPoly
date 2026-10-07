@@ -60,7 +60,7 @@ jobs:
         run: |
           set -a; . work/ntt/large_opt/ci.env; set +a
           mkdir -p results-e2e; echo "$GITHUB_SHA" > results-e2e/commit.txt
-          if [ "$E2E" = 1 ]; then bash work/ntt/conv_large/run_e2e.sh results-e2e; else echo "e2e disabled"; fi
+          if [ "$E2E" = 1 ]; then bash work/ntt/large_opt/run_e2e_opt.sh results-e2e; else echo "e2e disabled"; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

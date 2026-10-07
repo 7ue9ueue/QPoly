@@ -44,9 +44,11 @@ void* map_huge(size_t bytes, bool prefault) {
 
 using Fn = void (*)(int lg, U* a, U* b, qlarge::Tables& T, long nza, long nzb);
 void e_core(int lg, U* a, U* b, qlarge::Tables& T, long nza, long nzb) { qlarge::Core<qlarge::Sel>::run(lg, a, b, T, nza, nzb); }
-void e_tw(int lg, U* a, U* b, qlarge::Tables& T, long nza, long nzb) { qopt::CoreTw<qlarge::Sel>::run(lg, a, b, T, nza, nzb); }
+template<bool TW, int AH> void e_ah(int lg, U* a, U* b, qlarge::Tables& T, long nza, long nzb) { qopt::CoreAh<qlarge::Sel, TW, AH>::run(lg, a, b, T, nza, nzb); }
 struct Entry { const char* name; Fn fn; size_t (*words)(int); };
-const Entry ENTRIES[] = {{"core", e_core, qlarge::table_words}, {"tw", e_tw, qopt::table_words_tw}};
+const Entry ENTRIES[] = {{"core", e_core, qlarge::table_words}, {"lw0", e_ah<false, 0>, qlarge::table_words},
+                         {"lw1", e_ah<false, 1>, qlarge::table_words}, {"lw2", e_ah<false, 2>, qlarge::table_words},
+                         {"tw0", e_ah<true, 0>, qopt::table_words_tw}, {"tw2", e_ah<true, 2>, qopt::table_words_tw}};
 
 U power(U a, U e) { U r = 1; for (; e; e >>= 1, a = U(uint64_t(a) * a % P)) if (e & 1) r = U(uint64_t(r) * a % P); return r; }
 void textbook(std::vector<U>& a, bool inverse) {

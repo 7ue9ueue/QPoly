@@ -77,31 +77,48 @@ struct TwGen {
 
 inline size_t table_words_tw(int lg) { return (size_t(1) << lg) / 32 + 16; }   // n/64 entries in block layout
 
-template<class C>
-struct KernelTw : Kernel<C> {
-    static_assert(C::AsmBottom != 0, "N1 replaces the asm bottom stage's table reads");
+// Bottom-level driver with optional generated twiddles (TW) and per-group scalar inputs prepared
+// AHEAD groups before the asm call that reads them (exploration 014). The asm bottom stage reads its
+// leaf weights (lw) ~150-310 instructions and its twiddles ~10-110 instructions into a ~550-
+// instruction block; computed right before the call (qasm Kernel::leaves, AHEAD = 0) their scalar
+// latency (Montgomery products -> stores -> broadcast loads) can stall it. With AHEAD = 2 the inputs
+// of group k are computed while the asm of group k - 2 runs, into a 4-slot ring.
+// TW = false keeps the root-table pointers (the original kernel's table reads, n/16 entries).
+template<class C, bool TW, int AHEAD>
+struct KernelAh : Kernel<C> {
+    static_assert(C::AsmBottom != 0, "replaces the asm bottom stage's driver loop");
+    static_assert(AHEAD >= 0 && AHEAD <= 2);
     TwGen gf{tw_fwd}, gi{tw_inv};
-    KernelTw(const U* r, const U* ir) : Kernel<C>(r, ir) {}
+    KernelAh(const U* r, const U* ir) : Kernel<C>(r, ir) {}
 
     QA_AI void leaves(V* a, V* b, int nv, int first) {
+        constexpr int R = 4;
         LeafBuf64 L[2];
-        alignas(32) U lw[2][8];
-        alignas(64) U fx[16], fy[16], ix[16], iy[16];
-        const int k0 = first / 4;
-        gf.seek(k0); gi.seek(k0);
-        this->leaf_weights(k0, lw[0], lw[0] + 4);
-        gf.emit_advance(fx, fy);
-        bottom_s1(C::AsmBottom, a, b, &L[0], fx, fy, lw[0]);
+        alignas(64) U lw[R][8];
+        alignas(64) U fx[R][16], fy[R][16], ix[R][16], iy[R][16];
+        const int k0 = first / 4, klast = k0 + nv / 4 - 1;
+        if constexpr (TW) { gf.seek(k0); gi.seek(k0); }
+        int fk = k0, ik = k0;   // next group whose forward (lw, x, y, z) / inverse inputs are prepared
+        auto prep_f = [&](int k) __attribute__((always_inline)) {
+            this->leaf_weights(k, lw[k % R], lw[k % R] + 4);
+            if constexpr (TW) gf.emit_advance(fx[k % R], fy[k % R]);
+        };
+        auto prep_i = [&](int k) __attribute__((always_inline)) { if constexpr (TW) gi.emit_advance(ix[k % R], iy[k % R]); };
+        auto fpx = [&](int k) -> const U* { if constexpr (TW) return fx[k % R]; else return this->rt + Kernel<C>::blk(k); };
+        auto fpy = [&](int k) -> const U* { if constexpr (TW) return fy[k % R]; else return this->rt + Kernel<C>::blk(2 * k); };
+        auto ipx = [&](int k) -> const U* { if constexpr (TW) return ix[k % R]; else return this->irt + Kernel<C>::blk(k); };
+        auto ipy = [&](int k) -> const U* { if constexpr (TW) return iy[k % R]; else return this->irt + Kernel<C>::blk(2 * k); };
+        while (fk <= std::min(k0 + AHEAD, klast)) prep_f(fk++);
+        bottom_s1(C::AsmBottom, a, b, &L[0], fpx(k0), fpy(k0), lw[k0 % R]);
         for (int j = 0; j < nv; j += 4) {
-            const int cur = (j >> 2) & 1;
-            gi.emit_advance(ix, iy);
+            const int cur = (j >> 2) & 1, kc = k0 + j / 4;
+            while (fk <= std::min(kc + 1 + AHEAD, klast)) prep_f(fk++);
+            while (ik <= std::min(kc + AHEAD, klast)) prep_i(ik++);
             if (j + 4 < nv) {
-                const int kn = (first + j + 4) / 4;
-                this->leaf_weights(kn, lw[cur ^ 1], lw[cur ^ 1] + 4);
-                gf.emit_advance(fx, fy);
-                bottom_s12(C::AsmBottom, a + j + 4, b + j + 4, &L[cur ^ 1], fx, fy, lw[cur ^ 1], a + j, &L[cur], ix, iy);
+                const int kn = kc + 1;
+                bottom_s12(C::AsmBottom, a + j + 4, b + j + 4, &L[cur ^ 1], fpx(kn), fpy(kn), lw[kn % R], a + j, &L[cur], ipx(kc), ipy(kc));
             } else {
-                bottom_s2(C::AsmBottom, a + j, &L[cur], ix, iy);
+                bottom_s2(C::AsmBottom, a + j, &L[cur], ipx(kc), ipy(kc));
             }
         }
     }
@@ -127,15 +144,17 @@ struct KernelTw : Kernel<C> {
         }
     }
 };
+// Round-2 N1 entry (twiddles generated right before use): KernelAh<C, true, 0>.
+template<class C> using KernelTw = KernelAh<C, true, 0>;
 
-// qlarge::Core<C>::run with KernelTw and n/64-entry tables; everything else identical.
-template<class C>
-struct CoreTw {
-    using K = KernelTw<C>;
+// qlarge::Core<C>::run with KernelAh (n/64-entry tables when TW); everything else identical.
+template<class C, bool TW = true, int AHEAD = 0>
+struct CoreAh {
+    using K = KernelAh<C, TW, AHEAD>;
     using Base = qlarge::Core<C>;
     static void run(int lg, U* aa, U* bb, Tables& T, long nza, long nzb) {
         const int n = 1 << lg, nv = n / 8;
-        K::tables(n / 64, T.r, T.ir, T.size, true);
+        K::tables(TW ? n / 64 : n / 16, T.r, T.ir, T.size, true);
         K job(T.r, T.ir);
         V *a = (V*)aa, *b = (V*)bb;
         const Fixed scale = Base::scale_factor(nv);
@@ -181,4 +200,5 @@ struct CoreTw {
         qlarge::phase(3);
     }
 };
+template<class C> using CoreTw = CoreAh<C, true, 0>;
 }  // namespace qopt

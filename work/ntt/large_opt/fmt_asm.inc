@@ -58,7 +58,7 @@ inline constexpr Consts consts = make_consts();
 
 // Constant v[i] is at byte offset 32 i: 0 M1, 32 M8, 64 10^4, 96..320 thresholds 9..99999999, 352..448 K0..K3,
 // 480 5243, 512 65436, 544 6554, 576 246, 608 '0', 640 ' ', 672 0x20000030, 704 dlo, 736 dhi, 768..864 9th digit.
-#define QFA_BLOCK(SO, DO)                                                          \
+#define QFA_COMPUTE(SO)                                                          \
     "vmovdqu " #SO "(%[s]), %%ymm0\n\t"                                            \
     "vpsrlq $32, %%ymm0, %%ymm1\n\t"                                               \
     "vpmuludq 0(%[t]), %%ymm0, %%ymm2\n\t"                                         \
@@ -126,7 +126,9 @@ inline constexpr Consts consts = make_consts();
     "vpor %%ymm7, %%ymm6, %%ymm6\n\t"                                              \
     "vpshufb 736(%[t]), %%ymm2, %%ymm7\n\t"                                        \
     "vpshufb 864(%[t]), %%ymm3, %%ymm8\n\t"                                        \
-    "vpor %%ymm8, %%ymm7, %%ymm7\n\t"                                              \
+    "vpor %%ymm8, %%ymm7, %%ymm7\n\t"
+
+#define QFA_STORE(DO)                                                              \
     "vmovdqu %%xmm4, " #DO "(%[d])\n\t"                                            \
     "vmovdqu %%xmm5, (" #DO "+10)(%[d])\n\t"                                       \
     "vmovdqu %%xmm6, (" #DO "+20)(%[d])\n\t"                                       \
@@ -135,6 +137,8 @@ inline constexpr Consts consts = make_consts();
     "vextracti128 $1, %%ymm5, (" #DO "+50)(%[d])\n\t"                              \
     "vextracti128 $1, %%ymm6, (" #DO "+60)(%[d])\n\t"                              \
     "vextracti128 $1, %%ymm7, (" #DO "+70)(%[d])\n\t"
+
+#define QFA_BLOCK(SO, DO) QFA_COMPUTE(SO) QFA_STORE(DO)
 
 #define QFA_CLOBBERS "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", \
                      "xmm12", "xmm13", "xmm14", "xmm15", "memory"

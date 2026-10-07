@@ -10,6 +10,7 @@
 //                               128 times per sample) vs 2^25 tokens from DRAM: ns/token
 //   bench_opt fmtunit [limit]   asm formatter (fmt_asm.inc) vs blocks3 for every value < limit (default 10^9),
 //                               random blocks for G = 2, 4 and edge values; exit 1 on any mismatch
+//   bench_opt fmtablate [reps]  formatter ablations: full / compute without stores / stores only / half the stores
 //   bench_opt fmttime [reps]    formatters on 2^25 values into a 160 KiB buffer (random, small < 2^24)
 //   bench_opt ablate [reps]     ms2 step-loop ablations (parse_ablate.inc modes 0-5), DRAM and cached text
 //   bench_opt ovl [reps]        overlap experiment: parse 2^24 random tokens with independent NTT
@@ -322,6 +323,46 @@ void fmt_unit(uint64_t limit) {
     std::printf("PASS asm formatter: %llu values below %llu equal blocks3, 2M random 32-value groups (G = 4, 2), %zu edge values\n",
                 (unsigned long long)checked, (unsigned long long)limit, edge.size());
 }
+// Formatter ablations (diagnostic): full block; compute without stores (f0..f3 folded into one
+// 32-byte store); stores without compute (8 stores of loaded data at the usual offsets); compute with
+// the four low-lane stores only.
+__attribute__((always_inline)) inline void fa_nostore(const uint32_t* src, char* dst) {
+    asm volatile(QFA_COMPUTE(0) "vpxor %%ymm5, %%ymm4, %%ymm4\n\tvpxor %%ymm7, %%ymm6, %%ymm6\n\tvpxor %%ymm6, %%ymm4, %%ymm4\n\tvmovdqu %%ymm4, (%[d])\n\t"
+                 : : [s] "r"(src), [d] "r"(dst), [t] "r"(qp_fmt_asm::consts.v) : QFA_CLOBBERS);
+}
+__attribute__((always_inline)) inline void fa_storeonly(const uint32_t* src, char* dst) {
+    asm volatile("vmovdqu (%[s]), %%ymm4\n\tvpaddd %%ymm4, %%ymm4, %%ymm5\n\tvpaddd %%ymm5, %%ymm4, %%ymm6\n\tvpaddd %%ymm6, %%ymm4, %%ymm7\n\t" QFA_STORE(0)
+                 : : [s] "r"(src), [d] "r"(dst), [t] "r"(qp_fmt_asm::consts.v) : QFA_CLOBBERS);
+}
+__attribute__((always_inline)) inline void fa_halfstore(const uint32_t* src, char* dst) {
+    asm volatile(QFA_COMPUTE(0) "vmovdqu %%xmm4, (%[d])\n\tvmovdqu %%xmm5, 10(%[d])\n\tvmovdqu %%xmm6, 20(%[d])\n\tvmovdqu %%xmm7, 30(%[d])\n\t"
+                 : : [s] "r"(src), [d] "r"(dst), [t] "r"(qp_fmt_asm::consts.v) : QFA_CLOBBERS);
+}
+void fmt_ablate(int reps) {
+    const size_t n = size_t(1) << 25;
+    alignas(64) static char buf[163840 + 512];
+    auto v = values(n + 32, 0, 9);
+    using F = void (*)(const uint32_t*, char*);
+    const F fns[] = {qp_fmt_asm::block8, fa_nostore, fa_storeonly, fa_halfstore};
+    const char* names[] = {"full", "compute_no_stores", "stores_only", "compute_half_stores"};
+    std::vector<double> s[4]; uint64_t sink = 0;
+    for (int r = 0; r < reps + 1; ++r) for (int f0 = 0; f0 < 4; ++f0) {
+        const int f = (f0 + r) % 4;
+        char* c = buf; char* const e = buf + 163840;
+        const double t0 = now_ms();
+        for (size_t i = 0; i < n; i += 8) {
+            if (c >= e) { sink += uint64_t(c - buf); c = buf; }
+            fns[f](v.data() + i, c);
+            c += 80;
+        }
+        const double t1 = now_ms();
+        sink += uint64_t(c - buf) + uint8_t(buf[7]);
+        if (r) s[f].push_back(t1 - t0);
+    }
+    for (int f = 0; f < 4; ++f) std::printf("fmtablate,%s,%.2f ms,%.3f ns/value\n", names[f], median(s[f]), median(s[f]) * 1e6 / double(n));
+    std::printf("# sink %llu\n", (unsigned long long)(sink & 1));
+}
+
 void fmt_time(int reps) {
     const size_t n = size_t(1) << 25;
     alignas(64) static char buf[163840 + 512];
@@ -377,6 +418,7 @@ int main(int argc, char** argv) {
     else if (cmd == "time") time_parsers(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "cache") cache_vs_dram(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "fmtunit") { fmt_unit(argc > 2 ? std::strtoull(argv[2], nullptr, 10) : 1000000000ull); std::printf("ALL FMT UNIT CHECKS PASSED\n"); }
+    else if (cmd == "fmtablate") fmt_ablate(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "fmttime") fmt_time(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "ablate") ablate(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "ovl") overlap(argc > 2 ? std::atoi(argv[2]) : 5);

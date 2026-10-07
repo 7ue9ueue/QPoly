@@ -16,6 +16,7 @@ FLAGS=(-O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native)
 if [ "${MICRO_NTT:-1}" = 1 ]; then "$BIN/bench_ntt" check "${NTT_CHECK_LG:-25}" > "$OUT/ntt-check.txt"; tail -1 "$OUT/ntt-check.txt"; grep -q "ALL NTT CHECKS PASSED" "$OUT/ntt-check.txt"; fi
 if [ "${MICRO_FMT:-0}" = 1 ]; then "$BIN/bench_opt" fmtunit > "$OUT/fmtunit.txt"; tail -1 "$OUT/fmtunit.txt"; grep -q "ALL FMT UNIT CHECKS PASSED" "$OUT/fmtunit.txt"
   for round in 1 2; do "$BIN/bench_opt" fmttime "${MICRO_REPS:-7}" > "$OUT/fmttime-$round.csv"; done; cat "$OUT"/fmttime-*.csv; fi
+if [ "${MICRO_FMTABL:-0}" = 1 ]; then for round in 1 2; do "$BIN/bench_opt" fmtablate "${MICRO_REPS:-7}" > "$OUT/fmtablate-$round.csv"; done; cat "$OUT"/fmtablate-*.csv; fi
 if [ "${MICRO_PARSE:-1}" = 1 ]; then for round in 1 2; do "$BIN/bench_opt" time "${MICRO_REPS:-7}" > "$OUT/time-$round.csv"; done; fi
 if [ "${MICRO_OVL:-1}" = 1 ]; then for round in 1 2; do "$BIN/bench_opt" ovl "${MICRO_REPS:-7}" > "$OUT/ovl-$round.csv"; done; cat "$OUT"/ovl-*.csv; fi
 if [ "${MICRO_ABLATE:-0}" = 1 ]; then for round in 1 2; do "$BIN/bench_opt" ablate "${MICRO_REPS:-7}" > "$OUT/ablate-$round.csv"; "$BIN/bench_opt" cache "${MICRO_REPS:-7}" > "$OUT/cache-$round.csv"; done; cat "$OUT"/ablate-*.csv "$OUT"/cache-*.csv; fi

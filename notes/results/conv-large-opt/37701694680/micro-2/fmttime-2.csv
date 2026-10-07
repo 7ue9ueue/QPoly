@@ -1,0 +1,12 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+format,blocks3_4,random,37.28,1.111 ns/value,min 37.21 (sink 0)
+format,blocks3_2,random,39.72,1.184 ns/value,min 39.70 (sink 0)
+format,asm_1x4,random,37.56,1.119 ns/value,min 37.47 (sink 0)
+format,asm_2x2,random,38.01,1.133 ns/value,min 37.97 (sink 0)
+format,asm_4,random,36.71,1.094 ns/value,min 36.67 (sink 0)
+format,blocks3_4,small,37.36,1.113 ns/value,min 37.32 (sink 0)
+format,blocks3_2,small,39.85,1.188 ns/value,min 39.76 (sink 0)
+format,asm_1x4,small,37.68,1.123 ns/value,min 37.59 (sink 0)
+format,asm_2x2,small,38.05,1.134 ns/value,min 37.98 (sink 0)
+format,asm_4,small,36.80,1.097 ns/value,min 36.76 (sink 0)

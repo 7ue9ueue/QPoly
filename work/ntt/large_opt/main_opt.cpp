@@ -7,8 +7,10 @@
 //             2: qp_parse_ms4<QO_SUB, QO_SKEW> (four tokens per stream step; large_opt/parse_ms4.inc).
 //   QO_FMT    0: qp_fixed::blocks3<4> (deliverable); 1, 2, 4: qp_fmt_asm::blocks<G> with G = QO_FMT
 //             (fmt_asm.inc, inline asm, constants as memory operands), 32 values per loop step.
-//   QO_TW     0: qlarge::Core (deliverable); 1: qopt::CoreTw (bottom twiddles generated on the fly,
-//             root tables of n/64 instead of n/16 entries; large_opt/core_tw.hpp), lengths >= 2^23.
+//   QO_TW     0: qlarge::Core (deliverable); 1: bottom twiddles generated on the fly (root tables of
+//             n/64 instead of n/16 entries; large_opt/core_tw.hpp), lengths >= 2^23.
+//   QO_AH     0..2: per-group scalar inputs of the asm bottom stage (leaf weights, generated twiddles)
+//             prepared QO_AH groups ahead (qopt::CoreAh); 0 with QO_TW = 0 is the deliverable's Core.
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
@@ -41,6 +43,9 @@
 #endif
 #ifndef QO_FMT
 #define QO_FMT 0
+#endif
+#ifndef QO_AH
+#define QO_AH 0
 #endif
 
 #ifdef QPOLY_PROBE
@@ -121,8 +126,8 @@ int main() {
         qasm::Kernel<qlarge::Sel>::run(int(len), a, b, roots, iroots, root_size, true, int(n), int(m));
     } else {
         qlarge::Tables T; T.r = roots; T.ir = iroots;
-#if QO_TW
-        qopt::CoreTw<qlarge::Sel>::run(lg, a, b, T, long(n), long(m));
+#if QO_TW || QO_AH
+        qopt::CoreAh<qlarge::Sel, bool(QO_TW), QO_AH>::run(lg, a, b, T, long(n), long(m));
 #else
         qlarge::Core<qlarge::Sel>::run(lg, a, b, T, long(n), long(m));
 #endif
