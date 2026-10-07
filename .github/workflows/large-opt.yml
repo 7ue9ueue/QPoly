@@ -1,0 +1,94 @@
+name: convolution_mod_large further optimization (exploration 014)
+on:
+  push:
+    branches: [claude/conv-large-opt]
+    paths: [work/ntt/large_opt/**, .github/workflows/large-opt.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  micro:
+    runs-on: ubuntu-24.04
+    container:
+      image: gcc:15.2.0@sha256:3ae15afe768b06d0c0fe088d822ba5f8045c26630bdacc8d8e7713cf5d8e7289
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq util-linux > /dev/null
+      - name: Unit tests and in-memory timings (GCC 15.2, judge flags)
+        run: |
+          set -a; . work/ntt/large_opt/ci.env; set +a
+          mkdir -p results-micro; echo "$GITHUB_SHA" > results-micro/commit.txt
+          if [ "$MICRO" = 1 ]; then bash work/ntt/large_opt/run_micro.sh results-micro; else echo "micro disabled"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: micro-${{ matrix.sample }}
+          path: results-micro/
+          retention-days: 7
+  perf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hardware counter probe
+        run: |
+          set -a; . work/ntt/large_opt/ci.env; set +a
+          mkdir -p results-perf; echo "$GITHUB_SHA" > results-perf/commit.txt
+          if [ "$PERF" = 1 ]; then bash work/ntt/large_opt/run_perf.sh results-perf || true; else echo "perf disabled"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf
+          path: results-perf/
+          retention-days: 7
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Judge-like end-to-end (official cases, judge flags and container limits)
+        run: |
+          set -a; . work/ntt/large_opt/ci.env; set +a
+          mkdir -p results-e2e; echo "$GITHUB_SHA" > results-e2e/commit.txt
+          if [ "$E2E" = 1 ]; then bash work/ntt/conv_large/run_e2e.sh results-e2e; else echo "e2e disabled"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-${{ matrix.sample }}
+          path: results-e2e/
+          retention-days: 7
+  official:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: All official cases for the candidate builds (hash- or checker-verified outputs)
+        run: |
+          set -a; . work/ntt/large_opt/ci.env; set +a
+          mkdir -p results-official; echo "$GITHUB_SHA" > results-official/commit.txt
+          if [ "$OFFICIAL" = 1 ]; then
+            srcs=()
+            IFS=';' read -ra BUILDS <<< "$OFFICIAL_BUILDS"
+            for v in "${BUILDS[@]}"; do
+              name=${v%%:*}; margs=${v#*:}
+              python3 work/ntt/io_large/make_submission.py $margs --out "$RUNNER_TEMP/$name.cpp" | tee -a results-official/generated.txt
+              cp "$RUNNER_TEMP/$name.cpp" results-official/; srcs+=("$RUNNER_TEMP/$name.cpp")
+            done
+            bash work/ntt/conv_large/run_official_all.sh results-official "${srcs[@]}"
+          else echo "official disabled"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: official
+          path: results-official/
+          retention-days: 7
