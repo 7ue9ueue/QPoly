@@ -1,0 +1,63 @@
+== m2
+# CPU: AMD EPYC 9V45 96-Core Processor                
+# compiler: 15.2.0
+one,m2,0,27.72 ms/run
+
+ Performance counter stats for '/home/runner/work/QPoly/QPoly/bench_opt_static one m2 0 5':
+
+   <not supported>      cycles                                                                
+   <not supported>      instructions                                                          
+   <not supported>      L1-dcache-loads                                                       
+   <not supported>      L1-dcache-load-misses                                                 
+   <not supported>      cache-references                                                      
+   <not supported>      cache-misses                                                          
+   <not supported>      branch-misses                                                         
+
+       0.997547261 seconds time elapsed
+
+       0.966428000 seconds user
+       0.031013000 seconds sys
+
+
+== s17
+# CPU: AMD EPYC 9V45 96-Core Processor                
+# compiler: 15.2.0
+one,s17,0,28.01 ms/run
+
+ Performance counter stats for '/home/runner/work/QPoly/QPoly/bench_opt_static one s17 0 5':
+
+   <not supported>      cycles                                                                
+   <not supported>      instructions                                                          
+   <not supported>      L1-dcache-loads                                                       
+   <not supported>      L1-dcache-load-misses                                                 
+   <not supported>      cache-references                                                      
+   <not supported>      cache-misses                                                          
+   <not supported>      branch-misses                                                         
+
+       0.979976381 seconds time elapsed
+
+       0.940711000 seconds user
+       0.038988000 seconds sys
+
+
+== s17p
+# CPU: AMD EPYC 9V45 96-Core Processor                
+# compiler: 15.2.0
+one,s17p,0,28.19 ms/run
+
+ Performance counter stats for '/home/runner/work/QPoly/QPoly/bench_opt_static one s17p 0 5':
+
+   <not supported>      cycles                                                                
+   <not supported>      instructions                                                          
+   <not supported>      L1-dcache-loads                                                       
+   <not supported>      L1-dcache-load-misses                                                 
+   <not supported>      cache-references                                                      
+   <not supported>      cache-misses                                                          
+   <not supported>      branch-misses                                                         
+
+       0.987876793 seconds time elapsed
+
+       0.950634000 seconds user
+       0.036985000 seconds sys
+
+

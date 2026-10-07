@@ -6,6 +6,8 @@
 //   bench_opt time [reps]       parsers on 2^25 tokens (random / nine_digit / single_digit), variants
 //                               interleaved in rotating order, median ms and ns/token per variant
 //   bench_opt one NAME KIND N   run one parser N times (for perf stat)
+//   bench_opt ovl [reps]        overlap experiment: parse 2^24 random tokens with independent NTT
+//                               work interleaved (one unit per 8-token step) vs each alone
 // Baseline: qp_parse_ms2 with 128 KiB chunks (the exploration-011 deliverable's parser).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
@@ -15,6 +17,7 @@
 #include "../io_large/parse_ms2.inc"
 #include "../io_large/fmt_bcd.inc"
 #include "parse_ms2s.inc"
+#include "core_tw.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cpuid.h>
@@ -151,6 +154,85 @@ void time_parsers(int reps) {
     }
 }
 
+// ---- overlap experiment ---------------------------------------------------------------------
+using V = __m256i;
+template<class C>
+__attribute__((always_inline)) inline void fwd4_one(V* f, long h, long j, const qasm::Twiddle& t) {   // qasm::fwd4<C, false> body
+    using namespace qasm;
+    constexpr int M = C::Mul; constexpr bool F = C::Flip, S = C::Shuf, O = C::Opq;
+    V a = low(f[j]), b = low(f[j + h]), c = f[j + 2 * h], d = f[j + 3 * h];
+    const U* fc = (const U*)(f + j + 2 * h);
+    c = t.x.template mul2<M, F, O>(c, _mm256_loadu_si256((const V*)(fc + 1)));
+    d = t.x.template mul2<M, F, O>(d, _mm256_loadu_si256((const V*)(fc + 8 * h + 1)));
+    V ac = low(plus(a, c)), amc = low(diff(a, c));
+    V bd = plus(b, d), bmd = diff(b, d);
+    bd = t.y.template mul<M, F, S, O>(bd);
+    bmd = t.z.template mul<M, F, S, O>(bmd);
+    f[j] = plus(ac, bd); f[j + h] = diff(ac, bd); f[j + 2 * h] = plus(amc, bmd); f[j + 3 * h] = diff(amc, bmd);
+}
+qasm::Fixed fixed_of(uint32_t w) { return qasm::Fixed(qasm::splat(w), qasm::splat(qopt::quotient(w))); }
+struct SideCount { size_t n = 0; __attribute__((always_inline)) void operator()() { ++n; } };
+struct SideTop {   // zero-upper first radix-4 group (qlarge::top4_zero_body) over a 4H-vector array
+    V* f; long H, j, end; qasm::Fixed z;
+    __attribute__((always_inline)) void operator()() { if (j < end) { qlarge::top4_zero_body(f, H, j, z); ++j; } }
+};
+struct SideR4 {    // forward radix-4 butterflies (exploration-009 C++ body) cycling over [0, h)
+    V* f; long h, j; size_t left; qasm::Twiddle t;
+    __attribute__((always_inline)) void operator()() { if (left) { fwd4_one<qlarge::Sel>(f, h, j, t); if (++j == h) j = 0; --left; } }
+};
+constexpr auto TAILP = qp_parse_flat::parse_tokens;
+template<class Side> double parse_with(Text& t, uint32_t* out, size_t n, Side& side) {
+    const double t0 = now_ms();
+    qp_parse_ms2s::parse_side<32768, 0, 0, TAILP>(t.begin(), out, n, side);
+    return now_ms() - t0;
+}
+template<class Side> double side_alone(Side& side, size_t units) {
+    const double t0 = now_ms();
+    for (size_t i = 0; i < units; ++i) { side(); asm volatile("" ::: "memory"); }
+    return now_ms() - t0;
+}
+void overlap(int reps) {
+    const size_t n = size_t(1) << 24;
+    std::vector<uint32_t> out(n + 64);
+    auto v = values(n, 0, 5);
+    Text t = make_text(v, 0);
+    SideCount cnt; parse_with(t, out.data(), n, cnt);
+    const size_t steps = cnt.n;
+    std::mt19937 rng(9);
+    const long H = 1L << 20;   // top group of a 2^25-word array
+    std::vector<V> top(size_t(4 * H) + 2), r4d((size_t(4) << 18) + 2), r4c((size_t(4) << 11) + 2);   // +2: LdOdd reads past the end
+    auto fill = [&](std::vector<V>& x, size_t len) { uint32_t* w = (uint32_t*)x.data(); for (size_t i = 0; i < len * 8; ++i) w[i] = rng() % P; };
+    fill(top, size_t(2 * H)); fill(r4d, r4d.size() - 2); fill(r4c, r4c.size() - 2);
+    const qasm::Twiddle tw{fixed_of(123456789), fixed_of(987654321), fixed_of(55555555)};
+    struct Row { const char* name; std::vector<double> p, s, ps; };
+    std::vector<Row> rows = {{"top"}, {"r4_dram"}, {"r4_l2"}};
+    std::vector<double> base;
+    for (int r = 0; r < reps + 1; ++r) {
+        {
+            qp_parse_ms2s::NoSide none;
+            const double tp = parse_with(t, out.data(), n, none);
+            if (r) base.push_back(tp);
+        }
+        for (size_t k = 0; k < rows.size(); ++k) {
+            const size_t units = k == 0 ? std::min<size_t>(steps, size_t(H)) : steps;
+            auto mk_top = [&]() { return SideTop{top.data(), H, 0, long(units), fixed_of(911660635)}; };
+            auto mk_r4 = [&](std::vector<V>& x) { return SideR4{x.data(), long((x.size() - 2) / 4), 0, units, tw}; };
+            double ts, tps;
+            if (k == 0) { auto s1 = mk_top(); ts = side_alone(s1, units); auto s2 = mk_top(); tps = parse_with(t, out.data(), n, s2); }
+            else { auto& x = k == 1 ? r4d : r4c; auto s1 = mk_r4(x); ts = side_alone(s1, units); auto s2 = mk_r4(x); tps = parse_with(t, out.data(), n, s2); }
+            for (size_t j = 0; j < n; j += 4099) if (out[j] != v[j]) fail("overlap parse check");
+            if (r) { rows[k].s.push_back(ts); rows[k].ps.push_back(tps); }
+        }
+    }
+    const double tp = median(base);
+    std::printf("ovl,parse_alone,%.2f,steps,%zu\n", tp, steps);
+    for (auto& row : rows) {
+        const double ts = median(row.s), tps = median(row.ps);
+        std::printf("ovl,%s,side_alone,%.2f,parse_plus_side,%.2f,extra_vs_parse,%.2f,hidden_fraction,%.3f\n",
+                    row.name, ts, tps, tps - tp, (tp + ts - tps) / ts);
+    }
+}
+
 void run_one(const std::string& name, int kind, int count) {
     const size_t n = size_t(1) << 25;
     std::vector<uint32_t> out(n + 64);
@@ -172,6 +254,7 @@ int main(int argc, char** argv) {
     const std::string cmd = argc > 1 ? argv[1] : "unit";
     if (cmd == "unit") { unit_parse(); std::printf("ALL OPT UNIT CHECKS PASSED\n"); }
     else if (cmd == "time") time_parsers(argc > 2 ? std::atoi(argv[2]) : 5);
+    else if (cmd == "ovl") overlap(argc > 2 ? std::atoi(argv[2]) : 5);
     else if (cmd == "one" && argc > 4) run_one(argv[2], std::atoi(argv[3]), std::atoi(argv[4]));
     else fail("usage");
     return 0;

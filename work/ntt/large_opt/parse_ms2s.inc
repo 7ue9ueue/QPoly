@@ -21,8 +21,12 @@ using qp_parse_ms2::snap;
 using qp_parse_ms2::two;
 using qp_parse_ms2::one;
 
-template<size_t SUB, size_t SKEW, size_t PF, char* (*Tail)(char*, uint32_t*, size_t)>
-__attribute__((noinline)) char* parse_tokens(char* p, uint32_t* dst, size_t count) {
+// Side: a functor called once per stream step (8 tokens), for independent work interleaved with
+// parsing (exploration 014 overlap experiments); NoSide compiles to nothing.
+struct NoSide { __attribute__((always_inline)) void operator()() const {} };
+
+template<size_t SUB, size_t SKEW, size_t PF, char* (*Tail)(char*, uint32_t*, size_t), class Side>
+__attribute__((noinline)) char* parse_side(char* p, uint32_t* dst, size_t count, Side& side) {
     constexpr size_t D = SUB + SKEW, CHB = 4 * D, CAP = D + 64;
     alignas(64) static uint32_t region[3][CAP];
     while (count > CHB / 2 + 64) {
@@ -36,6 +40,7 @@ __attribute__((noinline)) char* parse_tokens(char* p, uint32_t* dst, size_t coun
             size_t steps = left / 33;
             if (!steps) break;
             do {
+                side();
                 if constexpr (PF != 0) {
                     _mm_prefetch(s0 + PF, _MM_HINT_T0); _mm_prefetch(s1 + PF, _MM_HINT_T0);
                     _mm_prefetch(s2 + PF, _MM_HINT_T0); _mm_prefetch(s3 + PF, _MM_HINT_T0);
@@ -76,5 +81,10 @@ __attribute__((noinline)) char* parse_tokens(char* p, uint32_t* dst, size_t coun
         dst += total; count -= total; p = e3;
     }
     return Tail(p, dst, count);
+}
+template<size_t SUB, size_t SKEW, size_t PF, char* (*Tail)(char*, uint32_t*, size_t)>
+char* parse_tokens(char* p, uint32_t* dst, size_t count) {
+    NoSide none;
+    return parse_side<SUB, SKEW, PF, Tail>(p, dst, count, none);
 }
 }  // namespace qp_parse_ms2s

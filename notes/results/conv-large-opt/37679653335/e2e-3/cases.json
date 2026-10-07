@@ -1,0 +1,53 @@
+{
+ "problems_commit": "1814c4e5205517e368bb57a8d1127eb961cfeaae",
+ "cases": [
+  {
+   "case": "random_02",
+   "n": 11063384,
+   "m": 15586699,
+   "in_bytes": 263534491,
+   "out_bytes": 263532565,
+   "out_sha256": "26a50fcccc9b6bcc8de961edd0099bcfc66b9f50026ceb2c1806958369d5f719"
+  },
+  {
+   "case": "max_random_00",
+   "n": 16777216,
+   "m": 16777216,
+   "in_bytes": 331807520,
+   "out_bytes": 331808526,
+   "out_sha256": "30b21a255de2a081e8685d0fdef77e4cfe65373b8028317bb90d78dfee2348ee"
+  },
+  {
+   "case": "fft_killer_00",
+   "n": 16777216,
+   "m": 16777216,
+   "in_bytes": 335544338,
+   "out_bytes": 331811821,
+   "out_sha256": "6c29f0319436ff58f76a7bde6309feb1888e8efc549cf30239aa78b39c0b3831"
+  },
+  {
+   "case": "max_ans_zero_00",
+   "n": 16777216,
+   "m": 16777216,
+   "in_bytes": 331807520,
+   "out_bytes": 331808156,
+   "out_sha256": "72125c492cd92511e37f17f0257dd9e4627ae18a690f09a231ad38884c50d5be"
+  },
+  {
+   "case": "small_and_large_00",
+   "n": 100,
+   "m": 16777216,
+   "in_bytes": 165905312,
+   "out_bytes": 165907211,
+   "out_sha256": "c6f095f9caaf9f99198d5f99d9299145a27c3b67c0f68b1535e9c66941f9be63"
+  },
+  {
+   "case": "all_same_00",
+   "n": 16777216,
+   "m": 16777216,
+   "in_bytes": 67108882,
+   "out_bytes": 279767673,
+   "out_sha256": "33c61bd1c31670292938c99a91bcb290299cd18f62ec12cf64c5901131f79e8d"
+  }
+ ]
+}

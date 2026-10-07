@@ -4,6 +4,8 @@
 // deliverable's code path.
 //   QO_PARSE  0: qp_parse_ms2<128 KiB> (deliverable); 1: qp_parse_ms2s<QO_SUB, QO_SKEW, QO_PF>
 //             (stream spacing QO_SUB + QO_SKEW bytes, optional prefetch; large_opt/parse_ms2s.inc).
+//   QO_TW     0: qlarge::Core (deliverable); 1: qopt::CoreTw (bottom twiddles generated on the fly,
+//             root tables of n/64 instead of n/16 entries; large_opt/core_tw.hpp), lengths >= 2^23.
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
@@ -14,6 +16,7 @@
 #include "../io_large/parse_ms2.inc"
 #include "../io_large/fmt_bcd.inc"
 #include "parse_ms2s.inc"
+#include "core_tw.hpp"
 #include <time.h>
 
 #ifndef QO_PARSE
@@ -27,6 +30,9 @@
 #endif
 #ifndef QO_PF
 #define QO_PF 0
+#endif
+#ifndef QO_TW
+#define QO_TW 0
 #endif
 
 #ifdef QPOLY_PROBE
@@ -84,7 +90,12 @@ int main() {
     const unsigned count = n + m - 1;
     int lg = 6;
     while ((1u << lg) < count) ++lg;
-    const size_t len = size_t(1) << lg, arr = len + 16, tab = (qlarge::table_words(lg) + 15) & ~size_t(15);
+    const size_t len = size_t(1) << lg, arr = len + 16;
+#if QO_TW
+    const size_t tab = ((lg >= 23 ? qopt::table_words_tw(lg) : qlarge::table_words(lg)) + 15) & ~size_t(15);
+#else
+    const size_t tab = (qlarge::table_words(lg) + 15) & ~size_t(15);
+#endif
     uint32_t* const a = lg >= 23 ? lazy_arena(2 * arr + 2 * tab) : arena(2 * arr + 2 * tab);
     uint32_t *const b = a + arr, *const roots = b + arr, *const iroots = roots + tab;
 #if QO_PARSE == 1
@@ -100,7 +111,11 @@ int main() {
         qasm::Kernel<qlarge::Sel>::run(int(len), a, b, roots, iroots, root_size, true, int(n), int(m));
     } else {
         qlarge::Tables T; T.r = roots; T.ir = iroots;
+#if QO_TW
+        qopt::CoreTw<qlarge::Sel>::run(lg, a, b, T, long(n), long(m));
+#else
         qlarge::Core<qlarge::Sel>::run(lg, a, b, T, long(n), long(m));
+#endif
     }
     QP_MARK(3);
     // 160 KiB = 512 * 320-byte groups; a group writes 326 bytes (6 overwritten by the next one).
