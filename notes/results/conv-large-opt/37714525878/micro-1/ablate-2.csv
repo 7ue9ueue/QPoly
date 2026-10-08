@@ -1,0 +1,10 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+ablate,0,full_step,dram_ns_per_token,1.241,cached_ns_per_token,1.172
+ablate,1,no_stores,dram_ns_per_token,1.057,cached_ns_per_token,0.995
+ablate,2,two_only,dram_ns_per_token,0.920,cached_ns_per_token,0.862
+ablate,3,chain_only,dram_ns_per_token,0.777,cached_ns_per_token,0.727
+ablate,4,chain_win_row_shuf,dram_ns_per_token,0.879,cached_ns_per_token,0.821
+ablate,5,chain_win,dram_ns_per_token,0.820,cached_ns_per_token,0.769
+ablate,6,conv_only_q4,dram_ns_per_token,0.826
+# sink 0

@@ -1,0 +1,4 @@
+# CPU: AMD EPYC 9V45 96-Core Processor                
+# compiler: 15.2.0
+PASS asm formatter: 1000000000 values below 1000000000 equal blocks3, 2M random 32-value groups (G = 4, 2), 50 edge values
+ALL FMT UNIT CHECKS PASSED
