@@ -80,8 +80,9 @@ jobs:
             srcs=()
             IFS=';' read -ra BUILDS <<< "$OFFICIAL_BUILDS"
             for v in "${BUILDS[@]}"; do
-              name=${v%%:*}; margs=${v#*:}
-              python3 work/ntt/io_large/make_submission.py $margs --out "$RUNNER_TEMP/$name.cpp" | tee -a results-official/generated.txt
+              name=${v%%:*}; margs=${v#*:}; gen=work/ntt/conv_large/make_submission.py   # "@io ARGS": io_large generator
+              case "$margs" in "@io"*) gen=work/ntt/io_large/make_submission.py; margs=${margs#@io};; esac
+              python3 $gen $margs --out "$RUNNER_TEMP/$name.cpp" | tee -a results-official/generated.txt
               cp "$RUNNER_TEMP/$name.cpp" results-official/; srcs+=("$RUNNER_TEMP/$name.cpp")
             done
             bash work/ntt/conv_large/run_official_all.sh results-official "${srcs[@]}"

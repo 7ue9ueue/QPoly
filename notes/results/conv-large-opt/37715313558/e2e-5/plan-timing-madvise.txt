@@ -1,0 +1,14 @@
+reps 7
+warmups 1
+evict 0
+init /workdir/init
+outdir /casedir/out
+variant io_p /workdir/io_p
+variant s4q_p /workdir/s4q_p
+variant s4qn_p /workdir/s4qn_p
+case random_02 /casedir/random_02.in /casedir/random_02.out
+case max_random_00 /casedir/max_random_00.in /casedir/max_random_00.out
+case fft_killer_00 /casedir/fft_killer_00.in /casedir/fft_killer_00.out
+case max_ans_zero_00 /casedir/max_ans_zero_00.in /casedir/max_ans_zero_00.out
+case small_and_large_00 /casedir/small_and_large_00.in /casedir/small_and_large_00.out
+case all_same_00 /casedir/all_same_00.in /casedir/all_same_00.out
