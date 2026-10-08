@@ -6,17 +6,26 @@ exploration-011 deliverable's probe twin). Starting point: branch `claude/ntt-co
 (`../io_large/final_io_main.cpp` + `../conv_large/large_core.hpp` + the exploration-009 kernel).
 Notes: [exploration 014](../../../notes/explorations/014-conv-large-opt.md).
 
-Judge phase times of 406521 (its stderr, EPYC 7B13, THP madvise, max cases): parse 71 ms (parser
-~47 + input page faults ~17 + arena first touch), NTT 205 ms, output 156 ms (format ~36 + write()
-~120), ~12 ms outside `main` (exec, input unmap, exit).
+## Deliverable
+
+`../yosupo_convolution_mod_large_opt.cpp` (and `_probe.cpp`) = `final_opt_main.cpp` inlined by
+`python3 work/ntt/io_large/make_submission.py --source ../large_opt/final_opt_main.cpp [--probe] --out …`:
+the exploration-011 program with the `qp_parse_ms4` parser (256 KiB + skew chunks) and the
+`qp_fmt_asm::blocks2_s4` formatter. About −5 ms end to end on EPYC 7763 (judge: EPYC 7B13, same Zen 3).
 
 ## Files
 
 | File | Role |
 | --- | --- |
-| `parse_ms2s.inc` | `qp_parse_ms2` with stream spacing `SUB + SKEW` (default ms2: 4 streams exactly 32 KiB apart, i.e. the same L1D set) and optional per-step prefetch |
-| `main_opt.cpp` | experiment program: the exploration-011 deliverable with macro switches (`QO_PARSE`, `QO_SUB`, `QO_SKEW`, `QO_PF`); defaults reproduce the deliverable's code path |
-| `bench_opt.cpp` | `unit` (all parser variants: random/9-digit/1-digit/uniform-length/edge/short streams, mixed whitespace, resumed calls, fixed-width round trip), `time [reps]` (2^25 tokens, interleaved), `one NAME KIND N` (for perf) |
-| `run_micro.sh`, `run_perf.sh`, `ci.env`, `../../../.github/workflows/large-opt.yml` | CI: micro timings in the pinned gcc:15.2.0 image; hardware-counter probe on the host; judge-like e2e via `../conv_large/run_e2e.sh`; all official cases via `../conv_large/run_official_all.sh` |
-
-Single files: `python3 work/ntt/io_large/make_submission.py --source ../large_opt/main_opt.cpp --define QO_PARSE=1 ... --out FILE`.
+| `final_opt_main.cpp` | deliverable program (selected variant only) |
+| `main_opt.cpp` | experiment program; macros select parser (`QO_PARSE`, `QO_SUB`, `QO_SKEW`, `QO_PF`), formatter (`QO_FMT`, `QO_PFW`), transform driver (`QO_TW`, `QO_AH`) and the parse/transform overlap (`QO_OV`); defaults reproduce the exploration-011 deliverable |
+| `parse_ms4.inc` | `qp_parse_ms4`: four tokens per stream step (selected); optional side job and non-temporal region copy |
+| `parse_ms2s.inc` | ms2 with stream skew / prefetch / side job (round 1, refuted on Zen 3) |
+| `parse_ms4p.inc` | software-pipelined ms4 (rounds 8–9, slower) |
+| `parse_ablate.inc` | ms2 step ablations and conversion-only diagnostic |
+| `fmt_asm.inc` | inline-asm `blocks3`: 8-store (`block8`, `blocks<G>`) and four-store (`block8_s4`, `blocks2_s4`, selected) layouts |
+| `core_tw.hpp` | `qopt::CoreAh<C, TW, AHEAD>`: Core::run with generated bottom twiddles (N1) and/or bottom inputs prepared ahead; `a_top_done` for the overlap; all refuted |
+| `bench_opt.cpp` | `unit`, `time`, `cache`, `ablate`, `ovl`, `fmtunit [limit]` (exhaustive to 10^9), `fmttime`, `fmtablate`, `one` |
+| `bench_ntt.cpp` | transform variants: `check [lg]` (bit-identical to Core, generator vs tables, oracles), `time lg reps` (warm/fresh tables) |
+| `asm_probe.cpp` | compiled with `-S` in CI to inspect GCC 15.2's code for the I/O loops |
+| `run_micro.sh`, `run_perf.sh`, `run_e2e_opt.sh`, `launcher_opt.c`, `summarize_opt.py`, `ci.env`, `../../../.github/workflows/large-opt.yml` | CI: micro timings (gcc:15.2.0 image); PMU probe; judge-like e2e (copy of exploration 010's with probe-phase parsing and a wall/user/sys/phase summary); all official cases |

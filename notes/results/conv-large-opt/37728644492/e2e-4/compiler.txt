@@ -1,0 +1,2 @@
+g++ (GCC) 15.2.0
+-O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native

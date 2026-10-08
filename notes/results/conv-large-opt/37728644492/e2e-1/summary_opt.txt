@@ -1,0 +1,6 @@
+== timing-madvise.csv: medians over ['all_same_00', 'fft_killer_00', 'max_ans_zero_00', 'max_random_00'] (ms)
+variant,wall,user,sys,map,parse,ntt,out
+fin,311.7,192.6,119.3,,,,
+fin_p,310.7,193.8,117.5,0.0,41.8,147.7,110.3
+io_p,322.9,198.8,119.5,0.0,54.8,147.5,109.7
+s4q_p,312.0,192.8,119.9,0.0,41.8,148.5,110.2

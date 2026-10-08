@@ -1,0 +1,1 @@
+map 0.0 parse 32.0 ntt 103.9 out 76.2 ms (from main) | thp [always] madvise never | AMD EPYC 7763 64-Core Processor                
