@@ -5,7 +5,8 @@
 //   QO_PARSE  0: qp_parse_ms2<128 KiB> (deliverable); 1: qp_parse_ms2s<QO_SUB, QO_SKEW, QO_PF>
 //             (stream spacing QO_SUB + QO_SKEW bytes, optional prefetch; large_opt/parse_ms2s.inc);
 //             2: qp_parse_ms4<QO_SUB, QO_SKEW> (four tokens per stream step; large_opt/parse_ms4.inc);
-//             3: qp_parse_ms4p<QO_SUB, QO_SKEW> (ms4 software-pipelined; large_opt/parse_ms4p.inc).
+//             3: qp_parse_ms4p<QO_SUB, QO_SKEW> (ms4 software-pipelined; large_opt/parse_ms4p.inc);
+//             4: qp_parse_ms4 with non-temporal stores for the per-chunk region copy.
 //   QO_FMT    0: qp_fixed::blocks3<4> (deliverable); 1, 2, 4: qp_fmt_asm::blocks<G> with G = QO_FMT
 //             (fmt_asm.inc, inline asm, constants as memory operands), 32 values per loop step;
 //             8 / 9: four 32-byte stores per 8 values (block8_s4 x4 / blocks2_s4 x2 per loop step).
@@ -130,6 +131,8 @@ int main() {
     constexpr auto parse = qp_parse_ms4::parse_tokens<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens>;
 #elif QO_PARSE == 3
     constexpr auto parse = qp_parse_ms4p::parse_tokens<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens>;
+#elif QO_PARSE == 4
+    constexpr auto parse = qp_parse_ms4::parse_tokens<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens, true>;
 #else
     constexpr auto parse = qp_parse_ms2::parse_tokens<131072, qp_parse_flat::parse_tokens>;
 #endif

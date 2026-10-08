@@ -82,10 +82,20 @@ __attribute__((always_inline)) inline __m256i combine(__m256i gA, __m256i gB, __
     return _mm256_permutevar8x32_epi32(v, _mm256_setr_epi32(0, 4, 1, 5, 2, 6, 3, 7));
 }
 
+// Copy of the per-stream regions into place. NT: non-temporal 32-byte stores for the aligned middle
+// (the destination is fresh memory read again only much later), avoiding read-for-ownership traffic.
+template<bool NT>
+__attribute__((always_inline)) inline void copy_values(uint32_t* d, const uint32_t* s, size_t n) {
+    if constexpr (!NT) { std::memcpy(d, s, n * sizeof(uint32_t)); return; }
+    while (n && (reinterpret_cast<uintptr_t>(d) & 31)) { *d++ = *s++; --n; }
+    for (; n >= 8; n -= 8, d += 8, s += 8) _mm256_stream_si256(reinterpret_cast<__m256i*>(d), _mm256_loadu_si256(reinterpret_cast<const __m256i*>(s)));
+    while (n) { *d++ = *s++; --n; }
+}
+
 // Side: a functor called once per step (16 tokens), for independent work interleaved with parsing.
 struct NoSide { __attribute__((always_inline)) void operator()() const {} };
 
-template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t), class Side>
+template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t), class Side, bool NT = false>
 __attribute__((noinline)) char* parse_side(char* p, uint32_t* dst, size_t count, Side& side) {
     constexpr size_t D = SUB + SKEW, CHB = 4 * D, CAP = D + 64;
     alignas(64) static uint32_t region[3][CAP];
@@ -126,17 +136,18 @@ __attribute__((noinline)) char* parse_side(char* p, uint32_t* dst, size_t count,
             dst += total; count -= total; p = e3;
             continue;
         }
-        std::memcpy(dst + n0, o1, n1 * sizeof(uint32_t));
-        std::memcpy(dst + n0 + n1, o2, n2 * sizeof(uint32_t));
-        std::memcpy(dst + n0 + n1 + n2, o3, n3 * sizeof(uint32_t));
+        copy_values<NT>(dst + n0, o1, n1);
+        copy_values<NT>(dst + n0 + n1, o2, n2);
+        copy_values<NT>(dst + n0 + n1 + n2, o3, n3);
         const size_t total = n0 + n1 + n2 + n3;
         dst += total; count -= total; p = e3;
     }
+    if constexpr (NT) _mm_sfence();
     return Tail(p, dst, count);
 }
-template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t)>
+template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t), bool NT = false>
 char* parse_tokens(char* p, uint32_t* dst, size_t count) {
     NoSide none;
-    return parse_side<SUB, SKEW, Tail>(p, dst, count, none);
+    return qp_parse_ms4::parse_side<SUB, SKEW, Tail, NoSide, NT>(p, dst, count, none);
 }
 }  // namespace qp_parse_ms4
