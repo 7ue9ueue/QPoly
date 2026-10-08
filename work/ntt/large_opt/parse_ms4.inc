@@ -150,4 +150,48 @@ char* parse_tokens(char* p, uint32_t* dst, size_t count) {
     NoSide none;
     return qp_parse_ms4::parse_side<SUB, SKEW, Tail, NoSide, NT>(p, dst, count, none);
 }
+// Two-stream variant (exploration 014 round 12): four tokens per step from each of two streams
+// (8 tokens per step, half the live state of the four-stream loop, one combine per step, one region
+// copy per chunk). combine(a12, b12, a34, b34) = [A1 A2 B1 B2 | A3 A4 B3 B4]; vpermq 0xD8 gives
+// [A1 A2 A3 A4 | B1 B2 B3 B4].
+template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t)>
+__attribute__((noinline)) char* parse_tokens2(char* p, uint32_t* dst, size_t count) {
+    constexpr size_t D = SUB + SKEW, CHB = 2 * D, CAP = D + 64;
+    alignas(64) static uint32_t region[CAP];
+    while (count > CHB / 2 + 64) {   // a chunk holds at most (CHB + 33) / 2 tokens, all of this array
+        char *s0 = p, *s1 = qp_parse_ms2::snap(p + D);
+        char *const e0 = s1, *const e1 = qp_parse_ms2::snap(p + CHB);
+        uint32_t *const o0 = dst, *const o1 = region;
+        __m256i flags = _mm256_setzero_si256();
+        size_t j = 0;
+        for (;;) {
+            const size_t left = size_t(std::min(e0 - s0, e1 - s1));
+            size_t steps = left / 65;
+            if (!steps) break;
+            do {
+                __m256i a12, a34, b12, b34;
+                four(s0, flags, a12, a34); four(s1, flags, b12, b34);
+                const __m256i q = _mm256_permute4x64_epi64(combine(a12, b12, a34, b34), 0xD8);
+                _mm_storeu_si128(reinterpret_cast<__m128i*>(o0 + j), _mm256_castsi256_si128(q));
+                _mm_storeu_si128(reinterpret_cast<__m128i*>(o1 + j), _mm256_extracti128_si256(q, 1));
+                j += 4;
+            } while (--steps);
+        }
+        size_t n0 = j, n1 = j;
+        while (s0 < e0) o0[n0++] = qp_parse_ms2::one(s0, flags);   // dst holds count > D + 33 values
+        while (s1 < e1 && n1 < CAP) o1[n1++] = qp_parse_ms2::one(s1, flags);
+        const bool bad = (uint32_t(_mm256_movemask_epi8(flags)) & 0x80008000u) | (s0 != e0) | (s1 != e1);
+        if (__builtin_expect(bad, 0)) {
+            size_t total = 0;
+            for (char* q = p; q < e1; ++q) total += size_t(*q > ' ' && (q == p || q[-1] <= ' '));
+            Tail(p, dst, total);
+            dst += total; count -= total; p = e1;
+            continue;
+        }
+        std::memcpy(dst + n0, o1, n1 * sizeof(uint32_t));
+        const size_t total = n0 + n1;
+        dst += total; count -= total; p = e1;
+    }
+    return Tail(p, dst, count);
+}
 }  // namespace qp_parse_ms4
