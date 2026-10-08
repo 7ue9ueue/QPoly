@@ -19,7 +19,7 @@
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops")
 #endif
-#pragma GCC target("avx2,bmi,bmi2")
+#pragma GCC target("avx2,bmi,bmi2,prfchw")
 #include "../conv_large/io007.hpp"
 #include "../io_large/parse_ms2.inc"
 #include "../io_large/fmt_bcd.inc"
@@ -293,13 +293,15 @@ void ablate(int reps) {
 
 void fmt_unit(uint64_t limit) {
     alignas(32) uint32_t v[32];
-    char a[400], b[400];
+    char a[400], b[400 + 64];
     uint64_t checked = 0;
     for (uint64_t x0 = 0; x0 < limit; x0 += 8) {
         for (int i = 0; i < 8; ++i) v[i] = uint32_t(std::min<uint64_t>(x0 + i, limit - 1));
         qp_fixed::blocks3<1>(v, a);
         qp_fmt_asm::block8(v, b);
         if (std::memcmp(a, b, 80) != 0) fail("asm block8 vs blocks3 at " + std::to_string(x0));
+        qp_fmt_asm::block8_s4(v, b);
+        if (std::memcmp(a, b, 80) != 0) fail("asm block8_s4 vs blocks3 at " + std::to_string(x0));
         checked += 8;
     }
     std::mt19937 rng(17);
@@ -310,6 +312,10 @@ void fmt_unit(uint64_t limit) {
         if (std::memcmp(a, b, 320) != 0) fail("asm blocks<4> vs blocks3<4>");
         qp_fmt_asm::blocks<2>(v, b); qp_fmt_asm::blocks<2>(v + 16, b + 160);
         if (std::memcmp(a, b, 320) != 0) fail("asm blocks<2> vs blocks3<4>");
+        qp_fmt_asm::blocks2_s4(v, b); qp_fmt_asm::blocks2_s4(v + 16, b + 160);
+        if (std::memcmp(a, b, 320) != 0) fail("asm blocks2_s4 vs blocks3<4>");
+        for (int k = 0; k < 4; ++k) qp_fmt_asm::block8_s4(v + 8 * k, b + 80 * k);
+        if (std::memcmp(a, b, 320) != 0) fail("asm block8_s4 x4 vs blocks3<4>");
     }
     std::vector<uint32_t> edge = {0, 1, 9, 10, 11, 99, 100, 101, 998244352, 999999999};
     for (uint32_t k = 10; k <= 100000000; k *= 10) for (int d = -2; d <= 2; ++d) edge.push_back(uint32_t(int64_t(k) + d));
@@ -317,6 +323,8 @@ void fmt_unit(uint64_t limit) {
         for (int i = 0; i < 8; ++i) v[i] = x;
         qp_fmt_asm::block8(v, b); qp_fixed::one(x, a);
         for (int i = 0; i < 8; ++i) if (std::memcmp(b + 10 * i, a, 10) != 0) fail("asm edge " + std::to_string(x));
+        qp_fmt_asm::block8_s4(v, b);
+        for (int i = 0; i < 8; ++i) if (std::memcmp(b + 10 * i, a, 10) != 0) fail("asm s4 edge " + std::to_string(x));
         char want[16]; const int n = std::snprintf(want, sizeof want, "%u", x);
         if (std::memcmp(a + 9 - n, want, size_t(n)) != 0 || a[9] != ' ') fail("reference layout " + std::to_string(x));
     }
@@ -366,13 +374,14 @@ void fmt_ablate(int reps) {
 void fmt_time(int reps) {
     const size_t n = size_t(1) << 25;
     alignas(64) static char buf[163840 + 512];
-    const char* names[] = {"blocks3_4", "blocks3_2", "asm_1x4", "asm_2x2", "asm_4"};
+    const char* names[] = {"blocks3_4", "blocks3_2", "asm_1x4", "asm_2x2", "asm_4", "s4_1x4", "s4_2x2", "asm_2x2_pfw", "s4_2x2_pfw", "blocks3_4_pfw"};
     const char* kinds[] = {"random", "small"};
     for (int kind = 0; kind < 2; ++kind) {
         auto v = values(n + 32, kind == 0 ? 0 : 4, 9);
-        std::vector<double> s[5]; uint64_t sink = 0;
-        for (int r = 0; r < reps + 1; ++r) for (int f0 = 0; f0 < 5; ++f0) {
-            const int f = (f0 + r) % 5;
+        constexpr int NF = 10;
+        std::vector<double> s[NF]; uint64_t sink = 0;
+        for (int r = 0; r < reps + 1; ++r) for (int f0 = 0; f0 < NF; ++f0) {
+            const int f = (f0 + r) % NF;
             char* c = buf; char* const e = buf + 163840;
             const double t0 = now_ms();
             for (size_t i = 0; i < n; i += 32) {
@@ -382,14 +391,22 @@ void fmt_time(int reps) {
                 else if (f == 1) { qp_fixed::blocks3<2>(src, c); qp_fixed::blocks3<2>(src + 16, c + 160); }
                 else if (f == 2) { qp_fmt_asm::block8(src, c); qp_fmt_asm::block8(src + 8, c + 80); qp_fmt_asm::block8(src + 16, c + 160); qp_fmt_asm::block8(src + 24, c + 240); }
                 else if (f == 3) { qp_fmt_asm::blocks<2>(src, c); qp_fmt_asm::blocks<2>(src + 16, c + 160); }
-                else qp_fmt_asm::blocks<4>(src, c);
+                else if (f == 4) qp_fmt_asm::blocks<4>(src, c);
+                else if (f == 5) { qp_fmt_asm::block8_s4(src, c); qp_fmt_asm::block8_s4(src + 8, c + 80); qp_fmt_asm::block8_s4(src + 16, c + 160); qp_fmt_asm::block8_s4(src + 24, c + 240); }
+                else if (f == 6) { qp_fmt_asm::blocks2_s4(src, c); qp_fmt_asm::blocks2_s4(src + 16, c + 160); }
+                else {   // write-intent prefetch of the next group's five lines (640 bytes ahead)
+                    for (int l = 0; l < 320; l += 64) __builtin_prefetch(c + 640 + l, 1, 3);
+                    if (f == 7) { qp_fmt_asm::blocks<2>(src, c); qp_fmt_asm::blocks<2>(src + 16, c + 160); }
+                    else if (f == 8) { qp_fmt_asm::blocks2_s4(src, c); qp_fmt_asm::blocks2_s4(src + 16, c + 160); }
+                    else qp_fixed::blocks3<4>(src, c);
+                }
                 c += 320;
             }
             const double t1 = now_ms();
             sink += uint64_t(c - buf) + uint8_t(buf[7]);
             if (r) s[f].push_back(t1 - t0);
         }
-        for (int f = 0; f < 5; ++f)
+        for (int f = 0; f < NF; ++f)
             std::printf("format,%s,%s,%.2f,%.3f ns/value,min %.2f (sink %llu)\n", names[f], kinds[kind], median(s[f]), median(s[f]) * 1e6 / double(n),
                         *std::min_element(s[f].begin(), s[f].end()), (unsigned long long)(sink & 1));
     }

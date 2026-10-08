@@ -25,7 +25,7 @@
 #include <cstdint>
 
 namespace qp_fmt_asm {
-struct alignas(32) Consts { uint32_t v[28][8]; };
+struct alignas(32) Consts { uint32_t v[31][8]; };
 constexpr Consts make_consts() {
     Consts c{};
     auto all = [&](int i, uint32_t x) { for (int j = 0; j < 8; ++j) c.v[i][j] = x; };
@@ -52,13 +52,26 @@ constexpr Consts make_consts() {
         put(23, 16 * lane + j, uint32_t(j >= 1 && j <= 8 ? dlo[j] + 8 : dlo[j]));
         for (int k = 0; k < 4; ++k) put(24 + k, 16 * lane + j, uint32_t(j == 0 ? 4 * k : j == 9 ? 4 * k + 3 : 0x80));
     }
+    // Four-store layout: 28 digits of [b_i c_i b_i+1 c_i+1] (both lanes), 29/30 the 9th digits and
+    // separators from A dwords (0, 1) / (2, 3) of the lane.
+    const int cd_lo[16] = {0x80, 3, 2, 1, 0, 7, 6, 5, 4, 0x80, 0x80, 11, 10, 9, 8, 15};
+    const int cd_hi[16] = {14, 13, 12, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
+    for (int j = 0; j < 16; ++j) {
+        put(28, j, uint32_t(cd_lo[j])); put(28, 16 + j, uint32_t(cd_hi[j]));
+        for (int q = 0; q < 2; ++q) {   // q = 0: dwords 0, 1; q = 1: dwords 2, 3
+            const int base = 8 * q;
+            put(29 + q, j, uint32_t(j == 0 ? base : j == 9 ? base + 3 : j == 10 ? base + 4 : 0x80));
+            put(29 + q, 16 + j, uint32_t(j == 3 ? base + 7 : 0x80));
+        }
+    }
     return c;
 }
 inline constexpr Consts consts = make_consts();
 
 // Constant v[i] is at byte offset 32 i: 0 M1, 32 M8, 64 10^4, 96..320 thresholds 9..99999999, 352..448 K0..K3,
-// 480 5243, 512 65436, 544 6554, 576 246, 608 '0', 640 ' ', 672 0x20000030, 704 dlo, 736 dhi, 768..864 9th digit.
-#define QFA_COMPUTE(SO)                                                          \
+// 480 5243, 512 65436, 544 6554, 576 246, 608 '0', 640 ' ', 672 0x20000030, 704 dlo, 736 dhi, 768..864 9th digit,
+// 896 four-store digits, 928 / 960 four-store 9th digits and separators.
+#define QFA_CORE(SO)                                                          \
     "vmovdqu " #SO "(%[s]), %%ymm0\n\t"                                            \
     "vpsrlq $32, %%ymm0, %%ymm1\n\t"                                               \
     "vpmuludq 0(%[t]), %%ymm0, %%ymm2\n\t"                                         \
@@ -114,7 +127,9 @@ inline constexpr Consts consts = make_consts();
     "vpaddb 608(%[t]), %%ymm4, %%ymm4\n\t"                                         \
     "vpblendvb %%ymm7, %%ymm4, %%ymm15, %%ymm4\n\t"                                \
     "vpunpckldq %%ymm4, %%ymm5, %%ymm1\n\t"        /* S1 */                        \
-    "vpunpckhdq %%ymm4, %%ymm5, %%ymm2\n\t"        /* S2 */                        \
+    "vpunpckhdq %%ymm4, %%ymm5, %%ymm2\n\t"        /* S2 */
+
+#define QFA_LAYOUT8                                                                \
     "vpshufb 704(%[t]), %%ymm1, %%ymm4\n\t"                                        \
     "vpshufb 768(%[t]), %%ymm3, %%ymm5\n\t"                                        \
     "vpor %%ymm5, %%ymm4, %%ymm4\n\t"                                              \
@@ -128,6 +143,8 @@ inline constexpr Consts consts = make_consts();
     "vpshufb 864(%[t]), %%ymm3, %%ymm8\n\t"                                        \
     "vpor %%ymm8, %%ymm7, %%ymm7\n\t"
 
+#define QFA_COMPUTE(SO) QFA_CORE(SO) QFA_LAYOUT8
+
 #define QFA_STORE(DO)                                                              \
     "vmovdqu %%xmm4, " #DO "(%[d])\n\t"                                            \
     "vmovdqu %%xmm5, (" #DO "+10)(%[d])\n\t"                                       \
@@ -138,6 +155,36 @@ inline constexpr Consts consts = make_consts();
     "vextracti128 $1, %%ymm6, (" #DO "+60)(%[d])\n\t"                              \
     "vextracti128 $1, %%ymm7, (" #DO "+70)(%[d])\n\t"
 
+// Four-store layout (exploration 014 round 7): after QFA_CORE, ymm1 = S1, ymm2 = S2, ymm3 = A.
+// Output vector p covers fields 2p and 2p+1 (bytes 20p .. 20p+19) plus 12 scratch bytes: its low
+// lane is field 2p and the first 6 bytes of field 2p+1, its high lane the last 4 bytes of field
+// 2p+1. Each lane sees a duplicated 128-bit half of S1/S2 (digits of both values) and of A (9th
+// digits and separators). Four overlapping 32-byte stores at 0, 20, 40, 60 in increasing order;
+// writes p[0..91] (12 scratch bytes after the block).
+#define QFA_LAYOUT4STORE(DO)                                                       \
+    "vinserti128 $1, %%xmm3, %%ymm3, %%ymm0\n\t"     /* E01 = [A.lo | A.lo] */     \
+    "vperm2i128 $0x11, %%ymm3, %%ymm3, %%ymm3\n\t"   /* E45 = [A.hi | A.hi] */     \
+    "vinserti128 $1, %%xmm1, %%ymm1, %%ymm4\n\t"     /* values 0, 1 */             \
+    "vpshufb 896(%[t]), %%ymm4, %%ymm4\n\t"                                        \
+    "vpshufb 928(%[t]), %%ymm0, %%ymm5\n\t"                                        \
+    "vpor %%ymm5, %%ymm4, %%ymm4\n\t"                                              \
+    "vmovdqu %%ymm4, " #DO "(%[d])\n\t"                                            \
+    "vinserti128 $1, %%xmm2, %%ymm2, %%ymm6\n\t"     /* values 2, 3 */             \
+    "vpshufb 896(%[t]), %%ymm6, %%ymm6\n\t"                                        \
+    "vpshufb 960(%[t]), %%ymm0, %%ymm7\n\t"                                        \
+    "vpor %%ymm7, %%ymm6, %%ymm6\n\t"                                              \
+    "vmovdqu %%ymm6, (" #DO "+20)(%[d])\n\t"                                       \
+    "vperm2i128 $0x11, %%ymm1, %%ymm1, %%ymm4\n\t"   /* values 4, 5 */             \
+    "vpshufb 896(%[t]), %%ymm4, %%ymm4\n\t"                                        \
+    "vpshufb 928(%[t]), %%ymm3, %%ymm5\n\t"                                        \
+    "vpor %%ymm5, %%ymm4, %%ymm4\n\t"                                              \
+    "vmovdqu %%ymm4, (" #DO "+40)(%[d])\n\t"                                       \
+    "vperm2i128 $0x11, %%ymm2, %%ymm2, %%ymm6\n\t"   /* values 6, 7 */             \
+    "vpshufb 896(%[t]), %%ymm6, %%ymm6\n\t"                                        \
+    "vpshufb 960(%[t]), %%ymm3, %%ymm7\n\t"                                        \
+    "vpor %%ymm7, %%ymm6, %%ymm6\n\t"                                              \
+    "vmovdqu %%ymm6, (" #DO "+60)(%[d])\n\t"
+
 #define QFA_BLOCK(SO, DO) QFA_COMPUTE(SO) QFA_STORE(DO)
 
 #define QFA_CLOBBERS "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", \
@@ -146,6 +193,15 @@ inline constexpr Consts consts = make_consts();
 // 8 values -> 80 bytes (+6 scratch).
 __attribute__((always_inline)) inline void block8(const uint32_t* src, char* dst) {
     asm volatile(QFA_BLOCK(0, 0) : : [s] "r"(src), [d] "r"(dst), [t] "r"(consts.v) : QFA_CLOBBERS);
+}
+// 8 values -> 80 bytes (+12 scratch) with four 32-byte stores.
+__attribute__((always_inline)) inline void block8_s4(const uint32_t* src, char* dst) {
+    asm volatile(QFA_CORE(0) QFA_LAYOUT4STORE(0) : : [s] "r"(src), [d] "r"(dst), [t] "r"(consts.v) : QFA_CLOBBERS);
+}
+// 16 values -> 160 bytes (+12 scratch) with eight 32-byte stores, one asm statement.
+__attribute__((always_inline)) inline void blocks2_s4(const uint32_t* src, char* dst) {
+    asm volatile(QFA_CORE(0) QFA_LAYOUT4STORE(0) QFA_CORE(32) QFA_LAYOUT4STORE(80)
+                 : : [s] "r"(src), [d] "r"(dst), [t] "r"(consts.v) : QFA_CLOBBERS);
 }
 // 8G values -> 80G bytes (+6 scratch), G in {1, 2, 4}: one asm statement.
 template<int G>

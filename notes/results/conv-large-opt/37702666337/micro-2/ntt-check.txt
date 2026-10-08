@@ -1,0 +1,21 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+PASS generator equals the root tables for k < 1048576 (both directions)
+PASS lg 9: entries bit-identical to core, core verified
+PASS lg 10: entries bit-identical to core, core verified
+PASS lg 11: entries bit-identical to core, core verified
+PASS lg 12: entries bit-identical to core, core verified
+PASS lg 13: entries bit-identical to core, core verified
+PASS lg 14: entries bit-identical to core, core verified
+PASS lg 15: entries bit-identical to core, core verified
+PASS lg 16: entries bit-identical to core, core verified
+PASS lg 17: entries bit-identical to core, core verified
+PASS lg 18: entries bit-identical to core, core verified
+PASS lg 19: entries bit-identical to core, core verified
+PASS lg 20: entries bit-identical to core, core verified
+PASS lg 21: entries bit-identical to core, core verified
+PASS lg 22: entries bit-identical to core, core verified
+PASS lg 23: entries bit-identical to core, core verified
+PASS lg 24: entries bit-identical to core, core verified
+PASS lg 25: entries bit-identical to core, core verified
+ALL NTT CHECKS PASSED

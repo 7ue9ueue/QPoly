@@ -152,7 +152,9 @@ template<class C, bool TW = true, int AHEAD = 0>
 struct CoreAh {
     using K = KernelAh<C, TW, AHEAD>;
     using Base = qlarge::Core<C>;
-    static void run(int lg, U* aa, U* bb, Tables& T, long nza, long nzb) {
+    // a_top_done: the caller already ran a's zero-upper first radix-4 group (even log2(n/8), nza <= n/2;
+    // see top_zero_unit()), e.g. interleaved with parsing b.
+    static void run(int lg, U* aa, U* bb, Tables& T, long nza, long nzb, bool a_top_done = false) {
         const int n = 1 << lg, nv = n / 8;
         K::tables(TW ? n / 64 : n / 16, T.r, T.ir, T.size, true);
         K job(T.r, T.ir);
@@ -188,7 +190,7 @@ struct CoreAh {
             if (za || zb) {
                 const Fixed z = job.template fixed_at<false>(1);
                 const Twiddle t0 = job.template twiddle<false>(0);
-                if (za) { for (int j = 0; j < h; ++j) qlarge::top4_zero_body(a, h, j, z); } else fwd4<C, true>(a, h, t0);
+                if (za) { if (!a_top_done) for (int j = 0; j < h; ++j) qlarge::top4_zero_body(a, h, j, z); } else fwd4<C, true>(a, h, t0);
                 if (zb) { for (int j = 0; j < h; ++j) qlarge::top4_zero_body(b, h, j, z); } else fwd4<C, true>(b, h, t0);
             } else job.template group<false>(a, b, h, 0);
             qlarge::phase(1);
@@ -201,4 +203,16 @@ struct CoreAh {
     }
 };
 template<class C> using CoreTw = CoreAh<C, true, 0>;
+
+// The zero-upper first group's twiddle z = r[1] without the tables: the normal form of
+// qasm::constants.q[0] with Shoup quotient q[0] * NI (what Kernel::tables stores at blk(1), +8).
+inline Fixed top_zero_twiddle() { return Fixed(splat(muls(constants.q[0], 1)), splat(constants.q[0] * NI)); }
+// Applies when CoreAh::run would take the even branch with a zero upper half of a.
+inline bool top_zero_applies(int lg, long nza) { return !(((lg - 3) & 1)) && nza <= (1L << lg) / 2; }
+// Side job for the parser: one unit = one zero-upper first-group butterfly of a (n/32 units).
+struct TopZeroSide {
+    V* f; long h, j = 0; Fixed z;
+    QA_AI void operator()() { if (j < h) { qlarge::top4_zero_body(f, h, j, z); ++j; } }
+    void finish() { for (; j < h; ++j) qlarge::top4_zero_body(f, h, j, z); }
+};
 }  // namespace qopt

@@ -82,8 +82,11 @@ __attribute__((always_inline)) inline __m256i combine(__m256i gA, __m256i gB, __
     return _mm256_permutevar8x32_epi32(v, _mm256_setr_epi32(0, 4, 1, 5, 2, 6, 3, 7));
 }
 
-template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t)>
-__attribute__((noinline)) char* parse_tokens(char* p, uint32_t* dst, size_t count) {
+// Side: a functor called once per step (16 tokens), for independent work interleaved with parsing.
+struct NoSide { __attribute__((always_inline)) void operator()() const {} };
+
+template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t), class Side>
+__attribute__((noinline)) char* parse_side(char* p, uint32_t* dst, size_t count, Side& side) {
     constexpr size_t D = SUB + SKEW, CHB = 4 * D, CAP = D + 64;
     alignas(64) static uint32_t region[3][CAP];
     while (count > CHB / 2 + 64) {   // a chunk holds at most (CHB + 33) / 2 tokens, all of this array
@@ -97,6 +100,7 @@ __attribute__((noinline)) char* parse_tokens(char* p, uint32_t* dst, size_t coun
             size_t steps = left / 65;
             if (!steps) break;
             do {
+                side();
                 __m256i a12, a34, b12, b34, c12, c34, d12, d34;
                 four(s0, flags, a12, a34); four(s1, flags, b12, b34);
                 four(s2, flags, c12, c34); four(s3, flags, d12, d34);
@@ -129,5 +133,10 @@ __attribute__((noinline)) char* parse_tokens(char* p, uint32_t* dst, size_t coun
         dst += total; count -= total; p = e3;
     }
     return Tail(p, dst, count);
+}
+template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t)>
+char* parse_tokens(char* p, uint32_t* dst, size_t count) {
+    NoSide none;
+    return parse_side<SUB, SKEW, Tail>(p, dst, count, none);
 }
 }  // namespace qp_parse_ms4

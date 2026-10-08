@@ -1,0 +1,7 @@
+# CPU: AMD EPYC 9V74 80-Core Processor                
+# compiler: 15.2.0
+fmtablate,full,30.30 ms,0.903 ns/value
+fmtablate,compute_no_stores,28.00 ms,0.834 ns/value
+fmtablate,stores_only,11.73 ms,0.350 ns/value
+fmtablate,compute_half_stores,27.66 ms,0.824 ns/value
+# sink 0

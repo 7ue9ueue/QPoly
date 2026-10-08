@@ -6,9 +6,14 @@
 //             (stream spacing QO_SUB + QO_SKEW bytes, optional prefetch; large_opt/parse_ms2s.inc);
 //             2: qp_parse_ms4<QO_SUB, QO_SKEW> (four tokens per stream step; large_opt/parse_ms4.inc).
 //   QO_FMT    0: qp_fixed::blocks3<4> (deliverable); 1, 2, 4: qp_fmt_asm::blocks<G> with G = QO_FMT
-//             (fmt_asm.inc, inline asm, constants as memory operands), 32 values per loop step.
+//             (fmt_asm.inc, inline asm, constants as memory operands), 32 values per loop step;
+//             8 / 9: four 32-byte stores per 8 values (block8_s4 x4 / blocks2_s4 x2 per loop step).
+//   QO_PFW    1: prefetchw of the output buffer lines of the next loop step (640 bytes ahead).
 //   QO_TW     0: qlarge::Core (deliverable); 1: bottom twiddles generated on the fly (root tables of
 //             n/64 instead of n/16 entries; large_opt/core_tw.hpp), lengths >= 2^23.
+//   QO_OV     1: a's zero-upper first radix-4 group runs as a side job of b's parse (one butterfly per
+//             parser step; the rest after the parse) and is skipped in the transform (qopt::CoreAh).
+//             Needs QO_PARSE 1 or 2; lengths >= 2^23 with even log2(n/8) and N <= n/2.
 //   QO_AH     0..2: per-group scalar inputs of the asm bottom stage (leaf weights, generated twiddles)
 //             prepared QO_AH groups ahead (qopt::CoreAh); 0 with QO_TW = 0 is the deliverable's Core.
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
@@ -46,6 +51,12 @@
 #endif
 #ifndef QO_AH
 #define QO_AH 0
+#endif
+#ifndef QO_OV
+#define QO_OV 0
+#endif
+#ifndef QO_PFW
+#define QO_PFW 0
 #endif
 
 #ifdef QPOLY_PROBE
@@ -119,15 +130,33 @@ int main() {
     constexpr auto parse = qp_parse_ms2::parse_tokens<131072, qp_parse_flat::parse_tokens>;
 #endif
     input_cursor = parse(input_cursor, a, n);
+#if QO_OV
+    const bool ov = lg >= 23 && qopt::top_zero_applies(lg, long(n));
+    qopt::TopZeroSide side{reinterpret_cast<__m256i*>(a), long(len / 32), 0, qopt::top_zero_twiddle()};
+    if (!ov) side.j = side.h;   // nothing to do
+#if QO_PARSE == 1
+    input_cursor = qp_parse_ms2s::parse_side<QO_SUB, QO_SKEW, QO_PF, qp_parse_flat::parse_tokens>(input_cursor, b, m, side);
+#elif QO_PARSE == 2
+    input_cursor = qp_parse_ms4::parse_side<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens>(input_cursor, b, m, side);
+#else
+#error "QO_OV needs QO_PARSE 1 or 2"
+#endif
+    side.finish();
+#else
     input_cursor = parse(input_cursor, b, m);
+#endif
     QP_MARK(2);
     if (lg <= 22) {
         int root_size = 0;
         qasm::Kernel<qlarge::Sel>::run(int(len), a, b, roots, iroots, root_size, true, int(n), int(m));
     } else {
         qlarge::Tables T; T.r = roots; T.ir = iroots;
-#if QO_TW || QO_AH
+#if QO_TW || QO_AH || QO_OV
+#if QO_OV
+        qopt::CoreAh<qlarge::Sel, bool(QO_TW), QO_AH>::run(lg, a, b, T, long(n), long(m), ov);
+#else
         qopt::CoreAh<qlarge::Sel, bool(QO_TW), QO_AH>::run(lg, a, b, T, long(n), long(m));
+#endif
 #else
         qlarge::Core<qlarge::Sel>::run(lg, a, b, T, long(n), long(m));
 #endif
@@ -143,6 +172,9 @@ int main() {
     unsigned i = 0;
     for (; i + 32 <= count; i += 32) {   // reads a[i .. i + 31] < count
         if (c >= obuf + obuf_size) { write_all(obuf, size_t(c - obuf)); c = obuf; }
+#if QO_PFW
+        for (int l = 0; l < 320; l += 64) __builtin_prefetch(c + 640 + l, 1, 3);
+#endif
 #if QO_FMT == 1
         qp_fmt_asm::blocks<1>(a + i, c); qp_fmt_asm::blocks<1>(a + i + 8, c + 80);
         qp_fmt_asm::blocks<1>(a + i + 16, c + 160); qp_fmt_asm::blocks<1>(a + i + 24, c + 240);
@@ -150,6 +182,11 @@ int main() {
         qp_fmt_asm::blocks<2>(a + i, c); qp_fmt_asm::blocks<2>(a + i + 16, c + 160);
 #elif QO_FMT == 4
         qp_fmt_asm::blocks<4>(a + i, c);
+#elif QO_FMT == 8
+        qp_fmt_asm::block8_s4(a + i, c); qp_fmt_asm::block8_s4(a + i + 8, c + 80);
+        qp_fmt_asm::block8_s4(a + i + 16, c + 160); qp_fmt_asm::block8_s4(a + i + 24, c + 240);
+#elif QO_FMT == 9
+        qp_fmt_asm::blocks2_s4(a + i, c); qp_fmt_asm::blocks2_s4(a + i + 16, c + 160);
 #else
         qp_fixed::blocks3<4>(a + i, c);
 #endif

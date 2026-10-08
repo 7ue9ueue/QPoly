@@ -1,0 +1,7 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+fmtablate,full,37.24 ms,1.110 ns/value
+fmtablate,compute_no_stores,31.94 ms,0.952 ns/value
+fmtablate,stores_only,16.24 ms,0.484 ns/value
+fmtablate,compute_half_stores,32.42 ms,0.966 ns/value
+# sink 0
