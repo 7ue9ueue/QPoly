@@ -1,6 +1,6 @@
 # 014 — convolution_mod_large: further optimization after the 454 ms record
 
-Date: 2026-10-07/08. Status: complete (12 CI rounds; deliverable verified on all 54 official cases, not submitted).
+Date: 2026-10-07/08. Status: complete (13 CI rounds; deliverable verified on all 54 official cases, not submitted).
 Branch `claude/conv-large-opt` from `claude/ntt-conv-large` 42953d3 (exploration 011). Code:
 [work/ntt/large_opt](../../work/ntt/large_opt/README.md). Raw data:
 [results/conv-large-opt](../results/conv-large-opt/README.md) (one folder per run id).
@@ -70,6 +70,7 @@ read() were measured in 010/011 or reasoned to be slower.
 | 7b (37714525878) | conversion-only ablation (positions precomputed) | 0.83 ns/token (≈ the step without the chain) |
 | 8, 9 (37714684067, 37714943080) | software-pipelined ms4 (scan step k+1 while converting step k), register copies / double-buffered records | +13% / +25% slower on Zen 3: refuted as written in C++ |
 | 10 (37715313558) | s4 + ms4 on 5 runners; non-temporal region copy | s4q −5.0…−6.5 on three 7763; NT copy worse in e2e (parse +2 ms) |
+| 12 (37729362053, 2 attempts) | ms4 with two streams instead of four (fewer live registers: 26 vs 79 stack references) | slower everywhere: 7763 47.6–48.4 vs 46.1–46.5 ms (q4h), Zen 5 +20%, Intel +12% |
 | 11 (37728644492) | final files: e2e on 5 runners, all 54 official cases | −4.5 / −5.1 ms on two 7763 (probe vs probe); 162 official runs, 0 failures |
 
 ## Findings

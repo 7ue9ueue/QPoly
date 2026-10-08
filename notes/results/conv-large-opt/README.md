@@ -23,3 +23,4 @@ when run, `official` (all 54 cases). Timing includes process start and exit. CPU
 | [37714684067](https://github.com/7ue9ueue/QPoly/actions/runs/37714684067), [37714943080](https://github.com/7ue9ueue/QPoly/actions/runs/37714943080) | 8, 9 | software-pipelined ms4 (two forms) |
 | [37715313558](https://github.com/7ue9ueue/QPoly/actions/runs/37715313558) | 10 | s4q vs deliverable on 5 runners; non-temporal region copy |
 | [37728644492](https://github.com/7ue9ueue/QPoly/actions/runs/37728644492) | 11 | final files: e2e on 5 runners, all 54 official cases |
+| [37729362053](https://github.com/7ue9ueue/QPoly/actions/runs/37729362053) (+ `-attempt-2`) | 12 | two-stream four-token parser (micro) |

@@ -1,0 +1,4 @@
+# CPU: AMD EPYC 7763 64-Core Processor                
+# compiler: 15.2.0
+PASS parsers: 3940 runs
+ALL OPT UNIT CHECKS PASSED
