@@ -288,6 +288,21 @@ void ablate(int reps) {
     }
     for (int m = 0; m < 6; ++m)
         std::printf("ablate,%d,%s,dram_ns_per_token,%.3f,cached_ns_per_token,%.3f\n", m, what[m], median(dram[m]), median(cached[m]));
+    {   // conversion only: token separators precomputed (outside the timer), 4 streams x 4 tokens per step
+        std::vector<int32_t> sep(big + 1);
+        sep[0] = -1;
+        size_t k = 1;
+        for (size_t i = 0; i < tb.len && k <= big; ++i) if (tb.begin()[i] <= ' ') sep[k++] = int32_t(i);
+        if (k != big + 1) fail("conv_only: separator count");
+        std::vector<double> c;
+        for (int r = 0; r < reps + 1; ++r) {
+            const double t0 = now_ms();
+            sink += qp_ablate::conv_only(tb.begin(), sep.data() + 1, big, out.data());
+            if (r) c.push_back((now_ms() - t0) * 1e6 / double(big));
+        }
+        for (size_t i = 0; i < big; i += 4097) if (out[i] != vb[i]) fail("conv_only mismatch");
+        std::printf("ablate,6,conv_only_q4,dram_ns_per_token,%.3f\n", median(c));
+    }
     std::printf("# sink %llu\n", (unsigned long long)(sink & 1));
 }
 
