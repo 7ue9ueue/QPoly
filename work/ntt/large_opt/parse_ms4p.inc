@@ -54,7 +54,8 @@ __attribute__((always_inline)) inline void emit(const Scan (&p)[4], __m256i& fla
     _mm_storeu_si128(reinterpret_cast<__m128i*>(o3 + j), _mm256_extracti128_si256(bd, 1));
 }
 
-template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t), class Side = qp_parse_ms4::NoSide>
+// DB: scan records double-buffered in a stack array instead of copied between registers each step.
+template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t), class Side = qp_parse_ms4::NoSide, bool DB = false>
 __attribute__((noinline)) char* parse_side(char* p, uint32_t* dst, size_t count, Side& side) {
     constexpr size_t D = SUB + SKEW, CHB = 4 * D, CAP = D + 64;
     alignas(64) static uint32_t region[3][CAP];
@@ -68,18 +69,35 @@ __attribute__((noinline)) char* parse_side(char* p, uint32_t* dst, size_t count,
             const size_t left = size_t(std::min(std::min(e[0] - s[0], e[1] - s[1]), std::min(e[2] - s[2], e[3] - s[3])));
             size_t steps = left / 65;   // scans this batch; each advances a stream by <= 65 bytes
             if (!steps) break;
-            Scan pend[4];
-            scan(s[0], pend[0]); scan(s[1], pend[1]); scan(s[2], pend[2]); scan(s[3], pend[3]);
-            while (--steps) {
-                side();
-                Scan next[4];
-                scan(s[0], next[0]); scan(s[1], next[1]); scan(s[2], next[2]); scan(s[3], next[3]);
+            if constexpr (DB) {   // scan records double-buffered in memory (no per-step copies)
+                alignas(64) Scan buf[2][4];
+                scan(s[0], buf[0][0]); scan(s[1], buf[0][1]); scan(s[2], buf[0][2]); scan(s[3], buf[0][3]);
+                size_t cur = 0;
+                while (--steps) {
+                    side();
+                    Scan (&nx)[4] = buf[cur ^ 1];
+                    scan(s[0], nx[0]); scan(s[1], nx[1]); scan(s[2], nx[2]); scan(s[3], nx[3]);
+                    asm volatile("" ::: "memory");   // keep the records in memory
+                    emit(buf[cur], flags, o0, o1, o2, o3, j);
+                    j += 4;
+                    cur ^= 1;
+                }
+                emit(buf[cur], flags, o0, o1, o2, o3, j);
+                j += 4;
+            } else {
+                Scan pend[4];
+                scan(s[0], pend[0]); scan(s[1], pend[1]); scan(s[2], pend[2]); scan(s[3], pend[3]);
+                while (--steps) {
+                    side();
+                    Scan next[4];
+                    scan(s[0], next[0]); scan(s[1], next[1]); scan(s[2], next[2]); scan(s[3], next[3]);
+                    emit(pend, flags, o0, o1, o2, o3, j);
+                    j += 4;
+                    for (int k = 0; k < 4; ++k) pend[k] = next[k];
+                }
                 emit(pend, flags, o0, o1, o2, o3, j);
                 j += 4;
-                for (int k = 0; k < 4; ++k) pend[k] = next[k];
             }
-            emit(pend, flags, o0, o1, o2, o3, j);
-            j += 4;
         }
         size_t n0 = j, n1 = j, n2 = j, n3 = j;
         while (s[0] < e[0]) o0[n0++] = qp_parse_ms2::one(s[0], flags);
@@ -102,9 +120,9 @@ __attribute__((noinline)) char* parse_side(char* p, uint32_t* dst, size_t count,
     }
     return Tail(p, dst, count);
 }
-template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t)>
+template<size_t SUB, size_t SKEW, char* (*Tail)(char*, uint32_t*, size_t), bool DB = false>
 char* parse_tokens(char* p, uint32_t* dst, size_t count) {
     qp_parse_ms4::NoSide none;
-    return qp_parse_ms4p::parse_side<SUB, SKEW, Tail>(p, dst, count, none);   // qualified: no ADL into qp_parse_ms4
+    return qp_parse_ms4p::parse_side<SUB, SKEW, Tail, qp_parse_ms4::NoSide, DB>(p, dst, count, none);   // qualified: no ADL
 }
 }  // namespace qp_parse_ms4p

@@ -88,6 +88,8 @@ const NamedParser PARSERS[] = {
     {"q4h", qp_parse_ms4::parse_tokens<65536, 1088, TAIL>},
     {"q4p", qp_parse_ms4p::parse_tokens<32768, 0, TAIL>},           // pipelined: scan k+1 while converting k
     {"q4ph", qp_parse_ms4p::parse_tokens<65536, 1088, TAIL>},
+    {"q4pd", qp_parse_ms4p::parse_tokens<32768, 0, TAIL, true>},    // pipelined, double-buffered records
+    {"q4pdh", qp_parse_ms4p::parse_tokens<65536, 1088, TAIL, true>},
 };
 const NamedParser* find_parser(const std::string& name) {
     for (const auto& p : PARSERS) if (name == p.name) return &p;

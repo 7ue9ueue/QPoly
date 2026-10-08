@@ -17,3 +17,6 @@ char* probe_parse4(char* p, uint32_t* dst, size_t n) { return qp_parse_ms4::pars
 void probe_format_asm(const uint32_t* a, char* c, size_t count) {
     for (size_t i = 0; i + 32 <= count; i += 32, c += 320) qp_fmt_asm::blocks<4>(a + i, c);
 }
+#include "parse_ms4p.inc"
+char* probe_parse4p(char* p, uint32_t* dst, size_t n) { return qp_parse_ms4p::parse_tokens<65536, 1088, qp_parse_flat::parse_tokens>(p, dst, n); }
+char* probe_parse4pd(char* p, uint32_t* dst, size_t n) { return qp_parse_ms4p::parse_tokens<65536, 1088, qp_parse_flat::parse_tokens, true>(p, dst, n); }

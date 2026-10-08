@@ -4,7 +4,8 @@
 // deliverable's code path.
 //   QO_PARSE  0: qp_parse_ms2<128 KiB> (deliverable); 1: qp_parse_ms2s<QO_SUB, QO_SKEW, QO_PF>
 //             (stream spacing QO_SUB + QO_SKEW bytes, optional prefetch; large_opt/parse_ms2s.inc);
-//             2: qp_parse_ms4<QO_SUB, QO_SKEW> (four tokens per stream step; large_opt/parse_ms4.inc).
+//             2: qp_parse_ms4<QO_SUB, QO_SKEW> (four tokens per stream step; large_opt/parse_ms4.inc);
+//             3: qp_parse_ms4p<QO_SUB, QO_SKEW> (ms4 software-pipelined; large_opt/parse_ms4p.inc).
 //   QO_FMT    0: qp_fixed::blocks3<4> (deliverable); 1, 2, 4: qp_fmt_asm::blocks<G> with G = QO_FMT
 //             (fmt_asm.inc, inline asm, constants as memory operands), 32 values per loop step;
 //             8 / 9: four 32-byte stores per 8 values (block8_s4 x4 / blocks2_s4 x2 per loop step).
@@ -13,7 +14,7 @@
 //             n/64 instead of n/16 entries; large_opt/core_tw.hpp), lengths >= 2^23.
 //   QO_OV     1: a's zero-upper first radix-4 group runs as a side job of b's parse (one butterfly per
 //             parser step; the rest after the parse) and is skipped in the transform (qopt::CoreAh).
-//             Needs QO_PARSE 1 or 2; lengths >= 2^23 with even log2(n/8) and N <= n/2.
+//             Needs QO_PARSE 1, 2 or 3; lengths >= 2^23 with even log2(n/8) and N <= n/2.
 //   QO_AH     0..2: per-group scalar inputs of the asm bottom stage (leaf weights, generated twiddles)
 //             prepared QO_AH groups ahead (qopt::CoreAh); 0 with QO_TW = 0 is the deliverable's Core.
 // -DQPOLY_PROBE prints one stderr line (phase ms, THP mode, CPU).
@@ -27,6 +28,7 @@
 #include "../io_large/fmt_bcd.inc"
 #include "parse_ms2s.inc"
 #include "parse_ms4.inc"
+#include "parse_ms4p.inc"
 #include "fmt_asm.inc"
 #include "core_tw.hpp"
 #include <time.h>
@@ -126,6 +128,8 @@ int main() {
     constexpr auto parse = qp_parse_ms2s::parse_tokens<QO_SUB, QO_SKEW, QO_PF, qp_parse_flat::parse_tokens>;
 #elif QO_PARSE == 2
     constexpr auto parse = qp_parse_ms4::parse_tokens<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens>;
+#elif QO_PARSE == 3
+    constexpr auto parse = qp_parse_ms4p::parse_tokens<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens>;
 #else
     constexpr auto parse = qp_parse_ms2::parse_tokens<131072, qp_parse_flat::parse_tokens>;
 #endif
@@ -138,8 +142,10 @@ int main() {
     input_cursor = qp_parse_ms2s::parse_side<QO_SUB, QO_SKEW, QO_PF, qp_parse_flat::parse_tokens>(input_cursor, b, m, side);
 #elif QO_PARSE == 2
     input_cursor = qp_parse_ms4::parse_side<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens>(input_cursor, b, m, side);
+#elif QO_PARSE == 3
+    input_cursor = qp_parse_ms4p::parse_side<QO_SUB, QO_SKEW, qp_parse_flat::parse_tokens>(input_cursor, b, m, side);
 #else
-#error "QO_OV needs QO_PARSE 1 or 2"
+#error "QO_OV needs QO_PARSE 1, 2 or 3"
 #endif
     side.finish();
 #else
